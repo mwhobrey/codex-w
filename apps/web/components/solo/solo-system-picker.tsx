@@ -10,10 +10,10 @@ export function SoloSystemPicker() {
     <div className="mx-auto max-w-2xl">
       <div className="text-center">
         <h1 className="font-display text-4xl font-medium tracking-tight text-codex-text">
-          Solo play
+          Open a table
         </h1>
         <p className="mt-3 text-codex-text-muted">
-          Pick a system. Ask questions. Let the oracle answer. Works offline.
+          Pick a system. Solo or shared — same link, same map, works offline.
         </p>
       </div>
 
@@ -21,7 +21,7 @@ export function SoloSystemPicker() {
         {systems.map((system) => (
           <li key={system.id}>
             <Link
-              href={`/solo/${system.id}`}
+              href={`/play?system=${system.id}`}
               className="group block rounded-2xl border border-codex-border bg-codex-surface p-6 transition-colors hover:border-codex-ember/40 hover:bg-codex-elevated"
             >
               <div className="flex items-start justify-between gap-4">
