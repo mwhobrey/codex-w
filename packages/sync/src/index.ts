@@ -9,6 +9,7 @@ export {
   getPlayRoomFogMap,
   getPlayRoomLogArray,
   getPlayRoomMetaMap,
+  getPlayRoomPlayerTokensMap,
 } from './yjs/play-room-doc';
 export {
   defaultTableMeta,
@@ -43,3 +44,15 @@ export {
   isSoloSessionImported,
   tableMetaFromSoloSession,
 } from './yjs/import-solo-session';
+export {
+  PLAYER_TOKEN_RADIUS,
+  defaultPlayerTokenPosition,
+  movePlayerToken,
+  playerTokenKey,
+  prunePlayerTokens,
+  readPlayerTokens,
+  removePlayerToken,
+  upsertPlayerToken,
+  type PlayerTokenRecord,
+  type PlayerTokenView,
+} from './yjs/player-tokens';

@@ -3,9 +3,11 @@
 import { CodexMapToolbar } from '@/components/play/codex-map-toolbar';
 import { FogOverlay } from '@/components/play/fog-overlay';
 import { MapCursorOverlay } from '@/components/play/map-cursor-overlay';
+import { PlayerTokenOverlay } from '@/components/play/player-token-overlay';
 import type { TablePeer } from '@/hooks/use-table-awareness';
 import { useYjsExcalidraw } from '@/hooks/use-yjs-excalidraw';
 import { useYjsFog } from '@/hooks/use-yjs-fog';
+import { useYjsPlayerTokens } from '@/hooks/use-yjs-player-tokens';
 import { sceneBoundsFromDrag } from '@/lib/map-bounds';
 import { MAP_TEMPLATES } from '@/lib/map-templates';
 import {
@@ -46,6 +48,7 @@ interface VttCanvasProps {
   onMapRoleChange?: (role: MapViewRole) => void;
   tokenOptions?: CodexTokenOptions;
   peers?: TablePeer[];
+  localClientId?: number | null;
   onPointerScene?: (point: { x: number; y: number } | null) => void;
 }
 
@@ -58,10 +61,12 @@ export function VttCanvas({
   onMapRoleChange,
   tokenOptions,
   peers = [],
+  localClientId = null,
   onPointerScene,
 }: VttCanvasProps) {
   const { ready, initialElements, onChange, bindApi } = useYjsExcalidraw(doc);
   const { hiddenCells, paintRectAtScene, clearAllFog } = useYjsFog(doc);
+  const { tokens: playerTokens } = useYjsPlayerTokens(doc, peers);
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const [apiReady, setApiReady] = useState(false);
   const [activeTool, setActiveTool] = useState<CodexMapTool>('select');
@@ -288,6 +293,12 @@ export function VttCanvas({
           }}
         />
         <FogOverlay api={apiRef.current} hiddenCells={hiddenCells} mapRole={mapRole} />
+        <PlayerTokenOverlay
+          doc={doc}
+          api={apiRef.current}
+          tokens={playerTokens}
+          localClientId={localClientId}
+        />
         <MapCursorOverlay api={apiRef.current} peers={peers} />
         {showToolbar && floatingToolbar ? (
           <CodexMapToolbar

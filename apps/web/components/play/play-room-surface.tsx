@@ -288,6 +288,7 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
               onMapRoleChange={awarenessState.setMapRole}
               tokenOptions={tokenOptions}
               peers={awarenessState.peers}
+              localClientId={awarenessState.clientId}
               onPointerScene={awarenessState.setCursor}
             />
             <FloatingDiceWidget onRoll={handleDiceRoll} />

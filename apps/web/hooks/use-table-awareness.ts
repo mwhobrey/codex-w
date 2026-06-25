@@ -35,6 +35,7 @@ export interface TablePeer {
 
 export interface TableAwarenessState {
   peers: TablePeer[];
+  clientId: number | null;
   localName: string;
   localCharacterId: string | undefined;
   localMapRole: MapViewRole;
@@ -206,6 +207,7 @@ export function useTableAwareness(
   return useMemo(
     () => ({
       peers,
+      clientId: awareness?.clientID ?? null,
       localName,
       localCharacterId,
       localMapRole,
@@ -217,6 +219,7 @@ export function useTableAwareness(
       setMapRole,
     }),
     [
+      awareness,
       localCharacterId,
       localMapRole,
       localName,
