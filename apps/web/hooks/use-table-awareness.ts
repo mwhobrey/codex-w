@@ -12,14 +12,17 @@ export interface TablePeer {
   color: string;
   isSelf: boolean;
   cursor?: { x: number; y: number };
+  characterId?: string;
   characterName?: string;
 }
 
 export interface TableAwarenessState {
   peers: TablePeer[];
   localName: string;
+  localCharacterId: string | undefined;
   setLocalName: (name: string) => void;
   setCursor: (cursor: { x: number; y: number } | null) => void;
+  setCharacterId: (characterId: string | undefined) => void;
   setCharacterName: (name: string | undefined) => void;
 }
 
@@ -34,6 +37,7 @@ function readStoredName(): string {
 
 export function useTableAwareness(awareness: Awareness | null): TableAwarenessState {
   const [localName, setLocalNameState] = useState('');
+  const [localCharacterId, setLocalCharacterId] = useState<string | undefined>();
   const [peers, setPeers] = useState<TablePeer[]>([]);
 
   useEffect(() => {
@@ -47,7 +51,9 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
     }
     const next: TablePeer[] = [];
     awareness.getStates().forEach((state, clientId) => {
-      const user = state.user as { name?: string; color?: string; characterName?: string } | undefined;
+      const user = state.user as
+        | { name?: string; color?: string; characterId?: string; characterName?: string }
+        | undefined;
       const cursor = state.cursor as { x: number; y: number } | undefined;
       if (!user?.name) return;
       next.push({
@@ -56,21 +62,25 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
         color: user.color ?? colorForClient(clientId),
         isSelf: clientId === awareness.clientID,
         cursor,
+        characterId: user.characterId,
         characterName: user.characterName,
       });
     });
     setPeers(next.sort((a, b) => a.clientId - b.clientId));
+    const localUser = awareness.getLocalState()?.user as { characterId?: string } | undefined;
+    setLocalCharacterId(localUser?.characterId);
   }, [awareness]);
 
   useEffect(() => {
     if (!awareness) return;
     const existing = awareness.getLocalState()?.user as
-      | { name?: string; characterName?: string }
+      | { name?: string; characterId?: string; characterName?: string }
       | undefined;
     const name = localName.trim() || existing?.name || `Player ${awareness.clientID}`;
     awareness.setLocalStateField('user', {
       name,
       color: colorForClient(awareness.clientID),
+      characterId: existing?.characterId,
       characterName: existing?.characterName,
     });
     syncPeers();
@@ -105,6 +115,20 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
     [awareness],
   );
 
+  const setCharacterId = useCallback(
+    (characterId: string | undefined) => {
+      setLocalCharacterId(characterId);
+      if (!awareness) return;
+      const user = awareness.getLocalState()?.user as Record<string, unknown> | undefined;
+      awareness.setLocalStateField('user', {
+        ...user,
+        characterId,
+        characterName: undefined,
+      });
+    },
+    [awareness],
+  );
+
   const setCharacterName = useCallback(
     (characterName: string | undefined) => {
       if (!awareness) return;
@@ -115,7 +139,15 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
   );
 
   return useMemo(
-    () => ({ peers, localName, setLocalName, setCursor, setCharacterName }),
-    [localName, peers, setCharacterName, setCursor, setLocalName],
+    () => ({
+      peers,
+      localName,
+      localCharacterId,
+      setLocalName,
+      setCursor,
+      setCharacterId,
+      setCharacterName,
+    }),
+    [localCharacterId, localName, peers, setCharacterId, setCharacterName, setCursor, setLocalName],
   );
 }

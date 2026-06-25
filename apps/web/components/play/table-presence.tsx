@@ -36,7 +36,7 @@ export function TablePresence({ peers, localName, onLocalNameChange, className }
                 style={{ backgroundColor: peer.color }}
                 aria-hidden
               />
-              {peer.name}
+              {peer.characterName ? `${peer.name} · ${peer.characterName}` : peer.name}
             </li>
           ))}
         </ul>

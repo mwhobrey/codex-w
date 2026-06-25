@@ -26,6 +26,20 @@ import { TableScratchNotes } from './table-scratch-notes';
 import { type TableSidebarTab, TableSidebarTabs } from './table-sidebar';
 import { VttCanvas } from './vtt-canvas';
 
+const TABLE_CHARACTER_KEY = (roomId: string) => `codex-table-character-${roomId}`;
+
+function readStoredCharacterId(roomId: string): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const stored = window.localStorage.getItem(TABLE_CHARACTER_KEY(roomId));
+  return stored || undefined;
+}
+
+function writeStoredCharacterId(roomId: string, characterId: string | undefined) {
+  if (typeof window === 'undefined') return;
+  if (characterId) window.localStorage.setItem(TABLE_CHARACTER_KEY(roomId), characterId);
+  else window.localStorage.removeItem(TABLE_CHARACTER_KEY(roomId));
+}
+
 interface PlayRoomSurfaceProps {
   roomId: string;
   initialSystem?: string;
@@ -41,13 +55,17 @@ export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps)
     initialSystem: systemSeed,
   });
   const { ownerId, ready: ownerReady } = useOwnerId();
-  const activeCharacter = useCharacter(meta?.characterId);
   const { width: sidebarWidth, adjustWidth } = useTableSidebarWidth();
   const awarenessState = useTableAwareness(awareness);
   const [mobileView, setMobileView] = useState<MobileView>('map');
   const [sidebarTab, setSidebarTab] = useState<TableSidebarTab>('play');
   const [tableNameDraft, setTableNameDraft] = useState('');
   const [peekOpen, setPeekOpen] = useState(false);
+
+  const localCharacterId =
+    awarenessState.localCharacterId ?? meta?.characterId ?? readStoredCharacterId(roomId);
+  const activeCharacter = useCharacter(localCharacterId);
+  const isSoloAtTable = awarenessState.peers.filter((peer) => !peer.isSelf).length === 0;
 
   const plugin = useMemo(
     () => (meta ? getGameSystem(meta.gameSystemId) : null),
@@ -86,6 +104,21 @@ export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps)
   useEffect(() => {
     awarenessState.setCharacterName(activeCharacter?.name);
   }, [activeCharacter?.name, awarenessState.setCharacterName]);
+
+  useEffect(() => {
+    if (!ready || awarenessState.localCharacterId) return;
+    const seed = meta?.characterId ?? readStoredCharacterId(roomId);
+    if (seed) awarenessState.setCharacterId(seed);
+  }, [awarenessState.localCharacterId, awarenessState.setCharacterId, meta?.characterId, ready, roomId]);
+
+  const handleCharacterChange = useCallback(
+    (characterId: string | undefined) => {
+      awarenessState.setCharacterId(characterId);
+      writeStoredCharacterId(roomId, characterId);
+      if (isSoloAtTable) updateMeta({ characterId });
+    },
+    [awarenessState, isSoloAtTable, roomId, updateMeta],
+  );
 
   const handleDiceRoll = useCallback(
     (result: RollResult) => {
@@ -126,17 +159,17 @@ export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps)
         <div className="space-y-2">
           <CharacterPicker
             ownerId={ownerId}
-            value={meta.characterId}
+            value={localCharacterId}
             preferredSystemId={meta.gameSystemId}
             variant="compact"
-            onChange={(characterId) => updateMeta({ characterId })}
+            onChange={handleCharacterChange}
           />
           <Button
             type="button"
             size="sm"
             variant="outline"
             className="w-full"
-            disabled={!meta.characterId}
+            disabled={!localCharacterId}
             onClick={() => setPeekOpen(true)}
             data-testid="character-peek-button"
           >
