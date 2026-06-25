@@ -3,6 +3,7 @@ export function probePartyKitReachable(
   host: string,
   party: string,
   roomId: string,
+  inviteToken?: string,
   timeoutMs = 2000,
 ): Promise<boolean> {
   if (typeof WebSocket === 'undefined') return Promise.resolve(false);
@@ -21,7 +22,10 @@ export function probePartyKitReachable(
       resolve(ok);
     };
 
-    const ws = new WebSocket(`ws://${host}/parties/${party}/${roomId}`);
+    const inviteQs = inviteToken?.trim()
+      ? `?invite=${encodeURIComponent(inviteToken.trim())}`
+      : '';
+    const ws = new WebSocket(`ws://${host}/parties/${party}/${roomId}${inviteQs}`);
     const timer = window.setTimeout(() => finish(false), timeoutMs);
     ws.onopen = () => finish(true);
     ws.onerror = () => finish(false);

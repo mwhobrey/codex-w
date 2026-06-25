@@ -2,7 +2,7 @@
 
 import type { RollResult } from '@codex/game-engine';
 import { getGameSystem } from '@codex/game-systems';
-import { claimTableGmIfVacant, importSoloSessionToTable, journalRepo, soloSessionRepo, transferTableGm } from '@codex/sync';
+import { claimTableGmIfVacant, ensureTableInviteToken, importSoloSessionToTable, journalRepo, soloSessionRepo, transferTableGm } from '@codex/sync';
 import { Button, cn } from '@codex/ui';
 import { CharacterPicker, useCharacter } from '@/components/solo/character-picker';
 import { useOwnerId } from '@/hooks/use-owner-id';
@@ -49,16 +49,23 @@ interface PlayRoomSurfaceProps {
   roomId: string;
   initialSystem?: string;
   importSessionId?: string;
+  inviteToken?: string;
 }
 
 type MobileView = 'map' | TableSidebarTab;
 
-export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: PlayRoomSurfaceProps) {
+export function PlayRoomSurface({
+  roomId,
+  initialSystem,
+  importSessionId,
+  inviteToken,
+}: PlayRoomSurfaceProps) {
   const systemSeed = parseGameSystemId(initialSystem);
   const { doc, awareness, logEntries, connectionStatus, appendLog, ready } =
-    usePlayRoom(roomId);
+    usePlayRoom(roomId, inviteToken);
   const { meta, updateMeta } = useTableMeta(doc, {
     initialSystem: systemSeed,
+    initialInviteToken: inviteToken,
   });
   const { ownerId, ready: ownerReady } = useOwnerId();
   const { data: authSession } = useSession();
@@ -81,8 +88,8 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
   const activeCharacter = useCharacter(localCharacterId);
   const isSoloAtTable = awarenessState.peers.filter((peer) => !peer.isSelf).length === 0;
   const inviteUrl = useMemo(
-    () => createPlayRoomUrl(roomId, meta?.gameSystemId),
-    [meta?.gameSystemId, roomId],
+    () => createPlayRoomUrl(roomId, meta?.gameSystemId, meta?.inviteToken ?? inviteToken),
+    [inviteToken, meta?.gameSystemId, meta?.inviteToken, roomId],
   );
 
   const plugin = useMemo(
@@ -93,6 +100,11 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
   const tableGm = isTableGm(meta, ownerId);
   const mapRole = resolveFogViewRole(meta, ownerId, gmPreviewAsPlayer);
   const logAuthor = awarenessState.localName.trim() || 'You';
+
+  useEffect(() => {
+    if (!ready || !doc || !inviteToken) return;
+    ensureTableInviteToken(doc, inviteToken);
+  }, [doc, inviteToken, ready]);
 
   useEffect(() => {
     if (!ready || !ownerReady || !doc || !ownerId) return;
@@ -139,9 +151,9 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
 
   useEffect(() => {
     if (ready && meta) {
-      recordRecentPlayRoom(roomId, meta.name, meta.gameSystemId);
+      recordRecentPlayRoom(roomId, meta.name, meta.gameSystemId, meta.inviteToken ?? inviteToken);
     }
-  }, [ready, roomId, meta?.name, meta?.gameSystemId]);
+  }, [inviteToken, ready, roomId, meta?.name, meta?.gameSystemId, meta?.inviteToken]);
 
   useEffect(() => {
     setTableNameDraft(meta?.name ?? '');

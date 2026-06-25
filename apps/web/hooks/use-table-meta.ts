@@ -12,7 +12,7 @@ import type * as Y from 'yjs';
 
 export function useTableMeta(
   doc: Y.Doc | null,
-  options?: { initialSystem?: GameSystemId; tableName?: string },
+  options?: { initialSystem?: GameSystemId; tableName?: string; initialInviteToken?: string },
 ) {
   const [meta, setMeta] = useState<TableMeta | null>(null);
 
@@ -26,13 +26,19 @@ export function useTableMeta(
     const sync = () => setMeta(readTableMeta(doc));
 
     if (yMeta.size === 0 && options?.initialSystem) {
-      seedTableMetaIfEmpty(doc, options.initialSystem, options.tableName);
+      seedTableMetaIfEmpty(
+        doc,
+        options.initialSystem,
+        options.tableName,
+        undefined,
+        options.initialInviteToken,
+      );
     }
 
     sync();
     yMeta.observe(sync);
     return () => yMeta.unobserve(sync);
-  }, [doc, options?.initialSystem, options?.tableName]);
+  }, [doc, options?.initialInviteToken, options?.initialSystem, options?.tableName]);
 
   const updateMeta = useCallback(
     (patch: Partial<TableMeta>) => {

@@ -18,10 +18,21 @@ interface PlayRoomLoaderProps {
   roomId: string;
   initialSystem?: string;
   importSessionId?: string;
+  inviteToken?: string;
 }
 
-export function PlayRoomLoader({ roomId, initialSystem, importSessionId }: PlayRoomLoaderProps) {
+export function PlayRoomLoader({
+  roomId,
+  initialSystem,
+  importSessionId,
+  inviteToken,
+}: PlayRoomLoaderProps) {
   return (
-    <PlayRoomSurface roomId={roomId} initialSystem={initialSystem} importSessionId={importSessionId} />
+    <PlayRoomSurface
+      roomId={roomId}
+      initialSystem={initialSystem}
+      importSessionId={importSessionId}
+      inviteToken={inviteToken}
+    />
   );
 }

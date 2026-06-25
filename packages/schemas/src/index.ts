@@ -135,6 +135,8 @@ export const TableMetaSchema = z.object({
   scratchNotes: z.string().max(8192).optional(),
   /** Owner id (account or local) of the table GM — first claim wins, transferable */
   gmUserId: z.string().min(1).optional(),
+  /** Secret invite token required to join via PartyKit relay */
+  inviteToken: z.string().min(16).max(128).optional(),
   gameState: z.record(z.string(), z.unknown()).optional(),
 });
 

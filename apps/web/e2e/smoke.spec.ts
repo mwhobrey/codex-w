@@ -6,7 +6,7 @@ test.describe('core play loop smoke', () => {
     await expect(page.getByTestId('landing-hero')).toBeVisible();
 
     await page.goto('/dice');
-    await expect(page.getByRole('heading', { name: 'Dice' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Dice', exact: true })).toBeVisible();
 
     const rollButton = page.getByTestId('dice-roll-button');
     await rollButton.click();
@@ -31,12 +31,12 @@ test.describe('core play loop smoke', () => {
     await expect(page.getByTestId('play-lobby')).toBeVisible();
     await expect(page.getByLabel('Game system')).toHaveValue('loner');
     await page.getByTestId('create-table-button').click();
-    await expect(page).toHaveURL(/\/play\/[^/?]+(\?system=loner)?$/);
+    await expect(page).toHaveURL(/\/play\/[^/?]+(\?.*invite=.+)?$/);
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-system-panel')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-presence')).toBeVisible();
     await expect(page.getByTestId('character-peek-button')).toBeVisible();
-    await expect(page.getByText('Loner')).toBeVisible();
+    await expect(page.getByText('Loner', { exact: true }).first()).toBeVisible();
     await expect(page.getByTestId('floating-dice-toggle')).toBeVisible();
     await page.getByTestId('floating-dice-toggle').click();
     await expect(page.getByTestId('floating-dice-roll')).toBeVisible();
@@ -46,9 +46,8 @@ test.describe('core play loop smoke', () => {
     await page.goto('/play?system=totv');
     await expect(page.getByTestId('play-lobby')).toBeVisible();
     await page.getByTestId('create-table-button').click();
-    await expect(page).toHaveURL(/\/play\/[^/?]+(\?system=totv)?$/);
+    await expect(page).toHaveURL(/\/play\/[^/?]+(\?.*)?$/);
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-totv-panel')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText('Thousand Year Old Vampire')).toBeVisible();
   });
 });

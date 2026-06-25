@@ -1,5 +1,6 @@
 import { TableMetaSchema, type GameSystemId, type TableMeta } from '@codex/schemas';
 import type * as Y from 'yjs';
+import { isValidInviteToken } from '../room-invite';
 import { getPlayRoomMetaMap, PLAY_ROOM_KEYS } from './play-room-doc';
 
 export function defaultTableMeta(gameSystemId: GameSystemId = 'generic'): TableMeta {
@@ -48,6 +49,7 @@ export function seedTableMetaIfEmpty(
   gameSystemId: GameSystemId,
   name?: string,
   gmUserId?: string,
+  inviteToken?: string,
 ): TableMeta {
   const yMeta = getPlayRoomMetaMap(doc);
   if (yMeta.size > 0) return readTableMeta(doc);
@@ -55,7 +57,15 @@ export function seedTableMetaIfEmpty(
     ...defaultTableMeta(gameSystemId),
     name,
     gmUserId,
+    inviteToken: isValidInviteToken(inviteToken) ? inviteToken!.trim() : undefined,
   });
+}
+
+/** Persist invite token in meta when the table has none yet (creator URL seed). */
+export function ensureTableInviteToken(doc: Y.Doc, inviteToken: string): TableMeta {
+  const meta = readTableMeta(doc);
+  if (meta.inviteToken || !isValidInviteToken(inviteToken)) return meta;
+  return patchTableMeta(doc, { inviteToken: inviteToken.trim() });
 }
 
 /** First client to claim when vacant becomes GM (creator / first joiner). */

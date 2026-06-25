@@ -65,6 +65,7 @@ export function TablePresence({
             return (
             <li
               key={peer.clientId}
+              data-testid="table-presence-peer"
               className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full border border-codex-border/40 bg-codex-void/40 px-2 py-0.5 text-[10px] text-codex-text-muted"
               title={isPeerGm ? `GM · ${tag}` : tag}
             >

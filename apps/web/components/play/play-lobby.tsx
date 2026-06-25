@@ -2,6 +2,7 @@
 
 import { getGameSystem, listSoloSystems } from '@codex/game-systems';
 import type { GameSystemId } from '@codex/schemas';
+import { generateInviteToken } from '@codex/sync';
 import {
   Button,
   Card,
@@ -30,10 +31,14 @@ function createRoomId(): string {
   return crypto.randomUUID().slice(0, 8);
 }
 
-function buildTablePath(id: string, options?: { gameSystemId?: GameSystemId; importSessionId?: string }) {
+function buildTablePath(
+  id: string,
+  options?: { gameSystemId?: GameSystemId; importSessionId?: string; inviteToken?: string },
+) {
   const params = new URLSearchParams();
   if (options?.gameSystemId) params.set('system', options.gameSystemId);
   if (options?.importSessionId) params.set('import', options.importSessionId);
+  if (options?.inviteToken) params.set('invite', options.inviteToken);
   const qs = params.toString();
   return `/play/${encodeURIComponent(id)}${qs ? `?${qs}` : ''}`;
 }
@@ -45,6 +50,7 @@ export function PlayLobby() {
   const systems = listSoloSystems();
 
   const [joinId, setJoinId] = useState('');
+  const [joinInvite, setJoinInvite] = useState('');
   const [createSystem, setCreateSystem] = useState<GameSystemId>(presetSystem);
   const [recent, setRecent] = useState<RecentPlayRoom[]>([]);
 
@@ -56,8 +62,11 @@ export function PlayLobby() {
     setRecent(readRecentPlayRooms());
   }, []);
 
-  const openTable = (id: string, options?: { gameSystemId?: GameSystemId; importSessionId?: string }) => {
-    recordRecentPlayRoom(id, undefined, options?.gameSystemId);
+  const openTable = (
+    id: string,
+    options?: { gameSystemId?: GameSystemId; importSessionId?: string; inviteToken?: string },
+  ) => {
+    recordRecentPlayRoom(id, undefined, options?.gameSystemId, options?.inviteToken);
     router.push(buildTablePath(id, options));
   };
 
@@ -65,6 +74,7 @@ export function PlayLobby() {
     openTable(createRoomId(), {
       gameSystemId: session.gameSystemId,
       importSessionId: session.id,
+      inviteToken: generateInviteToken(),
     });
   };
 
@@ -97,7 +107,12 @@ export function PlayLobby() {
               type="button"
               className="codex-glow mt-3 w-full"
               data-testid="create-table-button"
-              onClick={() => openTable(createRoomId(), { gameSystemId: createSystem })}
+              onClick={() =>
+                openTable(createRoomId(), {
+                  gameSystemId: createSystem,
+                  inviteToken: generateInviteToken(),
+                })
+              }
             >
               Create new table
             </Button>
@@ -112,26 +127,40 @@ export function PlayLobby() {
             </p>
           </div>
 
-          <div>
-            <Label htmlFor="join-room">Table ID</Label>
-            <div className="mt-2 flex gap-2">
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="join-room">Table ID</Label>
               <Input
                 id="join-room"
                 value={joinId}
                 onChange={(event) => setJoinId(event.target.value.trim())}
                 placeholder="e.g. a1b2c3d4"
-                className="font-mono"
+                className="mt-2 font-mono"
                 spellCheck={false}
               />
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!joinId}
-                onClick={() => openTable(joinId)}
-              >
-                Join
-              </Button>
             </div>
+            <div>
+              <Label htmlFor="join-invite">Invite code</Label>
+              <Input
+                id="join-invite"
+                value={joinInvite}
+                onChange={(event) => setJoinInvite(event.target.value.trim())}
+                placeholder="From the table invite link"
+                className="mt-2 font-mono"
+                spellCheck={false}
+                data-testid="join-invite-input"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={!joinId || !joinInvite}
+              data-testid="join-table-button"
+              onClick={() => openTable(joinId, { inviteToken: joinInvite })}
+            >
+              Join table
+            </Button>
           </div>
 
           <p className="text-center text-xs text-codex-text-muted">
@@ -159,7 +188,12 @@ export function PlayLobby() {
                   >
                     <button
                       type="button"
-                      onClick={() => openTable(room.id, { gameSystemId: room.gameSystemId })}
+                      onClick={() =>
+                        openTable(room.id, {
+                          gameSystemId: room.gameSystemId,
+                          inviteToken: room.inviteToken,
+                        })
+                      }
                       className="min-h-10 flex-1 rounded-md px-3 py-2 text-left hover:bg-codex-elevated/50"
                     >
                       <span className="block font-mono text-sm text-codex-text">{room.id}</span>

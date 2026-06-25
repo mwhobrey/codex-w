@@ -14,6 +14,7 @@ export {
 export {
   claimTableGmIfVacant,
   defaultTableMeta,
+  ensureTableInviteToken,
   parseTableMeta,
   patchTableMeta,
   readTableMeta,
@@ -21,6 +22,15 @@ export {
   transferTableGm,
   writeTableMeta,
 } from './yjs/table-meta';
+export {
+  INVITE_QUERY_PARAM,
+  INVITE_TOKEN_MIN_LENGTH,
+  checkRoomInviteAdmission,
+  generateInviteToken,
+  isValidInviteToken,
+  parseInviteFromUri,
+  type InviteAdmissionResult,
+} from './room-invite';
 export {
   FOG_CELL_SIZE,
   fogCellKey,

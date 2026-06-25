@@ -22,6 +22,8 @@ export interface CreatePlayRoomProvidersOptions {
   party?: string;
   /** When false, skip websocket (offline-only). */
   connect?: boolean;
+  /** Query params appended to the PartyKit websocket URL (e.g. invite token). */
+  params?: Record<string, string>;
 }
 
 export function createPlayRoomProviders(
@@ -37,6 +39,7 @@ export function createPlayRoomProviders(
       party: options.party ?? 'main',
       connect: true,
       maxBackoffTime: 5_000,
+      params: options.params,
     });
   }
 

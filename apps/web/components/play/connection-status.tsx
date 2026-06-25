@@ -33,7 +33,12 @@ export function ConnectionStatus({ status, compact }: ConnectionStatusProps) {
   const label = compact ? STATUS_LABEL_COMPACT[status] : STATUS_LABEL[status];
 
   return (
-    <Badge variant={STATUS_VARIANT[status]} className="font-normal">
+    <Badge
+      variant={STATUS_VARIANT[status]}
+      className="font-normal"
+      data-testid="connection-status"
+      data-connection-status={status}
+    >
       <span
         className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${
           status === 'connected'

@@ -7,6 +7,7 @@ export interface RecentPlayRoom {
   id: string;
   label?: string;
   gameSystemId?: GameSystemId;
+  inviteToken?: string;
   visitedAt: string;
 }
 
@@ -35,6 +36,7 @@ export function recordRecentPlayRoom(
   id: string,
   label?: string,
   gameSystemId?: GameSystemId,
+  inviteToken?: string,
 ): void {
   const trimmed = id.trim();
   if (!trimmed) return;
@@ -45,6 +47,7 @@ export function recordRecentPlayRoom(
     id: trimmed,
     label: label?.trim() || prev?.label,
     gameSystemId: gameSystemId ?? prev?.gameSystemId,
+    inviteToken: inviteToken?.trim() || prev?.inviteToken,
     visitedAt: now,
   };
   writeRaw([next, ...existing]);

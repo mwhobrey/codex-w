@@ -16,6 +16,7 @@ import {
   createPlayRoomUrl,
   getPartyKitHost,
   getPartyKitParty,
+  partyKitWsParams,
   shouldConnectPartyKit,
 } from '@/lib/play-room';
 
@@ -31,7 +32,7 @@ export interface UsePlayRoomResult {
   ready: boolean;
 }
 
-export function usePlayRoom(roomId: string): UsePlayRoomResult {
+export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomResult {
   const doc = useMemo(() => createPlayRoomDoc(), []);
   const [awareness, setAwareness] = useState<Awareness | null>(null);
   const [logEntries, setLogEntries] = useState<PlaySessionLogEntry[]>([]);
@@ -54,6 +55,7 @@ export function usePlayRoom(roomId: string): UsePlayRoomResult {
           getPartyKitHost(),
           getPartyKitParty(),
           roomId,
+          inviteToken,
         );
         if (!reachable) connectParty = false;
       }
@@ -66,6 +68,7 @@ export function usePlayRoom(roomId: string): UsePlayRoomResult {
         host: getPartyKitHost(),
         party: getPartyKitParty(),
         connect: connectParty,
+        params: partyKitWsParams(inviteToken),
       });
 
       if (cancelled) {
@@ -108,7 +111,7 @@ export function usePlayRoom(roomId: string): UsePlayRoomResult {
       providers?.cleanup();
       setAwareness(null);
     };
-  }, [doc, roomId]);
+  }, [doc, inviteToken, roomId]);
 
   const appendLog = useCallback(
     (entry: Omit<PlaySessionLogEntry, 'id' | 'roomId' | 'createdAt'>) => {
@@ -123,7 +126,7 @@ export function usePlayRoom(roomId: string): UsePlayRoomResult {
     awareness,
     logEntries,
     connectionStatus,
-    roomUrl: createPlayRoomUrl(roomId),
+    roomUrl: createPlayRoomUrl(roomId, undefined, inviteToken),
     appendLog,
     ready,
   };

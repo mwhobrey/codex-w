@@ -36,8 +36,15 @@ After deploy, set `NEXT_PUBLIC_PARTYKIT_HOST` to your PartyKit project host (e.g
 - `y-partykit` `onConnect` handles Yjs sync + snapshot persistence in PartyKit storage
 - Client uses `y-indexeddb` for offline-first local persistence (see `@codex/sync`)
 
+## Room security (invite tokens)
+
+- Each table gets a secret `invite` query param when created (`generateInviteToken()`).
+- The PartyKit server stores the first valid token per room and rejects websocket joins without a match.
+- Share the full invite link from the table header — room ID alone is not enough when the relay is online.
+- Offline play (no PartyKit) still works via y-indexeddb; invite is enforced when the relay is reachable.
+
 ## Limitations (MVP)
 
-- No room auth or tokens — anyone with the link can join
+- Invite token is stored in PartyKit room storage and Yjs meta — not rotated automatically yet
 - Server-side snapshot only; no Postgres backup yet
 - Asset uploads (map images) use Excalidraw defaults — no S3 storage hookup yet
