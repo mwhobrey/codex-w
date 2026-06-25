@@ -45,6 +45,7 @@ interface VttCanvasProps {
   floatingToolbar?: boolean;
   playMode?: boolean;
   mapRole?: MapViewRole;
+  isTableGm?: boolean;
   onMapRoleChange?: (role: MapViewRole) => void;
   tokenOptions?: CodexTokenOptions;
   peers?: TablePeer[];
@@ -58,6 +59,7 @@ export function VttCanvas({
   floatingToolbar = false,
   playMode = false,
   mapRole = 'gm',
+  isTableGm = false,
   onMapRoleChange,
   tokenOptions,
   peers = [],
@@ -136,6 +138,8 @@ export function VttCanvas({
     [],
   );
 
+  const canEditFog = isTableGm && mapRole === 'gm';
+
   const handleMapPointerDrag = useCallback(
     (x1: number, y1: number, x2: number, y2: number) => {
       const tool = activeToolRef.current;
@@ -143,7 +147,7 @@ export function VttCanvas({
         void placeStampInBounds(x1, y1, x2, y2);
         return;
       }
-      if (mapRole !== 'gm') return;
+      if (!canEditFog) return;
       if (tool === 'fog-hide') {
         paintRectAtScene(x1, y1, x2, y2, 'hide');
         return;
@@ -152,7 +156,7 @@ export function VttCanvas({
         paintRectAtScene(x1, y1, x2, y2, 'reveal');
       }
     },
-    [mapRole, paintRectAtScene, placeStampInBounds],
+    [canEditFog, paintRectAtScene, placeStampInBounds],
   );
 
   useEffect(() => {
@@ -238,7 +242,7 @@ export function VttCanvas({
   const mapCursor =
     activeTool === 'stamp' && activeStamp
       ? 'cursor-crosshair'
-      : isFogTool(activeTool) && mapRole === 'gm'
+      : isFogTool(activeTool) && canEditFog
         ? 'cursor-cell'
         : '';
 
@@ -258,8 +262,9 @@ export function VttCanvas({
           activeStamp={activeStamp}
           onSelectTool={setActiveTool}
           onStampSelect={setActiveStamp}
-          onClearFog={mapRole === 'gm' ? clearAllFog : undefined}
+          onClearFog={canEditFog ? clearAllFog : undefined}
           mapRole={mapRole}
+          isTableGm={isTableGm}
           onMapRoleChange={onMapRoleChange}
           onApplyTemplate={applyTemplate}
           templates={MAP_TEMPLATES}
@@ -299,6 +304,7 @@ export function VttCanvas({
           tokens={playerTokens}
           localClientId={localClientId}
           mapRole={mapRole}
+          isTableGm={isTableGm}
           hiddenCells={hiddenCells}
         />
         <MapCursorOverlay api={apiRef.current} peers={peers} />
@@ -311,8 +317,9 @@ export function VttCanvas({
             activeStamp={activeStamp}
             onSelectTool={setActiveTool}
             onStampSelect={setActiveStamp}
-            onClearFog={mapRole === 'gm' ? clearAllFog : undefined}
+            onClearFog={canEditFog ? clearAllFog : undefined}
             mapRole={mapRole}
+            isTableGm={isTableGm}
             onMapRoleChange={onMapRoleChange}
             onApplyTemplate={applyTemplate}
             templates={MAP_TEMPLATES}

@@ -1,6 +1,5 @@
 'use client';
 
-import type { MapViewRole } from '@/lib/table-systems';
 import type { Awareness } from 'y-protocols/awareness';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -12,14 +11,16 @@ type AwarenessUser = {
   color?: string;
   characterId?: string;
   characterName?: string;
-  mapRole?: MapViewRole;
   accountId?: string;
+  ownerId?: string;
 };
 
 export interface UseTableAwarenessOptions {
   /** When signed in, broadcast account name instead of a manual table nickname. */
   accountDisplayName?: string;
   accountId?: string;
+  /** Stable table user id (account or local owner id) for GM transfer. */
+  ownerId?: string;
 }
 
 export interface TablePeer {
@@ -27,10 +28,10 @@ export interface TablePeer {
   name: string;
   color: string;
   isSelf: boolean;
+  ownerId?: string;
   cursor?: { x: number; y: number };
   characterId?: string;
   characterName?: string;
-  mapRole?: MapViewRole;
 }
 
 export interface TableAwarenessState {
@@ -38,13 +39,11 @@ export interface TableAwarenessState {
   clientId: number | null;
   localName: string;
   localCharacterId: string | undefined;
-  localMapRole: MapViewRole;
   usesAccountName: boolean;
   setLocalName: (name: string) => void;
   setCursor: (cursor: { x: number; y: number } | null) => void;
   setCharacterId: (characterId: string | undefined) => void;
   setCharacterName: (name: string | undefined) => void;
-  setMapRole: (role: MapViewRole) => void;
 }
 
 function colorForClient(clientId: number): string {
@@ -54,10 +53,6 @@ function colorForClient(clientId: number): string {
 function readStoredName(): string {
   if (typeof window === 'undefined') return '';
   return window.localStorage.getItem(DISPLAY_NAME_KEY) ?? '';
-}
-
-function readMapRole(user: AwarenessUser | undefined): MapViewRole {
-  return user?.mapRole === 'player' ? 'player' : 'gm';
 }
 
 function resolvePresenceName(
@@ -80,11 +75,10 @@ export function useTableAwareness(
   awareness: Awareness | null,
   options: UseTableAwarenessOptions = {},
 ): TableAwarenessState {
-  const { accountDisplayName, accountId } = options;
+  const { accountDisplayName, accountId, ownerId } = options;
   const usesAccountName = Boolean(accountDisplayName?.trim());
   const [localName, setLocalNameState] = useState('');
   const [localCharacterId, setLocalCharacterId] = useState<string | undefined>();
-  const [localMapRole, setLocalMapRole] = useState<MapViewRole>('gm');
   const [peers, setPeers] = useState<TablePeer[]>([]);
 
   useEffect(() => {
@@ -110,16 +104,15 @@ export function useTableAwareness(
         name: user.name,
         color: user.color ?? colorForClient(clientId),
         isSelf: clientId === awareness.clientID,
+        ownerId: user.ownerId,
         cursor,
         characterId: user.characterId,
         characterName: user.characterName,
-        mapRole: readMapRole(user),
       });
     });
     setPeers(next.sort((a, b) => a.clientId - b.clientId));
     const localUser = awareness.getLocalState()?.user as AwarenessUser | undefined;
     setLocalCharacterId(localUser?.characterId);
-    setLocalMapRole(readMapRole(localUser));
   }, [awareness]);
 
   useEffect(() => {
@@ -135,13 +128,13 @@ export function useTableAwareness(
       color: colorForClient(awareness.clientID),
       characterId: existing?.characterId,
       characterName: existing?.characterName,
-      mapRole: existing?.mapRole ?? 'gm',
       accountId: accountId ?? existing?.accountId,
+      ownerId: ownerId ?? existing?.ownerId,
     });
     syncPeers();
     awareness.on('change', syncPeers);
     return () => awareness.off('change', syncPeers);
-  }, [accountDisplayName, accountId, awareness, localName, syncPeers]);
+  }, [accountDisplayName, accountId, awareness, localName, ownerId, syncPeers]);
 
   const setLocalName = useCallback(
     (name: string) => {
@@ -194,41 +187,27 @@ export function useTableAwareness(
     [awareness],
   );
 
-  const setMapRole = useCallback(
-    (mapRole: MapViewRole) => {
-      setLocalMapRole(mapRole);
-      if (!awareness) return;
-      const user = awareness.getLocalState()?.user as Record<string, unknown> | undefined;
-      awareness.setLocalStateField('user', { ...user, mapRole });
-    },
-    [awareness],
-  );
-
   return useMemo(
     () => ({
       peers,
       clientId: awareness?.clientID ?? null,
       localName,
       localCharacterId,
-      localMapRole,
       usesAccountName,
       setLocalName,
       setCursor,
       setCharacterId,
       setCharacterName,
-      setMapRole,
     }),
     [
       awareness,
       localCharacterId,
-      localMapRole,
       localName,
       peers,
       setCharacterId,
       setCharacterName,
       setCursor,
       setLocalName,
-      setMapRole,
       usesAccountName,
     ],
   );

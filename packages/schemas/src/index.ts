@@ -133,6 +133,8 @@ export const TableMetaSchema = z.object({
   characterId: z.string().uuid().optional(),
   sceneFocus: z.string().max(512).optional(),
   scratchNotes: z.string().max(8192).optional(),
+  /** Owner id (account or local) of the table GM — first claim wins, transferable */
+  gmUserId: z.string().min(1).optional(),
   gameState: z.record(z.string(), z.unknown()).optional(),
 });
 

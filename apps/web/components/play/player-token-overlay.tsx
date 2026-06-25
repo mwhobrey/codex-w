@@ -22,6 +22,7 @@ interface PlayerTokenOverlayProps {
   tokens: PlayerTokenView[];
   localClientId: number | null;
   mapRole?: MapViewRole;
+  isTableGm?: boolean;
   hiddenCells: Set<string>;
 }
 
@@ -50,9 +51,9 @@ function tokenInitials(token: PlayerTokenView): string {
 function canManipulateToken(
   token: PlayerTokenView,
   localClientId: number | null,
-  mapRole: MapViewRole,
+  isTableGm: boolean,
 ): boolean {
-  return mapRole === 'gm' || token.clientId === localClientId;
+  return isTableGm || token.clientId === localClientId;
 }
 
 export function PlayerTokenOverlay({
@@ -61,6 +62,7 @@ export function PlayerTokenOverlay({
   tokens,
   localClientId,
   mapRole = 'gm',
+  isTableGm = false,
   hiddenCells,
 }: PlayerTokenOverlayProps) {
   const [viewport, setViewport] = useState<ViewportState>({ scrollX: 0, scrollY: 0, zoom: 1 });
@@ -112,7 +114,7 @@ export function PlayerTokenOverlay({
 
   const onMovePointerDown = useCallback(
     (event: PointerEvent<SVGCircleElement>, token: PlayerTokenView) => {
-      if (!canManipulateToken(token, localClientId, mapRole) || !doc) return;
+      if (!canManipulateToken(token, localClientId, isTableGm) || !doc) return;
       event.preventDefault();
       event.stopPropagation();
       (event.currentTarget as SVGElement).setPointerCapture(event.pointerId);
@@ -127,12 +129,12 @@ export function PlayerTokenOverlay({
         offsetY: point.y - token.y,
       };
     },
-    [doc, localClientId, mapRole, scenePointFromEvent],
+    [doc, isTableGm, localClientId, scenePointFromEvent],
   );
 
   const onResizePointerDown = useCallback(
     (event: PointerEvent<SVGCircleElement>, token: PlayerTokenView) => {
-      if (!canManipulateToken(token, localClientId, mapRole) || !doc) return;
+      if (!canManipulateToken(token, localClientId, isTableGm) || !doc) return;
       event.preventDefault();
       event.stopPropagation();
       (event.currentTarget as SVGElement).setPointerCapture(event.pointerId);
@@ -144,7 +146,7 @@ export function PlayerTokenOverlay({
         offsetY: 0,
       };
     },
-    [doc, localClientId, mapRole],
+    [doc, isTableGm, localClientId],
   );
 
   const onPointerMove = useCallback(
@@ -226,9 +228,9 @@ export function PlayerTokenOverlay({
           const r = token.radius ?? DEFAULT_PLAYER_TOKEN_RADIUS;
           const label = formatPlayerTag(token.playerName, token.characterName);
           const portrait = portraits.get(token.characterId);
-          const manipulable = canManipulateToken(token, localClientId, mapRole);
+          const manipulable = canManipulateToken(token, localClientId, isTableGm);
           const fogged =
-            mapRole === 'gm' && isScenePointFogged(token.x, token.y, hiddenCells);
+            isTableGm && mapRole === 'gm' && isScenePointFogged(token.x, token.y, hiddenCells);
           const opacity = fogged ? 0.42 : 1;
 
           return (

@@ -8,6 +8,7 @@ interface TablePresenceProps {
   peers: TablePeer[];
   localName: string;
   localCharacterName?: string;
+  gmUserId?: string;
   usesAccountName?: boolean;
   onLocalNameChange: (name: string) => void;
   className?: string;
@@ -17,6 +18,7 @@ export function TablePresence({
   peers,
   localName,
   localCharacterName,
+  gmUserId,
   usesAccountName = false,
   onLocalNameChange,
   className,
@@ -59,18 +61,22 @@ export function TablePresence({
         <ul className="flex flex-wrap items-center gap-1.5">
           {others.map((peer) => {
             const tag = formatPlayerTag(peer.name, peer.characterName);
+            const isPeerGm = Boolean(gmUserId && peer.ownerId === gmUserId);
             return (
             <li
               key={peer.clientId}
               className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full border border-codex-border/40 bg-codex-void/40 px-2 py-0.5 text-[10px] text-codex-text-muted"
-              title={tag}
+              title={isPeerGm ? `GM · ${tag}` : tag}
             >
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ backgroundColor: peer.color }}
                 aria-hidden
               />
-              <span className="truncate">{tag}</span>
+              <span className="truncate">
+                {isPeerGm ? <span className="font-medium text-codex-ember">GM · </span> : null}
+                {tag}
+              </span>
             </li>
             );
           })}

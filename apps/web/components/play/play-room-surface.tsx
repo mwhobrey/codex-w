@@ -2,7 +2,7 @@
 
 import type { RollResult } from '@codex/game-engine';
 import { getGameSystem } from '@codex/game-systems';
-import { importSoloSessionToTable, journalRepo, soloSessionRepo } from '@codex/sync';
+import { claimTableGmIfVacant, importSoloSessionToTable, journalRepo, soloSessionRepo, transferTableGm } from '@codex/sync';
 import { Button, cn } from '@codex/ui';
 import { CharacterPicker, useCharacter } from '@/components/solo/character-picker';
 import { useOwnerId } from '@/hooks/use-owner-id';
@@ -14,13 +14,15 @@ import { useSession } from '@/lib/auth-client';
 import { MAP_FLOATING_BOTTOM_STYLE } from '@/lib/map-overlay-layout';
 import { createPlayRoomUrl } from '@/lib/play-room';
 import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
-import { parseGameSystemId } from '@/lib/table-systems';
+import { parseGameSystemId, type MapViewRole } from '@/lib/table-systems';
+import { isTableGm, resolveFogViewRole } from '@/lib/table-gm';
 import { userDisplayName } from '@/lib/user-display-name';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CharacterPeekDrawer } from './character-peek-drawer';
 import { FloatingDiceWidget } from './floating-dice-widget';
 import { PlayDicePanel } from './play-dice-panel';
 import { SessionLogPanel } from './session-log-panel';
+import { TableGmControl } from './table-gm-control';
 import { TableHeader } from './table-header';
 import { TablePlayPanel } from './table-play-panel';
 import { TablePresence } from './table-presence';
@@ -65,7 +67,9 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
   const awarenessState = useTableAwareness(awareness, {
     accountDisplayName,
     accountId: authSession?.user?.id,
+    ownerId: ownerReady ? ownerId : undefined,
   });
+  const [gmPreviewAsPlayer, setGmPreviewAsPlayer] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>('map');
   const [sidebarTab, setSidebarTab] = useState<TableSidebarTab>('play');
   const [tableNameDraft, setTableNameDraft] = useState('');
@@ -86,8 +90,35 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
     [meta],
   );
 
-  const mapRole = awarenessState.localMapRole;
+  const tableGm = isTableGm(meta, ownerId);
+  const mapRole = resolveFogViewRole(meta, ownerId, gmPreviewAsPlayer);
   const logAuthor = awarenessState.localName.trim() || 'You';
+
+  useEffect(() => {
+    if (!ready || !ownerReady || !doc || !ownerId) return;
+    claimTableGmIfVacant(doc, ownerId);
+  }, [doc, ownerId, ownerReady, ready]);
+
+  useEffect(() => {
+    if (!tableGm && gmPreviewAsPlayer) setGmPreviewAsPlayer(false);
+  }, [gmPreviewAsPlayer, tableGm]);
+
+  const handleMapRoleChange = useCallback(
+    (role: MapViewRole) => {
+      if (!tableGm) return;
+      setGmPreviewAsPlayer(role === 'player');
+    },
+    [tableGm],
+  );
+
+  const handleTransferGm = useCallback(
+    (toUserId: string) => {
+      if (!doc || !ownerId) return;
+      transferTableGm(doc, ownerId, toUserId);
+      setGmPreviewAsPlayer(false);
+    },
+    [doc, ownerId],
+  );
 
   const activeSidebarTab: TableSidebarTab =
     mobileView === 'map' ? sidebarTab : mobileView;
@@ -236,13 +267,25 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
         systemName={plugin?.name}
         connectionStatus={connectionStatus}
         presence={
-          <TablePresence
-            peers={awarenessState.peers}
-            localName={awarenessState.localName}
-            localCharacterName={activeCharacter?.name}
-            usesAccountName={awarenessState.usesAccountName}
-            onLocalNameChange={awarenessState.setLocalName}
-          />
+          <>
+            {ownerReady ? (
+              <TableGmControl
+                isGm={tableGm}
+                gmUserId={meta?.gmUserId}
+                ownerId={ownerId}
+                peers={awarenessState.peers}
+                onTransfer={handleTransferGm}
+              />
+            ) : null}
+            <TablePresence
+              peers={awarenessState.peers}
+              localName={awarenessState.localName}
+              localCharacterName={activeCharacter?.name}
+              gmUserId={meta?.gmUserId}
+              usesAccountName={awarenessState.usesAccountName}
+              onLocalNameChange={awarenessState.setLocalName}
+            />
+          </>
         }
       />
 
@@ -285,7 +328,8 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
               floatingToolbar
               playMode
               mapRole={mapRole}
-              onMapRoleChange={awarenessState.setMapRole}
+              isTableGm={tableGm}
+              onMapRoleChange={tableGm ? handleMapRoleChange : undefined}
               tokenOptions={tokenOptions}
               peers={awarenessState.peers}
               localClientId={awarenessState.clientId}

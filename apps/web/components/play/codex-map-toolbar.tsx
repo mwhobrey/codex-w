@@ -24,6 +24,7 @@ interface CodexMapToolbarProps {
   onToggleCollapse?: () => void;
   className?: string;
   mapRole?: MapViewRole;
+  isTableGm?: boolean;
   onMapRoleChange?: (role: MapViewRole) => void;
   templates?: MapTemplate[];
   onApplyTemplate?: (templateId: string) => void;
@@ -48,6 +49,7 @@ export function CodexMapToolbar({
   onToggleCollapse,
   className,
   mapRole = 'gm',
+  isTableGm = false,
   onMapRoleChange,
   templates = [],
   onApplyTemplate,
@@ -167,9 +169,9 @@ export function CodexMapToolbar({
 
       {tab === 'fog' ? (
         <div className="flex flex-wrap items-center gap-2 border-t border-codex-border/30 px-2 py-2">
-          {onMapRoleChange ? (
+          {isTableGm && onMapRoleChange ? (
             <div className="flex w-full flex-wrap items-center gap-2 pb-1">
-              <span className="text-[10px] uppercase tracking-wide text-codex-text-muted">View</span>
+              <span className="text-[10px] uppercase tracking-wide text-codex-text-muted">Preview</span>
               <button
                 type="button"
                 onClick={() => onMapRoleChange('gm')}
@@ -196,7 +198,7 @@ export function CodexMapToolbar({
               </button>
             </div>
           ) : null}
-          {mapRole === 'gm' ? (
+          {isTableGm && mapRole === 'gm' ? (
             <>
               <button
                 type="button"

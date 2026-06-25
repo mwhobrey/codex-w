@@ -47,8 +47,31 @@ export function seedTableMetaIfEmpty(
   doc: Y.Doc,
   gameSystemId: GameSystemId,
   name?: string,
+  gmUserId?: string,
 ): TableMeta {
   const yMeta = getPlayRoomMetaMap(doc);
   if (yMeta.size > 0) return readTableMeta(doc);
-  return writeTableMeta(doc, { ...defaultTableMeta(gameSystemId), name });
+  return writeTableMeta(doc, {
+    ...defaultTableMeta(gameSystemId),
+    name,
+    gmUserId,
+  });
+}
+
+/** First client to claim when vacant becomes GM (creator / first joiner). */
+export function claimTableGmIfVacant(doc: Y.Doc, userId: string): TableMeta {
+  const meta = readTableMeta(doc);
+  if (meta.gmUserId || !userId.trim()) return meta;
+  return patchTableMeta(doc, { gmUserId: userId.trim() });
+}
+
+export function transferTableGm(
+  doc: Y.Doc,
+  fromUserId: string,
+  toUserId: string,
+): TableMeta | null {
+  const meta = readTableMeta(doc);
+  const to = toUserId.trim();
+  if (!meta.gmUserId || meta.gmUserId !== fromUserId || !to || to === fromUserId) return null;
+  return patchTableMeta(doc, { gmUserId: to });
 }

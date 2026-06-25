@@ -12,11 +12,13 @@ export {
   getPlayRoomPlayerTokensMap,
 } from './yjs/play-room-doc';
 export {
+  claimTableGmIfVacant,
   defaultTableMeta,
   parseTableMeta,
   patchTableMeta,
   readTableMeta,
   seedTableMetaIfEmpty,
+  transferTableGm,
   writeTableMeta,
 } from './yjs/table-meta';
 export {
