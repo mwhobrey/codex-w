@@ -41,4 +41,14 @@ test.describe('core play loop smoke', () => {
     await page.getByTestId('floating-dice-toggle').click();
     await expect(page.getByTestId('floating-dice-roll')).toBeVisible();
   });
+
+  test('TYOV table loads embedded journal panel', async ({ page }) => {
+    await page.goto('/play?system=totv');
+    await expect(page.getByTestId('play-lobby')).toBeVisible();
+    await page.getByTestId('create-table-button').click();
+    await expect(page).toHaveURL(/\/play\/[^/?]+(\?system=totv)?$/);
+    await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('table-totv-panel')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('Thousand Year Old Vampire')).toBeVisible();
+  });
 });
