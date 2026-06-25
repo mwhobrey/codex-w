@@ -40,7 +40,7 @@ const SPOTLIGHT = [
 
 export function SoloSpotlight() {
   return (
-    <section className="mx-auto max-w-4xl">
+    <section id="solo" className="mx-auto max-w-4xl scroll-mt-20">
       <h2 className="font-display text-2xl font-medium text-codex-text">Solo systems</h2>
       <ul className="mt-6 grid gap-4 sm:grid-cols-2">
         {SPOTLIGHT.map((system) => (
