@@ -298,6 +298,8 @@ export function VttCanvas({
           api={apiRef.current}
           tokens={playerTokens}
           localClientId={localClientId}
+          mapRole={mapRole}
+          hiddenCells={hiddenCells}
         />
         <MapCursorOverlay api={apiRef.current} peers={peers} />
         {showToolbar && floatingToolbar ? (

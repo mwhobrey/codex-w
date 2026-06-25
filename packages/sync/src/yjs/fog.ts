@@ -22,6 +22,16 @@ export function sceneToFogCell(sceneX: number, sceneY: number, cellSize = FOG_CE
   };
 }
 
+export function isScenePointFogged(
+  sceneX: number,
+  sceneY: number,
+  hiddenCells: ReadonlySet<string>,
+  cellSize = FOG_CELL_SIZE,
+): boolean {
+  const { gx, gy } = sceneToFogCell(sceneX, sceneY, cellSize);
+  return hiddenCells.has(fogCellKey(gx, gy));
+}
+
 export function readHiddenFogCells(doc: Y.Doc): Set<string> {
   const hidden = new Set<string>();
   getPlayRoomFogMap(doc).forEach((_value, key) => {

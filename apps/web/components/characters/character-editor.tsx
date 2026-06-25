@@ -25,6 +25,7 @@ import {
   updateBuiltinFieldLabel,
 } from '@/lib/generic-sheet-utils';
 import { CharacterAdaptDialog } from './character-adapt-dialog';
+import { CharacterPortraitUpload } from './character-portrait-upload';
 import { GenericCustomFields } from './generic-custom-fields';
 import { GenericFieldPalette } from './generic-field-palette';
 import { SheetSection } from './sheet-fields';
@@ -149,7 +150,9 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex-1">
+        <div className="flex flex-1 gap-4">
+          <CharacterPortraitUpload sheet={sheet} onSave={persist} />
+          <div className="min-w-0 flex-1">
           {isGeneric ? (
             <>
               <h1 className="font-display text-3xl font-medium tracking-tight">
@@ -180,6 +183,7 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
               {saveState === 'saving' && ' · saving…'}
               {saveState === 'saved' && ' · saved'}
             </span>
+          </div>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -27,6 +27,7 @@ export {
   parseFogCellKey,
   readHiddenFogCells,
   sceneToFogCell,
+  isScenePointFogged,
   setFogCellHidden,
 } from './yjs/fog';
 export {
@@ -45,13 +46,19 @@ export {
   tableMetaFromSoloSession,
 } from './yjs/import-solo-session';
 export {
+  DEFAULT_PLAYER_TOKEN_RADIUS,
+  MAX_PLAYER_TOKEN_RADIUS,
+  MIN_PLAYER_TOKEN_RADIUS,
   PLAYER_TOKEN_RADIUS,
+  TOKEN_GRID_SIZE,
   defaultPlayerTokenPosition,
   movePlayerToken,
   playerTokenKey,
   prunePlayerTokens,
   readPlayerTokens,
   removePlayerToken,
+  snapTokenPosition,
+  updatePlayerToken,
   upsertPlayerToken,
   type PlayerTokenRecord,
   type PlayerTokenView,

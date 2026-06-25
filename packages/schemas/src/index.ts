@@ -56,6 +56,8 @@ export const CharacterSheetSchema = z.object({
   originSystemId: GameSystemIdSchema.optional(),
   /** Sheet this character was adapted from (cross-play lineage) */
   lineageSheetId: z.string().uuid().optional(),
+  /** Token / portrait image URL (uploaded via assets API) */
+  portraitUrl: z.string().url().optional(),
   /** Generic builder: keys hidden from the editor UI */
   layout: z
     .object({

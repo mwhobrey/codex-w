@@ -1,13 +1,19 @@
 'use client';
 
+import { useCharacterPortraits } from '@/hooks/use-character-portraits';
+import { formatPlayerTag } from '@/lib/player-tag';
+import type { MapViewRole } from '@/lib/table-systems';
 import {
-  movePlayerToken,
-  PLAYER_TOKEN_RADIUS,
+  DEFAULT_PLAYER_TOKEN_RADIUS,
+  isScenePointFogged,
+  MAX_PLAYER_TOKEN_RADIUS,
+  MIN_PLAYER_TOKEN_RADIUS,
+  snapTokenPosition,
+  updatePlayerToken,
   type PlayerTokenView,
 } from '@codex/sync';
-import { formatPlayerTag } from '@/lib/player-tag';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import type * as Y from 'yjs';
 
 interface PlayerTokenOverlayProps {
@@ -15,12 +21,23 @@ interface PlayerTokenOverlayProps {
   api: ExcalidrawImperativeAPI | null;
   tokens: PlayerTokenView[];
   localClientId: number | null;
+  mapRole?: MapViewRole;
+  hiddenCells: Set<string>;
 }
 
 interface ViewportState {
   scrollX: number;
   scrollY: number;
   zoom: number;
+}
+
+type InteractionMode = 'move' | 'resize';
+
+interface InteractionState {
+  key: string;
+  mode: InteractionMode;
+  offsetX: number;
+  offsetY: number;
 }
 
 function tokenInitials(token: PlayerTokenView): string {
@@ -30,13 +47,31 @@ function tokenInitials(token: PlayerTokenView): string {
   return token.playerName.trim().slice(0, 2).toUpperCase() || '??';
 }
 
-export function PlayerTokenOverlay({ doc, api, tokens, localClientId }: PlayerTokenOverlayProps) {
+function canManipulateToken(
+  token: PlayerTokenView,
+  localClientId: number | null,
+  mapRole: MapViewRole,
+): boolean {
+  return mapRole === 'gm' || token.clientId === localClientId;
+}
+
+export function PlayerTokenOverlay({
+  doc,
+  api,
+  tokens,
+  localClientId,
+  mapRole = 'gm',
+  hiddenCells,
+}: PlayerTokenOverlayProps) {
   const [viewport, setViewport] = useState<ViewportState>({ scrollX: 0, scrollY: 0, zoom: 1 });
-  const dragRef = useRef<{
-    key: string;
-    offsetX: number;
-    offsetY: number;
-  } | null>(null);
+  const interactionRef = useRef<InteractionState | null>(null);
+  const characterIds = useMemo(() => tokens.map((token) => token.characterId), [tokens]);
+  const portraits = useCharacterPortraits(characterIds);
+
+  const visibleTokens = useMemo(() => {
+    if (mapRole === 'gm') return tokens;
+    return tokens.filter((token) => !isScenePointFogged(token.x, token.y, hiddenCells));
+  }, [hiddenCells, mapRole, tokens]);
 
   useEffect(() => {
     if (!api) return;
@@ -66,9 +101,18 @@ export function PlayerTokenOverlay({ doc, api, tokens, localClientId }: PlayerTo
     [api],
   );
 
-  const onPointerDown = useCallback(
-    (event: PointerEvent<SVGGElement>, token: PlayerTokenView) => {
-      if (token.clientId !== localClientId || !doc) return;
+  const finishInteraction = useCallback(
+    (key: string, x: number, y: number) => {
+      if (!doc) return;
+      const snapped = snapTokenPosition(x, y);
+      updatePlayerToken(doc, key, { x: snapped.x, y: snapped.y });
+    },
+    [doc],
+  );
+
+  const onMovePointerDown = useCallback(
+    (event: PointerEvent<SVGCircleElement>, token: PlayerTokenView) => {
+      if (!canManipulateToken(token, localClientId, mapRole) || !doc) return;
       event.preventDefault();
       event.stopPropagation();
       (event.currentTarget as SVGElement).setPointerCapture(event.pointerId);
@@ -76,35 +120,87 @@ export function PlayerTokenOverlay({ doc, api, tokens, localClientId }: PlayerTo
       const point = scenePointFromEvent(event.clientX, event.clientY);
       if (!point) return;
 
-      dragRef.current = {
+      interactionRef.current = {
         key: token.key,
+        mode: 'move',
         offsetX: point.x - token.x,
         offsetY: point.y - token.y,
       };
     },
-    [doc, localClientId, scenePointFromEvent],
+    [doc, localClientId, mapRole, scenePointFromEvent],
+  );
+
+  const onResizePointerDown = useCallback(
+    (event: PointerEvent<SVGCircleElement>, token: PlayerTokenView) => {
+      if (!canManipulateToken(token, localClientId, mapRole) || !doc) return;
+      event.preventDefault();
+      event.stopPropagation();
+      (event.currentTarget as SVGElement).setPointerCapture(event.pointerId);
+
+      interactionRef.current = {
+        key: token.key,
+        mode: 'resize',
+        offsetX: 0,
+        offsetY: 0,
+      };
+    },
+    [doc, localClientId, mapRole],
   );
 
   const onPointerMove = useCallback(
-    (event: PointerEvent<SVGGElement>) => {
-      const drag = dragRef.current;
-      if (!drag || !doc) return;
+    (event: PointerEvent<SVGElement>) => {
+      const interaction = interactionRef.current;
+      if (!interaction || !doc) return;
 
       const point = scenePointFromEvent(event.clientX, event.clientY);
       if (!point) return;
 
-      movePlayerToken(doc, drag.key, point.x - drag.offsetX, point.y - drag.offsetY);
+      if (interaction.mode === 'move') {
+        updatePlayerToken(doc, interaction.key, {
+          x: point.x - interaction.offsetX,
+          y: point.y - interaction.offsetY,
+        });
+        return;
+      }
+
+      const token = tokens.find((item) => item.key === interaction.key);
+      if (!token) return;
+      const distance = Math.hypot(point.x - token.x, point.y - token.y);
+      const radius = Math.min(
+        MAX_PLAYER_TOKEN_RADIUS,
+        Math.max(MIN_PLAYER_TOKEN_RADIUS, distance),
+      );
+      updatePlayerToken(doc, interaction.key, { radius });
     },
-    [doc, scenePointFromEvent],
+    [doc, scenePointFromEvent, tokens],
   );
 
-  const onPointerUp = useCallback(() => {
-    dragRef.current = null;
-  }, []);
+  const onPointerUp = useCallback(
+    (event: PointerEvent<SVGElement>) => {
+      const interaction = interactionRef.current;
+      if (!interaction || !doc) {
+        interactionRef.current = null;
+        return;
+      }
 
-  if (tokens.length === 0) return null;
+      if (interaction.mode === 'move') {
+        const token = tokens.find((item) => item.key === interaction.key);
+        if (token) {
+          finishInteraction(interaction.key, token.x, token.y);
+        }
+      }
 
-  const r = PLAYER_TOKEN_RADIUS;
+      interactionRef.current = null;
+      try {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      } catch {
+        // capture may already be released
+      }
+    },
+    [doc, finishInteraction, tokens],
+  );
+
+  if (visibleTokens.length === 0) return null;
 
   return (
     <svg
@@ -112,37 +208,93 @@ export function PlayerTokenOverlay({ doc, api, tokens, localClientId }: PlayerTo
       data-testid="player-token-overlay"
       aria-label="Player tokens"
     >
+      <defs>
+        {visibleTokens.map((token) => {
+          const portrait = portraits.get(token.characterId);
+          if (!portrait) return null;
+          const r = token.radius ?? DEFAULT_PLAYER_TOKEN_RADIUS;
+          return (
+            <clipPath key={`clip-${token.key}`} id={`player-token-clip-${token.key}`}>
+              <circle r={r} />
+            </clipPath>
+          );
+        })}
+      </defs>
+
       <g transform={`translate(${viewport.scrollX} ${viewport.scrollY}) scale(${viewport.zoom})`}>
-        {tokens.map((token) => {
-          const isOwn = token.clientId === localClientId;
+        {visibleTokens.map((token) => {
+          const r = token.radius ?? DEFAULT_PLAYER_TOKEN_RADIUS;
           const label = formatPlayerTag(token.playerName, token.characterName);
+          const portrait = portraits.get(token.characterId);
+          const manipulable = canManipulateToken(token, localClientId, mapRole);
+          const fogged =
+            mapRole === 'gm' && isScenePointFogged(token.x, token.y, hiddenCells);
+          const opacity = fogged ? 0.42 : 1;
+
           return (
             <g
               key={token.key}
               transform={`translate(${token.x} ${token.y})`}
-              className={isOwn ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : ''}
-              onPointerDown={(event) => onPointerDown(event, token)}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
+              opacity={opacity}
             >
+              {portrait ? (
+                <image
+                  href={portrait}
+                  x={-r}
+                  y={-r}
+                  width={r * 2}
+                  height={r * 2}
+                  clipPath={`url(#player-token-clip-${token.key})`}
+                  preserveAspectRatio="xMidYMid slice"
+                  pointerEvents="none"
+                />
+              ) : null}
+
               <circle
                 r={r}
-                fill={token.color}
-                fillOpacity={0.88}
-                stroke="#0a0a0a"
-                strokeWidth={1.5}
+                fill={portrait ? 'transparent' : token.color}
+                fillOpacity={portrait ? 0 : 0.88}
+                stroke={token.color}
+                strokeWidth={portrait ? 3 : 1.5}
+                className={
+                  manipulable ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : ''
+                }
+                onPointerDown={(event) => onMovePointerDown(event, token)}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
               />
-              <text
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill="#0a0a0a"
-                fontSize={r * 0.72}
-                fontWeight={700}
-                pointerEvents="none"
-              >
-                {tokenInitials(token)}
-              </text>
+
+              {!portrait ? (
+                <text
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill="#0a0a0a"
+                  fontSize={r * 0.72}
+                  fontWeight={700}
+                  pointerEvents="none"
+                >
+                  {tokenInitials(token)}
+                </text>
+              ) : null}
+
+              {manipulable ? (
+                <circle
+                  cx={r * 0.72}
+                  cy={r * 0.72}
+                  r={5}
+                  fill="#f8fafc"
+                  stroke={token.color}
+                  strokeWidth={1.5}
+                  className="pointer-events-auto cursor-nwse-resize"
+                  data-testid={`player-token-resize-${token.key}`}
+                  onPointerDown={(event) => onResizePointerDown(event, token)}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  onPointerCancel={onPointerUp}
+                />
+              ) : null}
+
               <text
                 y={r + 14}
                 textAnchor="middle"
@@ -151,7 +303,7 @@ export function PlayerTokenOverlay({ doc, api, tokens, localClientId }: PlayerTo
                 fontWeight={600}
                 pointerEvents="none"
               >
-                {label.length > 18 ? `${label.slice(0, 16)}…` : label}
+                {label.length > 22 ? `${label.slice(0, 20)}…` : label}
               </text>
             </g>
           );
