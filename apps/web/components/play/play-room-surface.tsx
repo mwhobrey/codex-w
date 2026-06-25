@@ -239,6 +239,7 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
           <TablePresence
             peers={awarenessState.peers}
             localName={awarenessState.localName}
+            localCharacterName={activeCharacter?.name}
             usesAccountName={awarenessState.usesAccountName}
             onLocalNameChange={awarenessState.setLocalName}
           />

@@ -1,11 +1,13 @@
 'use client';
 
 import type { TablePeer } from '@/hooks/use-table-awareness';
+import { formatPlayerTag } from '@/lib/player-tag';
 import { cn } from '@codex/ui';
 
 interface TablePresenceProps {
   peers: TablePeer[];
   localName: string;
+  localCharacterName?: string;
   usesAccountName?: boolean;
   onLocalNameChange: (name: string) => void;
   className?: string;
@@ -14,49 +16,64 @@ interface TablePresenceProps {
 export function TablePresence({
   peers,
   localName,
+  localCharacterName,
   usesAccountName = false,
   onLocalNameChange,
   className,
 }: TablePresenceProps) {
   const others = peers.filter((peer) => !peer.isSelf);
+  const localTag = formatPlayerTag(localName, localCharacterName);
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2', className)} data-testid="table-presence">
       {usesAccountName ? (
         <span
-          className="inline-flex h-7 max-w-[10rem] items-center truncate rounded-md border border-codex-border/50 bg-codex-void/40 px-2 text-xs text-codex-text"
-          title={localName}
+          className="inline-flex h-7 max-w-[14rem] items-center truncate rounded-md border border-codex-border/50 bg-codex-void/40 px-2 text-xs text-codex-text"
+          title={localTag}
           data-testid="table-presence-account-name"
         >
-          {localName}
+          {localTag}
         </span>
       ) : (
-        <input
-          value={localName}
-          onChange={(e) => onLocalNameChange(e.target.value)}
-          onBlur={(e) => onLocalNameChange(e.target.value)}
-          placeholder="Your name"
-          className="h-7 w-24 rounded-md border border-codex-border/50 bg-codex-void/40 px-2 text-xs text-codex-text"
-          aria-label="Display name at this table"
-          data-testid="table-presence-name-input"
-        />
+        <div className="flex max-w-[14rem] items-center gap-0.5">
+          <input
+            value={localName}
+            onChange={(e) => onLocalNameChange(e.target.value)}
+            onBlur={(e) => onLocalNameChange(e.target.value)}
+            placeholder="Your name"
+            className="h-7 min-w-0 flex-1 rounded-md border border-codex-border/50 bg-codex-void/40 px-2 text-xs text-codex-text"
+            aria-label="Display name at this table"
+            data-testid="table-presence-name-input"
+          />
+          {localCharacterName ? (
+            <span
+              className="shrink-0 truncate text-[10px] text-codex-text-muted"
+              title={localTag}
+            >
+              /{localCharacterName}
+            </span>
+          ) : null}
+        </div>
       )}
       {others.length > 0 ? (
         <ul className="flex flex-wrap items-center gap-1.5">
-          {others.map((peer) => (
+          {others.map((peer) => {
+            const tag = formatPlayerTag(peer.name, peer.characterName);
+            return (
             <li
               key={peer.clientId}
-              className="inline-flex items-center gap-1 rounded-full border border-codex-border/40 bg-codex-void/40 px-2 py-0.5 text-[10px] text-codex-text-muted"
-              title={peer.characterName ? `${peer.name} · ${peer.characterName}` : peer.name}
+              className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full border border-codex-border/40 bg-codex-void/40 px-2 py-0.5 text-[10px] text-codex-text-muted"
+              title={tag}
             >
               <span
-                className="h-1.5 w-1.5 rounded-full"
+                className="h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ backgroundColor: peer.color }}
                 aria-hidden
               />
-              {peer.characterName ? `${peer.name} · ${peer.characterName}` : peer.name}
+              <span className="truncate">{tag}</span>
             </li>
-          ))}
+            );
+          })}
         </ul>
       ) : (
         <span className="text-[10px] text-codex-text-faint">Solo at table</span>

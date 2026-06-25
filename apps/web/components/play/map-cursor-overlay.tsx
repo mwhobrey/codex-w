@@ -1,6 +1,7 @@
 'use client';
 
 import type { TablePeer } from '@/hooks/use-table-awareness';
+import { formatPlayerTag } from '@/lib/player-tag';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useEffect, useState } from 'react';
 
@@ -46,7 +47,7 @@ export function MapCursorOverlay({ api, peers }: MapCursorOverlayProps) {
               strokeWidth={0.5}
             />
             <text x={12} y={10} fill={peer.color} fontSize={11} fontWeight={600}>
-              {peer.name}
+              {formatPlayerTag(peer.name, peer.characterName)}
             </text>
           </g>
         ))}
