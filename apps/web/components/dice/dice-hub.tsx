@@ -5,9 +5,12 @@ import { DiceParseError } from '@codex/game-engine';
 import type { DiceFormula, DiceSet } from '@codex/schemas';
 import { diceSetRepo } from '@codex/sync';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from '@codex/ui';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { queueDiceSetSync } from '@/lib/dice-set-sync';
 import { createEmptyDiceSet, useDiceSets } from '@/hooks/use-dice-sets';
+import { usePlayRoomLogPush } from '@/hooks/use-play-room-log-push';
 import { DiceRoller } from './dice-roller';
 
 function FormulaRow({
@@ -165,7 +168,11 @@ function DiceSetEditor({
 }
 
 export function DiceHub() {
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get('room');
   const { sets, ownerId, ready } = useDiceSets();
+  const { pushRoll, ready: logReady, connected } = usePlayRoomLogPush(roomId);
+  const [lastPushed, setLastPushed] = useState<string | null>(null);
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
 
   const selectedSet =
@@ -182,7 +189,46 @@ export function DiceHub() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-10">
-      <DiceRoller presets={presets} activeSetName={selectedSet?.name} />
+      {roomId ? (
+        <Card className="border-codex-ember/30 bg-codex-ember/5">
+          <CardContent className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-left text-sm">
+              <p className="font-medium text-codex-text">
+                Logging rolls to play room
+                <span className="ml-2 font-mono text-xs text-codex-text-muted">{roomId}</span>
+              </p>
+              <p className="mt-1 text-xs text-codex-text-muted">
+                {logReady
+                  ? connected
+                    ? 'Synced live with the room.'
+                    : 'Saved locally — will sync when PartyKit is online.'
+                  : 'Connecting to room log…'}
+              </p>
+              {lastPushed ? (
+                <p className="mt-1 text-xs text-codex-ember" aria-live="polite">
+                  Last pushed: {lastPushed}
+                </p>
+              ) : null}
+            </div>
+            <Button type="button" variant="outline" size="sm" asChild>
+              <Link href={`/play/${roomId}`}>Back to room</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <DiceRoller
+        presets={presets}
+        activeSetName={selectedSet?.name}
+        onRoll={
+          roomId
+            ? (result) => {
+                pushRoll(result);
+                setLastPushed(`${result.notation} → ${result.total}`);
+              }
+            : undefined
+        }
+      />
 
       <section aria-labelledby="dice-sets-heading">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

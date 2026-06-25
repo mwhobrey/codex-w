@@ -2,14 +2,15 @@
 
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 
-export type CodexMapKind = 'terrain' | 'structure';
+export type CodexMapKind = 'terrain' | 'structure' | 'token';
+
+export type CodexMapTool = 'select' | 'stamp' | 'fog-hide' | 'fog-reveal';
 
 export interface CodexMapSymbol {
   id: string;
   label: string;
   kind: CodexMapKind;
   category: string;
-  /** Short hint for toolbar tooltips */
   hint: string;
 }
 
@@ -18,11 +19,54 @@ const CODEX_CUSTOM = (kind: CodexMapKind, type: string) => ({
   codexType: type,
 });
 
+function tokenElements(
+  x: number,
+  y: number,
+  type: string,
+  fill: string,
+  stroke: string,
+  letter: string,
+) {
+  const size = 56;
+  const half = size / 2;
+  return [
+    {
+      type: 'ellipse' as const,
+      x: x - half,
+      y: y - half,
+      width: size,
+      height: size,
+      backgroundColor: fill,
+      strokeColor: stroke,
+      fillStyle: 'solid' as const,
+      strokeWidth: 2,
+      customData: CODEX_CUSTOM('token', type),
+    },
+    {
+      type: 'text' as const,
+      x: x - 8,
+      y: y - 10,
+      text: letter,
+      fontSize: 20,
+      strokeColor: stroke,
+      customData: CODEX_CUSTOM('token', `${type}-label`),
+    },
+  ];
+}
+
 function skeletonForSymbol(symbolId: string, x: number, y: number) {
   const size = 80;
   const half = size / 2;
 
   switch (symbolId) {
+    case 'token-player':
+      return tokenElements(x, y, 'player', '#93c5fd', '#1d4ed8', 'P');
+    case 'token-npc':
+      return tokenElements(x, y, 'npc', '#fca5a5', '#b91c1c', 'N');
+    case 'token-monster':
+      return tokenElements(x, y, 'monster', '#d8b4fe', '#7e22ce', 'M');
+    case 'token-ally':
+      return tokenElements(x, y, 'ally', '#86efac', '#15803d', 'A');
     case 'grass':
       return [
         {
@@ -223,6 +267,22 @@ export const CODEX_MAP_SYMBOLS: CodexMapSymbol[] = [
   { id: 'bridge', label: 'Bridge', kind: 'structure', category: 'Buildings', hint: 'Crossing' },
   { id: 'ruins', label: 'Ruins', kind: 'structure', category: 'Buildings', hint: 'Collapsed walls' },
   { id: 'camp', label: 'Camp', kind: 'structure', category: 'Buildings', hint: 'Traveler camp' },
+  {
+    id: 'token-player',
+    label: 'Player',
+    kind: 'token',
+    category: 'Tokens',
+    hint: 'Player character token',
+  },
+  { id: 'token-npc', label: 'NPC', kind: 'token', category: 'Tokens', hint: 'Non-player character' },
+  {
+    id: 'token-monster',
+    label: 'Monster',
+    kind: 'token',
+    category: 'Tokens',
+    hint: 'Hostile creature',
+  },
+  { id: 'token-ally', label: 'Ally', kind: 'token', category: 'Tokens', hint: 'Friendly NPC' },
 ];
 
 export async function createCodexSymbolElements(
@@ -237,4 +297,12 @@ export async function createCodexSymbolElements(
 
 export function getCodexSymbol(id: string): CodexMapSymbol | undefined {
   return CODEX_MAP_SYMBOLS.find((symbol) => symbol.id === id);
+}
+
+export function isStampTool(tool: CodexMapTool): tool is 'stamp' {
+  return tool === 'stamp';
+}
+
+export function isFogTool(tool: CodexMapTool): boolean {
+  return tool === 'fog-hide' || tool === 'fog-reveal';
 }

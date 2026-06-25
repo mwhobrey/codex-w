@@ -1,5 +1,6 @@
 'use client';
 
+import type { RollResult } from '@codex/game-engine';
 import { Button, Card, CardContent, Input, Label } from '@codex/ui';
 import type { DiceFormula, DiceSet } from '@codex/schemas';
 import { diceSetRepo } from '@codex/sync';
@@ -12,11 +13,12 @@ import { RollLog } from './roll-log';
 interface DiceRollerProps {
   presets?: DicePreset[];
   activeSetName?: string;
+  onRoll?: (result: RollResult) => void;
 }
 
-export function DiceRoller({ presets, activeSetName }: DiceRollerProps) {
+export function DiceRoller({ presets, activeSetName, onRoll }: DiceRollerProps) {
   const { notation, setNotation, rolling, error, result, history, liveRef, roll, defaultPresets } =
-    useDiceRoll();
+    useDiceRoll('d20', onRoll);
   const quickPresets = presets?.length ? presets : defaultPresets;
 
   const handleKeyDown = (event: React.KeyboardEvent) => {

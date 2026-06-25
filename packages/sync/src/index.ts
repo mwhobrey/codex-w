@@ -6,8 +6,18 @@ export {
   PLAY_ROOM_KEYS,
   createPlayRoomDoc,
   getPlayRoomExcalidrawElements,
+  getPlayRoomFogMap,
   getPlayRoomLogArray,
 } from './yjs/play-room-doc';
+export {
+  FOG_CELL_SIZE,
+  fogCellKey,
+  paintFogBrush,
+  parseFogCellKey,
+  readHiddenFogCells,
+  sceneToFogCell,
+  setFogCellHidden,
+} from './yjs/fog';
 export {
   createPlayRoomProviders,
   type CreatePlayRoomProvidersOptions,

@@ -1,5 +1,6 @@
 import { DiceHub } from '@/components/dice/dice-hub';
 import { SiteHeader } from '@/components/site-header';
+import { Suspense } from 'react';
 
 export const metadata = {
   title: 'Dice — codex-w',
@@ -20,7 +21,9 @@ export default function DicePage() {
           </p>
         </div>
         <div className="mt-8">
-          <DiceHub />
+          <Suspense fallback={<p className="text-center text-sm text-codex-text-muted">Loading dice…</p>}>
+            <DiceHub />
+          </Suspense>
         </div>
       </main>
     </>

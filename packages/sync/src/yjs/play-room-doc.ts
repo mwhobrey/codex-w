@@ -3,6 +3,7 @@ import * as Y from 'yjs';
 
 export const PLAY_ROOM_KEYS = {
   EXCALIDRAW: 'excalidraw',
+  FOG: 'fog',
   LOG: 'log',
 } as const;
 
@@ -17,4 +18,9 @@ export function getPlayRoomLogArray(doc: Y.Doc): Y.Array<PlaySessionLogEntry> {
 /** Serialized Excalidraw elements — one entry per element JSON. */
 export function getPlayRoomExcalidrawElements(doc: Y.Doc): Y.Array<unknown> {
   return doc.getArray(`${PLAY_ROOM_KEYS.EXCALIDRAW}-elements`);
+}
+
+/** Grid cell keys `"gx,gy"` → hidden (fogged) when true. */
+export function getPlayRoomFogMap(doc: Y.Doc): Y.Map<boolean> {
+  return doc.getMap(`${PLAY_ROOM_KEYS.FOG}-hidden`);
 }

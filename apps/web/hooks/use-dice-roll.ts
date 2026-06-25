@@ -17,7 +17,7 @@ export interface DicePreset {
   notation: string;
 }
 
-export function useDiceRoll(initialNotation = 'd20') {
+export function useDiceRoll(initialNotation = 'd20', onRoll?: (result: RollResult) => void) {
   const [notation, setNotation] = useState(initialNotation);
   const [rolling, setRolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +36,7 @@ export function useDiceRoll(initialNotation = 'd20') {
           const rolled = rollDiceNotation(activeNotation);
           setResult(rolled);
           setHistory((prev) => [rolled, ...prev].slice(0, 20));
+          onRoll?.(rolled);
           if (notationOverride) setNotation(notationOverride);
           liveRef.current?.focus();
         } catch (err) {
@@ -46,7 +47,7 @@ export function useDiceRoll(initialNotation = 'd20') {
         }
       }, 520);
     },
-    [notation],
+    [notation, onRoll],
   );
 
   const validateNotation = useCallback((value: string): string | null => {
