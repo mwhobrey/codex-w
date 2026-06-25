@@ -90,7 +90,7 @@ export function CodexMapToolbar({
     <div
       className={cn(
         floating
-          ? 'absolute bottom-3 left-3 right-3 z-30 mx-auto max-w-xl rounded-xl border border-codex-border/60 bg-codex-surface/95 shadow-2xl backdrop-blur-md'
+          ? 'absolute bottom-3 left-3 z-30 max-w-[min(100%-5.5rem,20rem)] rounded-xl border border-codex-border/60 bg-codex-surface/95 shadow-2xl backdrop-blur-md'
           : 'shrink-0 border-b border-codex-border/50 bg-codex-surface/80',
         className,
       )}
