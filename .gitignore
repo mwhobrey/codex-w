@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+.next/
+out/
+.turbo/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+pnpm-debug.log*
+
+# PartyKit local dev state
+**/.partykit/
+
+# Test
+coverage/
+playwright-report/
+test-results/
+
+# Serwist
+public/sw*
+public/swe-worker*
+
+# Supabase
+supabase/.branches
+supabase/.temp

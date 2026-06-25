@@ -1,0 +1,32 @@
+# Codex — Agent Instructions
+
+## Runbook Protocol (Required)
+
+Before planning or executing any non-trivial task, consult the federated Master Runbook at `.cursor/runbook/`.
+
+1. **Start at** `.cursor/runbook/00_INDEX.md` for North Star context and navigation.
+2. **Pull only what you need:**
+   - Architecture / stack / data flow → `01_ARCHITECTURE.md`
+   - Where code lives / module boundaries → `02_COMPONENTS_AND_FILES.md`
+   - Conventions / testing / deployment → `03_RULES_AND_STANDARDS.md`
+   - Current status / next steps → `04_CURRENT_STATE.md`
+3. **Do not** load the entire runbook into working memory — read targeted sections.
+
+## Runbook Maintenance (Before Commit)
+
+When making a commit, update the runbook if your changes affect:
+
+- Tech stack, patterns, or external services → `01_ARCHITECTURE.md`
+- Directory structure, routes, or module responsibilities → `02_COMPONENTS_AND_FILES.md`
+- Conventions, tooling, or deployment → `03_RULES_AND_STANDARDS.md`
+- What works, what's broken, or priority next steps → `04_CURRENT_STATE.md`
+
+Keep updates concise and grounded in actual code. If nothing material changed, skip runbook edits.
+
+## Project Constraints
+
+- **Local-first**: offline must work; sync is enhancement, not requirement for solo play.
+- **Solo RPGs are first-class**: Loner, TOTV, Snallygaster, Ironforge — plugin architecture, not afterthoughts.
+- **Performance + beauty**: 60fps canvas, sub-16ms local edits, premium UI (Tailwind + shadcn, no generic slop).
+- **TypeScript strict** everywhere; shared types via `@codex/schemas`.
+- **Minimal diffs**: match existing conventions; don't refactor unrelated code.

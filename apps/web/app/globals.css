@@ -1,0 +1,129 @@
+@import "tailwindcss";
+@import "@codex/ui/styles.css";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces), Georgia, serif;
+}
+
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Subtle grain overlay for atmosphere */
+.codex-grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Ember glow utility */
+.codex-glow {
+  box-shadow:
+    0 0 60px var(--codex-glow),
+    0 0 120px var(--codex-glow);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+@keyframes dice-tumble {
+  0% {
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(90deg) translateY(-12px);
+  }
+  50% {
+    transform: rotate(180deg) translateY(0);
+  }
+  75% {
+    transform: rotate(270deg) translateY(-8px);
+  }
+  100% {
+    transform: rotate(360deg) translateY(0);
+  }
+}
+
+.animate-dice-tumble {
+  animation: dice-tumble 0.5s ease-in-out infinite;
+}
+
+/* Die silhouettes — approximate polyhedra in CSS */
+.die-face {
+  border-width: 2px;
+  border-style: solid;
+}
+
+.die-shape-d4 {
+  clip-path: polygon(50% 6%, 94% 88%, 6% 88%);
+  border-radius: 4px;
+}
+
+.die-shape-d6 {
+  border-radius: 0.65rem;
+}
+
+.die-shape-d8 {
+  clip-path: polygon(50% 4%, 96% 50%, 50% 96%, 4% 50%);
+  border-radius: 2px;
+}
+
+.die-shape-d10 {
+  clip-path: polygon(50% 2%, 96% 38%, 78% 96%, 22% 96%, 4% 38%);
+}
+
+.die-shape-d12 {
+  clip-path: polygon(
+    50% 2%,
+    88% 18%,
+    98% 55%,
+    75% 92%,
+    25% 92%,
+    2% 55%,
+    12% 18%
+  );
+}
+
+.die-shape-d20 {
+  clip-path: polygon(
+    50% 0%,
+    80% 10%,
+    98% 38%,
+    92% 72%,
+    68% 96%,
+    32% 96%,
+    8% 72%,
+    2% 38%,
+    20% 10%
+  );
+}
+
+.die-shape-df {
+  border-radius: 9999px;
+}

@@ -1,0 +1,37 @@
+{
+  "name": "codex",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "description": "Local-first TTRPG toolkit — dice, oracles, sheets, VTT maps, solo & multiplayer",
+  "scripts": {
+    "dev": "node scripts/ensure-local-stack.mjs && turbo run dev",
+    "dev:web": "node scripts/ensure-local-stack.mjs && npm run dev --workspace=@codex/web",
+    "dev:partykit": "npm run dev --workspace=@codex/partykit",
+    "stack:up": "node scripts/ensure-local-stack.mjs",
+    "stack:down": "docker compose down",
+    "stack:reset": "docker compose down -v && node scripts/ensure-local-stack.mjs",
+    "stack:psql": "docker compose exec postgres psql -U codex -d codex",
+    "stack:migrate": "node scripts/ensure-local-stack.mjs --migrate-only",
+    "stack:logs": "docker compose logs -f postgres",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test --filter=@codex/game-engine --filter=@codex/game-systems",
+    "test:e2e": "npm run test:e2e --workspace=@codex/web",
+    "ci": "npm run test && npm run build --workspace=@codex/web",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "npm@11.6.1",
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@codex/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/nextjs": "./typescript/nextjs.json",
+    "./tailwind/tokens": "./tailwind/tokens.css"
+  },
+  "files": [
+    "typescript",
+    "tailwind"
+  ]
+}

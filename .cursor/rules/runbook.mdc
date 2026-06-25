@@ -1,0 +1,16 @@
+---
+description: Consult and maintain the Codex Master Runbook
+alwaysApply: true
+---
+
+# Runbook Protocol
+
+Before non-trivial work, read targeted sections from `.cursor/runbook/` (start at `00_INDEX.md`). Do not load all files at once.
+
+| Task type | Read |
+|-----------|------|
+| New feature / refactor | `01_ARCHITECTURE.md` + `02_COMPONENTS_AND_FILES.md` |
+| Bug fix | `04_CURRENT_STATE.md` + relevant component doc |
+| Style / conventions | `03_RULES_AND_STANDARDS.md` |
+
+Before committing, update runbook files if stack, structure, standards, or project status changed. Ground claims in actual code.

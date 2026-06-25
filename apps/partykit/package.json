@@ -1,0 +1,19 @@
+{
+  "name": "@codex/partykit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "partykit dev",
+    "deploy": "partykit deploy"
+  },
+  "dependencies": {
+    "y-partykit": "^0.0.33",
+    "yjs": "^13.6.31"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "partykit": "^0.0.115",
+    "typescript": "^5.9.3"
+  }
+}

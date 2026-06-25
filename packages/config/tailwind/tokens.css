@@ -1,0 +1,42 @@
+/* Codex design tokens — dark-first TTRPG aesthetic */
+
+:root {
+  /* Surfaces */
+  --codex-void: #0c0c0f;
+  --codex-surface: #131318;
+  --codex-elevated: #1a1a22;
+  --codex-border: #2a2a35;
+
+  /* Text */
+  --codex-text: #e8e6e3;
+  --codex-text-muted: #8b8898;
+  --codex-text-faint: #5c5a66;
+
+  /* Accent — ember gold */
+  --codex-ember: #d4a054;
+  --codex-ember-bright: #e8b86a;
+  --codex-ember-dim: #9a7038;
+
+  /* Semantic */
+  --codex-success: #5cb87a;
+  --codex-danger: #c45c5c;
+
+  /* Glow */
+  --codex-glow: rgba(212, 160, 84, 0.15);
+  --codex-glow-strong: rgba(212, 160, 84, 0.35);
+}
+
+@theme inline {
+  --color-codex-void: var(--codex-void);
+  --color-codex-surface: var(--codex-surface);
+  --color-codex-elevated: var(--codex-elevated);
+  --color-codex-border: var(--codex-border);
+  --color-codex-text: var(--codex-text);
+  --color-codex-text-muted: var(--codex-text-muted);
+  --color-codex-text-faint: var(--codex-text-faint);
+  --color-codex-ember: var(--codex-ember);
+  --color-codex-ember-bright: var(--codex-ember-bright);
+  --color-codex-ember-dim: var(--codex-ember-dim);
+  --color-codex-success: var(--codex-success);
+  --color-codex-danger: var(--codex-danger);
+}

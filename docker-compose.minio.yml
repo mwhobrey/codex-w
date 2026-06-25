@@ -1,0 +1,35 @@
+# Optional bundled MinIO — only if you do NOT already run MinIO on :9000.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.minio.yml up -d
+#
+# Host ports 19000/19001 avoid clashing with a shared local MinIO instance.
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: codex-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: codex
+      MINIO_ROOT_PASSWORD: codexcodex
+    ports:
+      - '19000:9000'
+      - '19001:9001'
+    volumes:
+      - codex_minio_data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 codex codexcodex 2>/dev/null; do sleep 1; done;
+      mc mb local/codex-assets --ignore-existing;
+      mc anonymous set download local/codex-assets;
+      exit 0;
+      "
+
+volumes:
+  codex_minio_data:

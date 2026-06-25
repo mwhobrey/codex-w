@@ -1,0 +1,29 @@
+{
+  "name": "@codex/game-systems",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./generic": {
+      "types": "./src/generic/index.ts",
+      "default": "./src/generic/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "echo 'no lint configured yet'"
+  },
+  "dependencies": {
+    "@codex/schemas": "*"
+  },
+  "devDependencies": {
+    "@codex/config": "*",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

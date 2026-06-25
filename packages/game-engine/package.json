@@ -1,0 +1,22 @@
+{
+  "name": "@codex/game-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "echo 'no lint configured yet'"
+  },
+  "devDependencies": {
+    "@codex/config": "*",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

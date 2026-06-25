@@ -1,0 +1,5 @@
+{
+  "name": "codex-play",
+  "main": "src/server.ts",
+  "compatibilityDate": "2024-11-01"
+}
