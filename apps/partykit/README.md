@@ -40,4 +40,4 @@ After deploy, set `NEXT_PUBLIC_PARTYKIT_HOST` to your PartyKit project host (e.g
 
 - No room auth or tokens — anyone with the link can join
 - Server-side snapshot only; no Postgres backup yet
-- Asset uploads (map images) use tldraw defaults — no Supabase storage hookup
+- Asset uploads (map images) use Excalidraw defaults — no S3 storage hookup yet

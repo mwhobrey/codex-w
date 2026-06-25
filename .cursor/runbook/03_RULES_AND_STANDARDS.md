@@ -112,7 +112,7 @@ main (tagged) → Vercel production + sync-server deploy
 
 *(Updated as codebase grows)*
 
-- **tldraw + Yjs**: Use official `@tldraw/sync` patterns; don't roll custom CRDT for canvas
+- **Excalidraw + Yjs**: Scene sync via `excalidraw-elements` Y.Array in play-room doc; dynamic import (`ssr: false`) required in Next.js
 - **IndexedDB quotas**: Compress images client-side before store; prune old session logs
 - **SSR + Dexie**: Dexie/Yjs only in Client Components or dynamic `ssr: false` imports
 - **Solo engines**: Each system has different oracle shapes — resist one-size-fits-all UI; use plugin render props

@@ -7,10 +7,10 @@
 | Layer | Choice | Rationale |
 |-------|--------|-----------|
 | Language | **TypeScript 5.x** | End-to-end type safety; shared schemas with backend |
-| Framework | **Next.js 15** (App Router, React 19) | SSR/SSG where useful, API routes, excellent DX, Vercel-ready |
+| Framework | **Next.js 16** (App Router, React 19) | SSR/SSG where useful, API routes, excellent DX, Vercel-ready |
 | Styling | **Tailwind CSS v4** + **shadcn/ui** (Radix) | Accessible primitives, fast iteration, consistent design tokens |
 | Motion | **Framer Motion** | Polished micro-interactions without jank |
-| Canvas / VTT | **tldraw v2** | Best-in-class infinite canvas, built-in multiplayer hooks, MIT |
+| Canvas / VTT | **Excalidraw** (`@excalidraw/excalidraw`) | MIT license; embed + custom stamps via `customData`; Yjs scene sync |
 | Local DB | **Dexie.js** (IndexedDB) | Structured offline storage for sheets, sessions, assets metadata |
 | CRDT sync | **Yjs** + **y-indexeddb** | Conflict-free merge for maps, shared notes, live cursors |
 | Client state | **Zustand** (UI) + **TanStack Query** (server) | Minimal boilerplate; cache + background sync |
@@ -21,12 +21,12 @@
 
 | Layer | Choice | Rationale |
 |-------|--------|-----------|
-| Primary DB | **PostgreSQL** (via **Supabase** or **Neon**) | Relational truth for users, campaigns, permissions, asset refs |
-| Auth | **Supabase Auth** (or Clerk if SSO complexity grows) | OAuth, magic links, row-level security integration |
-| Object storage | **Supabase Storage** / S3-compatible | Map exports, character portraits, custom assets |
+| Primary DB | **PostgreSQL** (Neon prod / Docker local) | Relational truth for users, sheets, sessions, asset refs |
+| Auth | **Better Auth** + Drizzle adapter | Self-hosted; httpOnly cookies; no per-MAU tax |
+| Object storage | **S3-compatible** (MinIO local, R2/S3 prod) | Map exports, character portraits, custom assets |
 | Realtime | **PartyKit** (MVP) → Hocuspocus (optional later) | Managed Yjs WebSocket relay; scales per-room |
-| Edge / API | Next.js Route Handlers + Supabase Edge Functions | Thin server; heavy logic stays client-side |
-| Monorepo | **Turborepo** + **pnpm workspaces** | Shared packages, fast CI caches |
+| Edge / API | Next.js Route Handlers | Thin server; heavy logic stays client-side |
+| Monorepo | **Turborepo** + **npm workspaces** | Shared packages, fast CI caches |
 
 ### Deferred / Phase 2
 
@@ -48,13 +48,12 @@
        │                              │
        ▼                              ▼
 ┌─────────────┐   Yjs doc     ┌──────────────┐
-│  tldraw     │ ◄────────────►│ y-indexeddb  │
+│ Excalidraw  │ ◄────────────►│ y-indexeddb  │
 │  canvas     │               └──────┬───────┘
 └─────────────┘                      │
-                                     │ WebSocket (when online)
                                      ▼
                               ┌──────────────┐
-                              │ Hocuspocus   │
+                              │ PartyKit     │
                               └──────┬───────┘
                                      │
                                      ▼
@@ -106,8 +105,8 @@ Permissions enforced server-side (Postgres RLS) + client-side (Yjs awareness).
 
 ### VTT Map
 
-1. tldraw change → Yjs transaction → y-indexeddb persist
-2. Online → Hocuspocus broadcasts to room
+1. Excalidraw `onChange` → debounced Yjs `excalidraw-elements` array → y-indexeddb persist
+2. Online → PartyKit Yjs relay broadcasts to room
 3. Periodic snapshot → Postgres `map_snapshots` (JSON blob + version)
 
 ### Dice / Oracle Roll
@@ -118,7 +117,7 @@ Permissions enforced server-side (Postgres RLS) + client-side (Yjs awareness).
 
 ### Asset Upload
 
-1. Client compresses image → Supabase Storage (when online)
+1. Client compresses image → S3-compatible storage (when online)
 2. Metadata + URL stored in Dexie; queued if offline
 3. Display from local blob URL until remote URL resolves
 
@@ -126,7 +125,8 @@ Permissions enforced server-side (Postgres RLS) + client-side (Yjs awareness).
 
 | Service | Purpose | Required |
 |---------|---------|----------|
-| Supabase (or Neon + separate auth) | Postgres, auth, storage | Yes (prod) |
+| Neon Postgres + Better Auth | DB, auth | Yes (prod) |
+| Docker Postgres | Local dev DB | Yes (local) |
 | PartyKit | Yjs WebSocket relay (MVP) | Yes (multiplayer) |
 | Vercel (or similar) | Next.js hosting | Yes (prod) |
 | Sentry | Error tracking | Recommended |
@@ -134,11 +134,11 @@ Permissions enforced server-side (Postgres RLS) + client-side (Yjs awareness).
 
 ## Security Notes
 
-- Row Level Security on all Supabase tables
+- Drizzle migrations; app-layer ownership checks (RLS optional later)
 - JWT in httpOnly cookies; no tokens in localStorage
-- Yjs rooms require server-issued room tokens
+- Yjs rooms require server-issued room tokens (not implemented yet)
 - User-uploaded assets scanned + size-capped
-- CSP headers strict; tldraw sandboxed iframe if needed
+- CSP headers strict; Excalidraw loaded client-only (`dynamic` + `ssr: false`)
 
 ## Performance Targets
 

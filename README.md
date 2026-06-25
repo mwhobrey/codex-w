@@ -10,13 +10,13 @@ One beautiful workspace where any TTRPG—especially solo systems like Loner, TO
 
 | Layer | Tech |
 |-------|------|
-| App | Next.js 15, React 19, TypeScript |
-| UI | Tailwind v4, shadcn/ui, Framer Motion |
-| VTT | tldraw + Yjs |
+| App | Next.js 16, React 19, TypeScript |
+| UI | Tailwind v4, shadcn/ui |
+| VTT | Excalidraw (MIT) + Yjs |
 | Offline | Dexie (IndexedDB), PWA (Serwist) |
 | Sync | Yjs, Hocuspocus/PartyKit |
 | Backend | Neon Postgres + Better Auth (local: Docker Postgres) |
-| Monorepo | Turborepo + pnpm |
+| Monorepo | Turborepo + npm workspaces |
 
 Full architecture: [`.cursor/runbook/01_ARCHITECTURE.md`](.cursor/runbook/01_ARCHITECTURE.md)
 
