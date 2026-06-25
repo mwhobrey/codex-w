@@ -42,13 +42,7 @@ export function Hero() {
               href="/play"
               className="rounded-full border border-codex-border px-8 py-3.5 text-center text-base font-medium text-codex-text transition-colors hover:border-codex-ember/50 hover:text-codex-ember"
             >
-              Play together
-            </a>
-            <a
-              href="/solo"
-              className="rounded-full border border-codex-border/70 px-8 py-3.5 text-center text-base font-medium text-codex-text-muted transition-colors hover:border-codex-ember/50 hover:text-codex-ember"
-            >
-              Solo play
+              Open a table
             </a>
           </div>
         </div>

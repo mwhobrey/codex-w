@@ -12,6 +12,7 @@ interface CharacterPickerProps {
   onChange: (characterId: string | undefined) => void;
   /** Prefer characters from this system, but show all for cross-play */
   preferredSystemId?: string;
+  variant?: 'default' | 'compact';
 }
 
 export function CharacterPicker({
@@ -19,6 +20,7 @@ export function CharacterPicker({
   value,
   onChange,
   preferredSystemId = 'loner',
+  variant = 'default',
 }: CharacterPickerProps) {
   const sheets = useLiveQuery(
     () => (ownerId ? characterSheetRepo.listByOwner(ownerId) : Promise.resolve(undefined)),
@@ -35,32 +37,51 @@ export function CharacterPicker({
   });
 
   return (
-    <div>
-      <Label htmlFor="active-character" className="mb-2 block text-xs uppercase tracking-wide">
-        Active character
+    <div className="rounded-lg border border-codex-border/50 bg-codex-surface/60 px-3 py-2.5">
+      <Label
+        htmlFor="active-character"
+        className={
+          variant === 'compact'
+            ? 'mb-1.5 block text-xs font-medium text-codex-text-muted'
+            : 'mb-2 block text-xs uppercase tracking-wide'
+        }
+      >
+        Character
       </Label>
       <Select
         id="active-character"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value || undefined)}
+        className="text-sm"
       >
         <option value="">No character linked</option>
         {sorted.map((sheet) => (
           <option key={sheet.id} value={sheet.id}>
-            {sheet.name} ({sheet.gameSystemId}
-            {sheet.originSystemId && sheet.originSystemId !== sheet.gameSystemId
-              ? ` · from ${sheet.originSystemId}`
+            {sheet.name}
+            {variant === 'default'
+              ? ` (${sheet.gameSystemId}${
+                  sheet.originSystemId && sheet.originSystemId !== sheet.gameSystemId
+                    ? ` · from ${sheet.originSystemId}`
+                    : ''
+                })`
               : ''}
-            )
           </option>
         ))}
       </Select>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Any character works — cross-play characters keep their story when adapted.{' '}
-        <Link href="/characters" className="text-primary hover:underline">
-          Manage characters
-        </Link>
-      </p>
+      {variant === 'default' ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Any character works — cross-play characters keep their story when adapted.{' '}
+          <Link href="/characters" className="text-primary hover:underline">
+            Manage characters
+          </Link>
+        </p>
+      ) : (
+        <p className="mt-1.5 text-[10px] text-codex-text-faint">
+          <Link href="/characters" className="hover:text-codex-ember">
+            Manage characters
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

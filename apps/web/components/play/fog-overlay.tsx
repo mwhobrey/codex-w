@@ -1,12 +1,14 @@
 'use client';
 
 import { FOG_CELL_SIZE, parseFogCellKey } from '@codex/sync';
+import type { MapViewRole } from '@/lib/table-systems';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useEffect, useMemo, useState } from 'react';
 
 interface FogOverlayProps {
   api: ExcalidrawImperativeAPI | null;
   hiddenCells: Set<string>;
+  mapRole?: MapViewRole;
 }
 
 interface ViewportState {
@@ -24,7 +26,7 @@ function readViewport(api: ExcalidrawImperativeAPI): ViewportState {
   };
 }
 
-export function FogOverlay({ api, hiddenCells }: FogOverlayProps) {
+export function FogOverlay({ api, hiddenCells, mapRole = 'gm' }: FogOverlayProps) {
   const [viewport, setViewport] = useState<ViewportState>({
     scrollX: 0,
     scrollY: 0,
@@ -70,8 +72,8 @@ export function FogOverlay({ api, hiddenCells }: FogOverlayProps) {
             y={rect.y}
             width={FOG_CELL_SIZE}
             height={FOG_CELL_SIZE}
-            fill="rgba(8, 8, 12, 0.82)"
-            stroke="rgba(0, 0, 0, 0.35)"
+            fill={mapRole === 'gm' ? 'rgba(8, 8, 12, 0.35)' : 'rgba(8, 8, 12, 0.88)'}
+            stroke={mapRole === 'gm' ? 'rgba(251, 146, 60, 0.45)' : 'rgba(0, 0, 0, 0.35)'}
             strokeWidth={1 / viewport.zoom}
           />
         ))}

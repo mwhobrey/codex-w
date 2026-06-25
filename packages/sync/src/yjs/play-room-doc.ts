@@ -5,6 +5,7 @@ export const PLAY_ROOM_KEYS = {
   EXCALIDRAW: 'excalidraw',
   FOG: 'fog',
   LOG: 'log',
+  META: 'meta',
 } as const;
 
 export function createPlayRoomDoc(): Y.Doc {
@@ -23,4 +24,9 @@ export function getPlayRoomExcalidrawElements(doc: Y.Doc): Y.Array<unknown> {
 /** Grid cell keys `"gx,gy"` → hidden (fogged) when true. */
 export function getPlayRoomFogMap(doc: Y.Doc): Y.Map<boolean> {
   return doc.getMap(`${PLAY_ROOM_KEYS.FOG}-hidden`);
+}
+
+/** Table/campaign metadata (game system, character, scene focus, etc.). */
+export function getPlayRoomMetaMap(doc: Y.Doc): Y.Map<unknown> {
+  return doc.getMap(PLAY_ROOM_KEYS.META);
 }

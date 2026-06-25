@@ -8,7 +8,16 @@ export {
   getPlayRoomExcalidrawElements,
   getPlayRoomFogMap,
   getPlayRoomLogArray,
+  getPlayRoomMetaMap,
 } from './yjs/play-room-doc';
+export {
+  defaultTableMeta,
+  parseTableMeta,
+  patchTableMeta,
+  readTableMeta,
+  seedTableMetaIfEmpty,
+  writeTableMeta,
+} from './yjs/table-meta';
 export {
   FOG_CELL_SIZE,
   fogCellKey,

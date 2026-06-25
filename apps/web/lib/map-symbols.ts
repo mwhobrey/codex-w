@@ -15,13 +15,30 @@ export interface CodexMapSymbol {
   hint: string;
 }
 
-const CODEX_CUSTOM = (kind: CodexMapKind, type: string) => ({
+const CODEX_CUSTOM = (kind: CodexMapKind, type: string, extra?: Record<string, unknown>) => ({
   codexKind: kind,
   codexType: type,
+  ...extra,
 });
 
-function tokenSkeleton(bounds: SceneBounds, type: string, fill: string, stroke: string, letter: string) {
+export interface CodexTokenOptions {
+  label?: string;
+  characterId?: string;
+  characterName?: string;
+}
+
+function tokenSkeleton(
+  bounds: SceneBounds,
+  type: string,
+  fill: string,
+  stroke: string,
+  letter: string,
+  tokenOptions?: CodexTokenOptions,
+) {
   const fontSize = Math.max(14, Math.min(bounds.width, bounds.height) * 0.38);
+  const labelText =
+    tokenOptions?.label?.slice(0, 2).toUpperCase() ??
+    (tokenOptions?.characterName?.[0]?.toUpperCase() ?? letter);
   return [
     {
       type: 'ellipse' as const,
@@ -33,13 +50,22 @@ function tokenSkeleton(bounds: SceneBounds, type: string, fill: string, stroke: 
       strokeColor: stroke,
       fillStyle: 'solid' as const,
       strokeWidth: 2,
-      label: { text: letter, fontSize },
-      customData: CODEX_CUSTOM('token', type),
+      label: { text: labelText, fontSize },
+      customData: CODEX_CUSTOM('token', type, {
+        characterId: tokenOptions?.characterId,
+        characterName: tokenOptions?.characterName,
+        displayLabel: tokenOptions?.label ?? tokenOptions?.characterName,
+      }),
     },
   ];
 }
 
-function skeletonForSymbol(symbolId: string, bounds: SceneBounds, groupId?: string) {
+function skeletonForSymbol(
+  symbolId: string,
+  bounds: SceneBounds,
+  groupId?: string,
+  tokenOptions?: CodexTokenOptions,
+) {
   const groupIds = groupId ? [groupId] : undefined;
   const { x, y, width, height } = bounds;
   const cx = x + width / 2;
@@ -47,13 +73,13 @@ function skeletonForSymbol(symbolId: string, bounds: SceneBounds, groupId?: stri
 
   switch (symbolId) {
     case 'token-player':
-      return tokenSkeleton(bounds, 'player', '#93c5fd', '#1d4ed8', 'P');
+      return tokenSkeleton(bounds, 'player', '#93c5fd', '#1d4ed8', 'P', tokenOptions);
     case 'token-npc':
-      return tokenSkeleton(bounds, 'npc', '#fca5a5', '#b91c1c', 'N');
+      return tokenSkeleton(bounds, 'npc', '#fca5a5', '#b91c1c', 'N', tokenOptions);
     case 'token-monster':
-      return tokenSkeleton(bounds, 'monster', '#d8b4fe', '#7e22ce', 'M');
+      return tokenSkeleton(bounds, 'monster', '#d8b4fe', '#7e22ce', 'M', tokenOptions);
     case 'token-ally':
-      return tokenSkeleton(bounds, 'ally', '#86efac', '#15803d', 'A');
+      return tokenSkeleton(bounds, 'ally', '#86efac', '#15803d', 'A', tokenOptions);
     case 'grass':
       return [
         {
@@ -289,11 +315,12 @@ export const CODEX_MAP_SYMBOLS: CodexMapSymbol[] = [
 export async function createCodexSymbolElements(
   symbolId: string,
   bounds: SceneBounds,
+  tokenOptions?: CodexTokenOptions,
 ): Promise<ExcalidrawElement[]> {
   const { convertToExcalidrawElements } = await import('@excalidraw/excalidraw');
   const needsGroup = !symbolId.startsWith('token-');
   const groupId = needsGroup ? crypto.randomUUID() : undefined;
-  const skeleton = skeletonForSymbol(symbolId, bounds, groupId);
+  const skeleton = skeletonForSymbol(symbolId, bounds, groupId, tokenOptions);
   return convertToExcalidrawElements(skeleton, { regenerateIds: true });
 }
 

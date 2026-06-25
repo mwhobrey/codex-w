@@ -99,7 +99,16 @@ export const SoloSessionSchema = z.object({
 
 export type SoloSession = z.infer<typeof SoloSessionSchema>;
 
-export const PlaySessionLogEntryTypeSchema = z.enum(['roll', 'journal', 'system']);
+export const PlaySessionLogEntryTypeSchema = z.enum([
+  'roll',
+  'journal',
+  'system',
+  'oracle',
+  'twist',
+  'risk',
+  'scene',
+  'note',
+]);
 export type PlaySessionLogEntryType = z.infer<typeof PlaySessionLogEntryTypeSchema>;
 
 export const PlaySessionLogEntrySchema = z.object({
@@ -114,6 +123,18 @@ export const PlaySessionLogEntrySchema = z.object({
 });
 
 export type PlaySessionLogEntry = z.infer<typeof PlaySessionLogEntrySchema>;
+
+/** Persistent table/campaign metadata synced via Yjs (solo or multiplayer). */
+export const TableMetaSchema = z.object({
+  gameSystemId: GameSystemIdSchema,
+  name: z.string().max(128).optional(),
+  characterId: z.string().uuid().optional(),
+  sceneFocus: z.string().max(512).optional(),
+  scratchNotes: z.string().max(8192).optional(),
+  gameState: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type TableMeta = z.infer<typeof TableMetaSchema>;
 
 export const DiceFormulaSchema = z.object({
   label: z.string().min(1).max(64),

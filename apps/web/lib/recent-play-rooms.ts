@@ -1,9 +1,12 @@
+import type { GameSystemId } from '@codex/schemas';
+
 const STORAGE_KEY = 'codex-recent-play-rooms';
 const MAX_RECENT = 12;
 
 export interface RecentPlayRoom {
   id: string;
   label?: string;
+  gameSystemId?: GameSystemId;
   visitedAt: string;
 }
 
@@ -28,14 +31,20 @@ export function readRecentPlayRooms(): RecentPlayRoom[] {
   return readRaw().sort((a, b) => b.visitedAt.localeCompare(a.visitedAt));
 }
 
-export function recordRecentPlayRoom(id: string, label?: string): void {
+export function recordRecentPlayRoom(
+  id: string,
+  label?: string,
+  gameSystemId?: GameSystemId,
+): void {
   const trimmed = id.trim();
   if (!trimmed) return;
   const now = new Date().toISOString();
   const existing = readRaw().filter((room) => room.id !== trimmed);
+  const prev = readRaw().find((room) => room.id === trimmed);
   const next: RecentPlayRoom = {
     id: trimmed,
-    label: label?.trim() || undefined,
+    label: label?.trim() || prev?.label,
+    gameSystemId: gameSystemId ?? prev?.gameSystemId,
     visitedAt: now,
   };
   writeRaw([next, ...existing]);

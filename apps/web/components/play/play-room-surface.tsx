@@ -1,30 +1,91 @@
 'use client';
 
 import type { RollResult } from '@codex/game-engine';
-import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
+import { getGameSystem } from '@codex/game-systems';
+import { Button, cn } from '@codex/ui';
+import { CharacterPicker, useCharacter } from '@/components/solo/character-picker';
+import { useOwnerId } from '@/hooks/use-owner-id';
 import { usePlayRoom } from '@/hooks/use-play-room';
-import { cn } from '@codex/ui';
-import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
-import { ConnectionStatus } from './connection-status';
+import { useTableAwareness } from '@/hooks/use-table-awareness';
+import { useTableMeta } from '@/hooks/use-table-meta';
+import { useTableSidebarWidth } from '@/hooks/use-table-sidebar-width';
+import { MAP_FLOATING_BOTTOM_STYLE } from '@/lib/map-overlay-layout';
+import { patchGameState } from './table-panel-types';
+import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
+import { parseGameSystemId, readMapViewRole } from '@/lib/table-systems';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CharacterPeekDrawer } from './character-peek-drawer';
+import { FloatingDiceWidget } from './floating-dice-widget';
 import { PlayDicePanel } from './play-dice-panel';
-import { RoomShareBar } from './room-share-bar';
 import { SessionLogPanel } from './session-log-panel';
+import { TableHeader } from './table-header';
+import { TablePlayPanel } from './table-play-panel';
+import { TablePresence } from './table-presence';
+import { TableResizeHandle } from './table-resize-handle';
+import { TableScratchNotes } from './table-scratch-notes';
+import { type TableSidebarTab, TableSidebarTabs } from './table-sidebar';
 import { VttCanvas } from './vtt-canvas';
 
 interface PlayRoomSurfaceProps {
   roomId: string;
+  initialSystem?: string;
 }
 
-type MobilePanel = 'map' | 'dice' | 'log';
+type MobileView = 'map' | TableSidebarTab;
 
-export function PlayRoomSurface({ roomId }: PlayRoomSurfaceProps) {
-  const { doc, logEntries, connectionStatus, roomUrl, appendLog, ready } = usePlayRoom(roomId);
-  const [mobilePanel, setMobilePanel] = useState<MobilePanel>('map');
+export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps) {
+  const systemSeed = parseGameSystemId(initialSystem);
+  const { doc, awareness, logEntries, connectionStatus, roomUrl, appendLog, ready } =
+    usePlayRoom(roomId);
+  const { meta, updateMeta } = useTableMeta(doc, {
+    initialSystem: systemSeed,
+  });
+  const { ownerId, ready: ownerReady } = useOwnerId();
+  const activeCharacter = useCharacter(meta?.characterId);
+  const { width: sidebarWidth, adjustWidth } = useTableSidebarWidth();
+  const awarenessState = useTableAwareness(awareness);
+  const [mobileView, setMobileView] = useState<MobileView>('map');
+  const [sidebarTab, setSidebarTab] = useState<TableSidebarTab>('play');
+  const [tableNameDraft, setTableNameDraft] = useState('');
+  const [peekOpen, setPeekOpen] = useState(false);
+
+  const plugin = useMemo(
+    () => (meta ? getGameSystem(meta.gameSystemId) : null),
+    [meta],
+  );
+
+  const mapRole = meta ? readMapViewRole(meta.gameState) : 'gm';
+
+  const activeSidebarTab: TableSidebarTab =
+    mobileView === 'map' ? sidebarTab : mobileView;
+
+  const showMap = mobileView === 'map';
+
+  const tokenOptions = useMemo(
+    () =>
+      activeCharacter
+        ? {
+            characterId: activeCharacter.id,
+            characterName: activeCharacter.name,
+            label: activeCharacter.name.slice(0, 2).toUpperCase(),
+          }
+        : undefined,
+    [activeCharacter],
+  );
 
   useEffect(() => {
-    if (ready) recordRecentPlayRoom(roomId);
-  }, [ready, roomId]);
+    if (ready && meta) {
+      recordRecentPlayRoom(roomId, meta.name, meta.gameSystemId);
+    }
+  }, [ready, roomId, meta?.name, meta?.gameSystemId]);
+
+  useEffect(() => {
+    setTableNameDraft(meta?.name ?? '');
+  }, [meta?.name]);
+
+  useEffect(() => {
+    awarenessState.setCharacterName(activeCharacter?.name);
+  }, [activeCharacter?.name, awarenessState.setCharacterName]);
 
   const handleDiceRoll = useCallback(
     (result: RollResult) => {
@@ -39,83 +100,165 @@ export function PlayRoomSurface({ roomId }: PlayRoomSurfaceProps) {
     [appendLog],
   );
 
-  return (
-    <div className="flex h-dvh flex-col bg-codex-void">
-      <header className="flex shrink-0 flex-col gap-3 border-b border-codex-border/50 bg-codex-surface/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href="/play" className="text-xs text-codex-text-muted hover:text-codex-ember">
-              ← Play
-            </Link>
-            <h1 className="font-display text-lg font-medium text-codex-text">Table</h1>
-            <ConnectionStatus status={connectionStatus} />
-          </div>
-          <p className="mt-0.5 truncate font-mono text-xs text-codex-text-muted">{roomId}</p>
-        </div>
-        <div className="w-full sm:max-w-md">
-          <RoomShareBar roomUrl={roomUrl} />
-        </div>
-      </header>
+  const saveTableName = useCallback(() => {
+    const trimmed = tableNameDraft.trim();
+    if (trimmed !== (meta?.name ?? '')) {
+      updateMeta({ name: trimmed || undefined });
+    }
+  }, [meta?.name, tableNameDraft, updateMeta]);
 
-      <div className="flex shrink-0 gap-1 border-b border-codex-border/40 p-2 lg:hidden">
-        {(['map', 'dice', 'log'] as const).map((panel) => (
-          <button
-            key={panel}
+  const selectSidebarTab = (tab: TableSidebarTab) => {
+    setSidebarTab(tab);
+    setMobileView(tab);
+  };
+
+  const handleMapRoleChange = useCallback(
+    (role: 'gm' | 'player') => {
+      if (!meta) return;
+      updateMeta({ gameState: patchGameState(meta, { mapRole: role }) });
+    },
+    [meta, updateMeta],
+  );
+
+  const playPanel = (
+    <div className="space-y-3">
+      {ownerReady && meta ? (
+        <div className="space-y-2">
+          <CharacterPicker
+            ownerId={ownerId}
+            value={meta.characterId}
+            preferredSystemId={meta.gameSystemId}
+            variant="compact"
+            onChange={(characterId) => updateMeta({ characterId })}
+          />
+          <Button
             type="button"
-            onClick={() => setMobilePanel(panel)}
+            size="sm"
+            variant="outline"
+            className="w-full"
+            disabled={!meta.characterId}
+            onClick={() => setPeekOpen(true)}
+            data-testid="character-peek-button"
+          >
+            {activeCharacter ? `Peek · ${activeCharacter.name}` : 'Peek character'}
+          </Button>
+        </div>
+      ) : null}
+
+      {meta ? (
+        <TablePlayPanel
+          gameSystemId={meta.gameSystemId}
+          meta={meta}
+          onUpdateMeta={updateMeta}
+          onAppendLog={appendLog}
+          activeCharacter={activeCharacter}
+        />
+      ) : null}
+
+      {meta ? (
+        <TableScratchNotes meta={meta} onSave={(scratchNotes) => updateMeta({ scratchNotes })} />
+      ) : null}
+    </div>
+  );
+
+  return (
+    <div className="flex h-dvh flex-col bg-codex-void" data-testid="play-room-surface">
+      <TableHeader
+        tableName={tableNameDraft}
+        onTableNameChange={setTableNameDraft}
+        onTableNameSave={saveTableName}
+        roomId={roomId}
+        roomUrl={roomUrl}
+        systemName={plugin?.name}
+        connectionStatus={connectionStatus}
+        presence={
+          <TablePresence
+            peers={awarenessState.peers}
+            localName={awarenessState.localName}
+            onLocalNameChange={awarenessState.setLocalName}
+          />
+        }
+      />
+
+      <div className="flex shrink-0 gap-1 border-b border-codex-border/40 p-1.5 lg:hidden">
+        {(['map', 'play', 'dice', 'log'] as const).map((view) => (
+          <button
+            key={view}
+            type="button"
+            onClick={() => setMobileView(view)}
             className={cn(
-              'min-h-11 flex-1 rounded-md px-3 py-2 text-sm font-medium capitalize transition-colors',
-              mobilePanel === panel
+              'min-h-10 flex-1 rounded-md px-2 py-2 text-sm font-medium capitalize transition-colors',
+              mobileView === view
                 ? 'bg-codex-ember/20 text-codex-ember'
-                : 'bg-codex-void/50 text-codex-text-muted',
+                : 'text-codex-text-muted hover:bg-codex-void/50',
             )}
           >
-            {panel}
+            {view}
           </button>
         ))}
       </div>
 
       {!ready ? (
         <div className="flex flex-1 items-center justify-center text-sm text-codex-text-muted">
-          Syncing local map…
+          Syncing table…
         </div>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1fr_340px]">
+        <div
+          className="flex min-h-0 flex-1"
+          style={{ '--table-sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
+        >
           <div
             className={cn(
-              'relative min-h-0 border-b border-codex-border/40 lg:border-b-0 lg:border-r',
-              mobilePanel !== 'map' && 'hidden lg:block',
+              'relative min-h-0 min-w-0 flex-1',
+              !showMap && 'hidden lg:block',
             )}
+            style={MAP_FLOATING_BOTTOM_STYLE}
           >
-            <VttCanvas doc={doc} floatingToolbar />
+            <VttCanvas
+              doc={doc}
+              floatingToolbar
+              playMode
+              mapRole={mapRole}
+              onMapRoleChange={handleMapRoleChange}
+              tokenOptions={tokenOptions}
+              peers={awarenessState.peers}
+              onPointerScene={awarenessState.setCursor}
+            />
+            <FloatingDiceWidget onRoll={handleDiceRoll} />
           </div>
+
+          <TableResizeHandle onResize={adjustWidth} />
 
           <aside
             className={cn(
-              'flex min-h-0 flex-col gap-3 p-3 lg:border-l lg:border-codex-border/40',
-              mobilePanel === 'map' ? 'hidden lg:flex' : 'flex',
+              'flex min-h-0 w-full shrink-0 flex-col border-codex-border/40 lg:w-[var(--table-sidebar-width)] lg:border-l',
+              showMap ? 'hidden lg:flex' : 'flex',
             )}
           >
-            <div className={cn('shrink-0', mobilePanel === 'log' && 'hidden lg:block')}>
-              <PlayDicePanel onRoll={handleDiceRoll} />
-            </div>
-            <div
-              className={cn(
-                'min-h-0 flex-1',
-                mobilePanel === 'dice' && 'hidden lg:block',
-              )}
-            >
-              <SessionLogPanel entries={logEntries} onAppend={appendLog} />
+            <TableSidebarTabs
+              activeTab={activeSidebarTab}
+              onTabChange={selectSidebarTab}
+              className="hidden lg:flex"
+            />
+
+            <div className="min-h-0 flex-1 overflow-y-auto p-3">
+              {activeSidebarTab === 'play' ? playPanel : null}
+              {activeSidebarTab === 'dice' ? (
+                <PlayDicePanel onRoll={handleDiceRoll} />
+              ) : null}
+              {activeSidebarTab === 'log' ? (
+                <SessionLogPanel entries={logEntries} onAppend={appendLog} />
+              ) : null}
             </div>
           </aside>
         </div>
       )}
 
-      <footer className="shrink-0 border-t border-codex-border/40 px-4 py-2 text-xs text-codex-text-muted">
-        <Link href="/dice" className="hover:text-codex-ember">
-          Manage dice sets
-        </Link>
-      </footer>
+      <CharacterPeekDrawer
+        open={peekOpen}
+        onClose={() => setPeekOpen(false)}
+        character={activeCharacter}
+      />
     </div>
   );
 }

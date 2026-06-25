@@ -1,9 +1,10 @@
 import { PlayLobby } from '@/components/play/play-lobby';
 import { SiteHeader } from '@/components/site-header';
+import { Suspense } from 'react';
 
 export const metadata = {
-  title: 'Play — codex-w',
-  description: 'Create or join a shared VTT play room.',
+  title: 'Tables — codex-w',
+  description: 'Create or join a table — solo or multiplayer, same link.',
 };
 
 export default function PlayIndexPage() {
@@ -11,7 +12,15 @@ export default function PlayIndexPage() {
     <>
       <SiteHeader />
       <main className="px-6 pt-28 pb-16">
-        <PlayLobby />
+        <Suspense
+          fallback={
+            <div className="mx-auto max-w-lg py-12 text-center text-sm text-codex-text-muted">
+              Loading tables…
+            </div>
+          }
+        >
+          <PlayLobby />
+        </Suspense>
       </main>
     </>
   );

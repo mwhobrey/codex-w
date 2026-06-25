@@ -5,10 +5,13 @@ import {
   type CodexMapKind,
   type CodexMapTool,
 } from '@/lib/map-symbols';
+import { MAP_FLOATING_BOTTOM_CLASS } from '@/lib/map-overlay-layout';
+import type { MapTemplate } from '@/lib/map-templates';
+import type { MapViewRole } from '@/lib/table-systems';
 import { cn } from '@codex/ui';
 import { useMemo, useState } from 'react';
 
-type CodexMapTab = CodexMapKind | 'fog';
+type CodexMapTab = CodexMapKind | 'fog' | 'scenes';
 
 interface CodexMapToolbarProps {
   activeTool: CodexMapTool;
@@ -20,6 +23,10 @@ interface CodexMapToolbarProps {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   className?: string;
+  mapRole?: MapViewRole;
+  onMapRoleChange?: (role: MapViewRole) => void;
+  templates?: MapTemplate[];
+  onApplyTemplate?: (templateId: string) => void;
 }
 
 const TAB_LABELS: Record<CodexMapTab, string> = {
@@ -27,6 +34,7 @@ const TAB_LABELS: Record<CodexMapTab, string> = {
   structure: 'Structures',
   token: 'Tokens',
   fog: 'Fog',
+  scenes: 'Scenes',
 };
 
 export function CodexMapToolbar({
@@ -39,12 +47,16 @@ export function CodexMapToolbar({
   collapsed = false,
   onToggleCollapse,
   className,
+  mapRole = 'gm',
+  onMapRoleChange,
+  templates = [],
+  onApplyTemplate,
 }: CodexMapToolbarProps) {
   const [tab, setTab] = useState<CodexMapTab>('terrain');
   const floating = variant === 'floating';
 
   const symbols = useMemo(() => {
-    if (tab === 'fog') return [];
+    if (tab === 'fog' || tab === 'scenes') return [];
     return CODEX_MAP_SYMBOLS.filter((symbol) => symbol.kind === tab);
   }, [tab]);
 
@@ -53,6 +65,11 @@ export function CodexMapToolbar({
     if (next === 'fog') {
       onStampSelect(null);
       onSelectTool('fog-hide');
+      return;
+    }
+    if (next === 'scenes') {
+      onStampSelect(null);
+      onSelectTool('select');
       return;
     }
     if (activeTool === 'fog-hide' || activeTool === 'fog-reveal') {
@@ -72,7 +89,7 @@ export function CodexMapToolbar({
   if (floating && collapsed) {
     return (
       <div
-        className={cn('absolute bottom-3 left-3 z-30', className)}
+        className={cn('absolute left-3 z-30', MAP_FLOATING_BOTTOM_CLASS, className)}
         data-testid="codex-map-toolbar"
       >
         <button
@@ -90,7 +107,10 @@ export function CodexMapToolbar({
     <div
       className={cn(
         floating
-          ? 'absolute bottom-3 left-3 z-30 max-w-[min(100%-5.5rem,20rem)] rounded-xl border border-codex-border/60 bg-codex-surface/95 shadow-2xl backdrop-blur-md'
+          ? cn(
+              'absolute left-3 z-30 max-w-[min(100%-1.5rem,20rem)] rounded-xl border border-codex-border/60 bg-codex-surface/95 shadow-2xl backdrop-blur-md',
+              MAP_FLOATING_BOTTOM_CLASS,
+            )
           : 'shrink-0 border-b border-codex-border/50 bg-codex-surface/80',
         className,
       )}
@@ -127,7 +147,7 @@ export function CodexMapToolbar({
         <span className="h-6 w-px shrink-0 bg-codex-border/60" aria-hidden />
 
         <div className="flex shrink-0 rounded-md border border-codex-border/50 p-0.5">
-          {(['terrain', 'structure', 'token', 'fog'] as const).map((kind) => (
+          {(['terrain', 'structure', 'token', 'fog', 'scenes'] as const).map((kind) => (
             <button
               key={kind}
               type="button"
@@ -147,39 +167,88 @@ export function CodexMapToolbar({
 
       {tab === 'fog' ? (
         <div className="flex flex-wrap items-center gap-2 border-t border-codex-border/30 px-2 py-2">
-          <button
-            type="button"
-            onClick={() => onSelectTool('fog-hide')}
-            className={cn(
-              'rounded-md border px-3 py-2 text-xs min-h-10',
-              activeTool === 'fog-hide'
-                ? 'border-codex-ember/60 bg-codex-ember/15 text-codex-ember'
-                : 'border-codex-border/40 text-codex-text-muted',
-            )}
-          >
-            Hide
-          </button>
-          <button
-            type="button"
-            onClick={() => onSelectTool('fog-reveal')}
-            className={cn(
-              'rounded-md border px-3 py-2 text-xs min-h-10',
-              activeTool === 'fog-reveal'
-                ? 'border-codex-ember/60 bg-codex-ember/15 text-codex-ember'
-                : 'border-codex-border/40 text-codex-text-muted',
-            )}
-          >
-            Reveal
-          </button>
-          {onClearFog ? (
-            <button
-              type="button"
-              onClick={onClearFog}
-              className="rounded-md border border-codex-border/40 px-3 py-2 text-xs text-codex-text-muted min-h-10 hover:text-codex-text"
-            >
-              Clear all
-            </button>
+          {onMapRoleChange ? (
+            <div className="flex w-full flex-wrap items-center gap-2 pb-1">
+              <span className="text-[10px] uppercase tracking-wide text-codex-text-muted">View</span>
+              <button
+                type="button"
+                onClick={() => onMapRoleChange('gm')}
+                className={cn(
+                  'rounded-md border px-2 py-1 text-xs min-h-8',
+                  mapRole === 'gm'
+                    ? 'border-codex-ember/60 bg-codex-ember/15 text-codex-ember'
+                    : 'border-codex-border/40 text-codex-text-muted',
+                )}
+              >
+                GM
+              </button>
+              <button
+                type="button"
+                onClick={() => onMapRoleChange('player')}
+                className={cn(
+                  'rounded-md border px-2 py-1 text-xs min-h-8',
+                  mapRole === 'player'
+                    ? 'border-codex-ember/60 bg-codex-ember/15 text-codex-ember'
+                    : 'border-codex-border/40 text-codex-text-muted',
+                )}
+              >
+                Player
+              </button>
+            </div>
           ) : null}
+          {mapRole === 'gm' ? (
+            <>
+              <button
+                type="button"
+                onClick={() => onSelectTool('fog-hide')}
+                className={cn(
+                  'rounded-md border px-3 py-2 text-xs min-h-10',
+                  activeTool === 'fog-hide'
+                    ? 'border-codex-ember/60 bg-codex-ember/15 text-codex-ember'
+                    : 'border-codex-border/40 text-codex-text-muted',
+                )}
+              >
+                Hide
+              </button>
+              <button
+                type="button"
+                onClick={() => onSelectTool('fog-reveal')}
+                className={cn(
+                  'rounded-md border px-3 py-2 text-xs min-h-10',
+                  activeTool === 'fog-reveal'
+                    ? 'border-codex-ember/60 bg-codex-ember/15 text-codex-ember'
+                    : 'border-codex-border/40 text-codex-text-muted',
+                )}
+              >
+                Reveal
+              </button>
+              {onClearFog ? (
+                <button
+                  type="button"
+                  onClick={onClearFog}
+                  className="rounded-md border border-codex-border/40 px-3 py-2 text-xs text-codex-text-muted min-h-10 hover:text-codex-text"
+                >
+                  Clear all
+                </button>
+              ) : null}
+            </>
+          ) : (
+            <p className="text-xs text-codex-text-muted">Player view — fogged areas stay hidden.</p>
+          )}
+        </div>
+      ) : tab === 'scenes' ? (
+        <div className="flex flex-col gap-2 border-t border-codex-border/30 px-2 py-2">
+          {templates.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              onClick={() => onApplyTemplate?.(template.id)}
+              className="rounded-md border border-codex-border/40 px-3 py-2 text-left text-xs hover:border-codex-ember/40 hover:bg-codex-void/40"
+            >
+              <span className="block font-medium text-codex-text">{template.name}</span>
+              <span className="block text-codex-text-muted">{template.description}</span>
+            </button>
+          ))}
         </div>
       ) : (
         <div className="flex gap-1.5 overflow-x-auto border-t border-codex-border/30 px-2 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

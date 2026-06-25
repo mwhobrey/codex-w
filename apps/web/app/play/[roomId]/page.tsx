@@ -3,17 +3,24 @@ import { PlayRoomLoader } from '@/components/play/play-room-loader';
 export async function generateMetadata({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = await params;
   return {
-    title: `Room ${roomId} — codex-w`,
-    description: 'Shared VTT map and session log.',
+    title: `Table ${roomId} — codex-w`,
+    description: 'Shared VTT map, session log, and system tools.',
   };
 }
 
-export default async function PlayRoomPage({ params }: { params: Promise<{ roomId: string }> }) {
+export default async function PlayRoomPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ roomId: string }>;
+  searchParams: Promise<{ system?: string }>;
+}) {
   const { roomId } = await params;
+  const { system } = await searchParams;
 
   return (
     <main className="h-dvh overflow-hidden">
-      <PlayRoomLoader roomId={roomId} />
+      <PlayRoomLoader roomId={roomId} initialSystem={system} />
     </main>
   );
 }

@@ -10,6 +10,13 @@ const STATUS_LABEL: Record<PlayRoomConnectionStatus, string> = {
   'local-only': 'Offline (start PartyKit for sync)',
 };
 
+const STATUS_LABEL_COMPACT: Record<PlayRoomConnectionStatus, string> = {
+  connected: 'Live',
+  connecting: 'Syncing…',
+  disconnected: 'Reconnecting',
+  'local-only': 'Offline',
+};
+
 const STATUS_VARIANT: Record<PlayRoomConnectionStatus, 'default' | 'secondary' | 'outline'> = {
   connected: 'default',
   connecting: 'secondary',
@@ -19,9 +26,12 @@ const STATUS_VARIANT: Record<PlayRoomConnectionStatus, 'default' | 'secondary' |
 
 interface ConnectionStatusProps {
   status: PlayRoomConnectionStatus;
+  compact?: boolean;
 }
 
-export function ConnectionStatus({ status }: ConnectionStatusProps) {
+export function ConnectionStatus({ status, compact }: ConnectionStatusProps) {
+  const label = compact ? STATUS_LABEL_COMPACT[status] : STATUS_LABEL[status];
+
   return (
     <Badge variant={STATUS_VARIANT[status]} className="font-normal">
       <span
@@ -34,7 +44,7 @@ export function ConnectionStatus({ status }: ConnectionStatusProps) {
         }`}
         aria-hidden
       />
-      {STATUS_LABEL[status]}
+      {label}
     </Badge>
   );
 }

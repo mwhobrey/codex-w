@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('core play loop smoke', () => {
-  test('landing → roll → characters → solo loner', async ({ page }) => {
+  test('landing → roll → characters → loner table', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByTestId('landing-hero')).toBeVisible();
 
@@ -27,9 +27,18 @@ test.describe('core play loop smoke', () => {
       await expect(characterLinks.first()).toBeVisible();
     }
 
-    await page.goto('/solo/loner');
-    await expect(page.getByTestId('solo-loner-surface')).toBeVisible();
-    await expect(page.getByText('Solo · Loner')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Oracle play' })).toBeVisible();
+    await page.goto('/play?system=loner');
+    await expect(page.getByTestId('play-lobby')).toBeVisible();
+    await expect(page.getByLabel('Game system')).toHaveValue('loner');
+    await page.getByTestId('create-table-button').click();
+    await expect(page).toHaveURL(/\/play\/[^/?]+(\?system=loner)?$/);
+    await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('table-system-panel')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('table-presence')).toBeVisible();
+    await expect(page.getByTestId('character-peek-button')).toBeVisible();
+    await expect(page.getByText('Loner')).toBeVisible();
+    await expect(page.getByTestId('floating-dice-toggle')).toBeVisible();
+    await page.getByTestId('floating-dice-toggle').click();
+    await expect(page.getByTestId('floating-dice-roll')).toBeVisible();
   });
 });

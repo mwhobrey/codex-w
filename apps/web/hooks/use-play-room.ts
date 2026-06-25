@@ -8,6 +8,7 @@ import {
   type PlayRoomConnectionStatus,
 } from '@codex/sync';
 import type { PlaySessionLogEntry } from '@codex/schemas';
+import type { Awareness } from 'y-protocols/awareness';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type * as Y from 'yjs';
 import { probePartyKitReachable } from '@/lib/partykit-reachable';
@@ -20,6 +21,7 @@ import {
 
 export interface UsePlayRoomResult {
   doc: Y.Doc | null;
+  awareness: Awareness | null;
   logEntries: PlaySessionLogEntry[];
   connectionStatus: PlayRoomConnectionStatus;
   roomUrl: string;
@@ -31,6 +33,7 @@ export interface UsePlayRoomResult {
 
 export function usePlayRoom(roomId: string): UsePlayRoomResult {
   const doc = useMemo(() => createPlayRoomDoc(), []);
+  const [awareness, setAwareness] = useState<Awareness | null>(null);
   const [logEntries, setLogEntries] = useState<PlaySessionLogEntry[]>([]);
   const [connectionStatus, setConnectionStatus] =
     useState<PlayRoomConnectionStatus>('connecting');
@@ -70,6 +73,7 @@ export function usePlayRoom(roomId: string): UsePlayRoomResult {
         return;
       }
 
+      setAwareness(providers.awareness);
       logArray = getPlayRoomLogArray(doc);
 
       syncLog = () => {
@@ -102,6 +106,7 @@ export function usePlayRoom(roomId: string): UsePlayRoomResult {
       if (statusTimer !== undefined) window.clearInterval(statusTimer);
       if (logArray && syncLog) logArray.unobserve(syncLog);
       providers?.cleanup();
+      setAwareness(null);
     };
   }, [doc, roomId]);
 
@@ -115,6 +120,7 @@ export function usePlayRoom(roomId: string): UsePlayRoomResult {
 
   return {
     doc,
+    awareness,
     logEntries,
     connectionStatus,
     roomUrl: createPlayRoomUrl(roomId),

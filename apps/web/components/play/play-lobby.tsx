@@ -1,8 +1,20 @@
 'use client';
 
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from '@codex/ui';
+import { getGameSystem, listSoloSystems } from '@codex/game-systems';
+import type { GameSystemId } from '@codex/schemas';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  Select,
+} from '@codex/ui';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   readRecentPlayRooms,
@@ -10,6 +22,7 @@ import {
   removeRecentPlayRoom,
   type RecentPlayRoom,
 } from '@/lib/recent-play-rooms';
+import { parseGameSystemId } from '@/lib/table-systems';
 
 function createRoomId(): string {
   return crypto.randomUUID().slice(0, 8);
@@ -17,36 +30,60 @@ function createRoomId(): string {
 
 export function PlayLobby() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const presetSystem = parseGameSystemId(searchParams.get('system')) ?? 'generic';
+  const systems = listSoloSystems();
+
   const [joinId, setJoinId] = useState('');
+  const [createSystem, setCreateSystem] = useState<GameSystemId>(presetSystem);
   const [recent, setRecent] = useState<RecentPlayRoom[]>([]);
+
+  useEffect(() => {
+    setCreateSystem(presetSystem);
+  }, [presetSystem]);
 
   useEffect(() => {
     setRecent(readRecentPlayRooms());
   }, []);
 
-  const joinRoom = (id: string) => {
-    recordRecentPlayRoom(id);
-    router.push(`/play/${encodeURIComponent(id)}`);
+  const openTable = (id: string, gameSystemId?: GameSystemId) => {
+    const qs = gameSystemId ? `?system=${encodeURIComponent(gameSystemId)}` : '';
+    recordRecentPlayRoom(id, undefined, gameSystemId);
+    router.push(`/play/${encodeURIComponent(id)}${qs}`);
   };
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
+    <div className="mx-auto max-w-lg space-y-6" data-testid="play-lobby">
       <Card className="border-codex-border/60 bg-codex-surface/80 shadow-xl shadow-black/20">
         <CardHeader>
-          <CardTitle className="font-display text-2xl">Play together</CardTitle>
+          <CardTitle className="font-display text-2xl">Tables</CardTitle>
           <CardDescription>
-            Shared VTT map with offline-first sync. Create a room and send the link — no account
-            required.
+            One link for solo or multiplayer — map, log, dice, and system tools stay in sync.
+            Works offline; live sync when the relay is running.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
+            <Label htmlFor="create-system">Game system</Label>
+            <Select
+              id="create-system"
+              className="mt-2"
+              value={createSystem}
+              onChange={(e) => setCreateSystem(e.target.value as GameSystemId)}
+            >
+              {systems.map((system) => (
+                <option key={system.id} value={system.id}>
+                  {system.name}
+                </option>
+              ))}
+            </Select>
             <Button
               type="button"
-              className="codex-glow w-full"
-              onClick={() => joinRoom(createRoomId())}
+              className="codex-glow mt-3 w-full"
+              data-testid="create-table-button"
+              onClick={() => openTable(createRoomId(), createSystem)}
             >
-              Create new room
+              Create new table
             </Button>
           </div>
 
@@ -60,7 +97,7 @@ export function PlayLobby() {
           </div>
 
           <div>
-            <Label htmlFor="join-room">Room ID</Label>
+            <Label htmlFor="join-room">Table ID</Label>
             <div className="mt-2 flex gap-2">
               <Input
                 id="join-room"
@@ -74,7 +111,7 @@ export function PlayLobby() {
                 type="button"
                 variant="outline"
                 disabled={!joinId}
-                onClick={() => joinRoom(joinId)}
+                onClick={() => openTable(joinId)}
               >
                 Join
               </Button>
@@ -82,8 +119,7 @@ export function PlayLobby() {
           </div>
 
           <p className="text-center text-xs text-codex-text-muted">
-            Maps save on this device. Live sync works when multiplayer relay is running — your room
-            still works offline.
+            Invite friends with the share link — you can play alone until they show up.
           </p>
         </CardContent>
       </Card>
@@ -96,36 +132,41 @@ export function PlayLobby() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2" data-testid="recent-play-rooms">
-              {recent.map((room) => (
-                <li
-                  key={room.id}
-                  className="flex items-center gap-2 rounded-lg border border-codex-border/40 bg-codex-void/40 p-2"
-                >
-                  <button
-                    type="button"
-                    onClick={() => joinRoom(room.id)}
-                    className="min-h-10 flex-1 rounded-md px-3 py-2 text-left hover:bg-codex-elevated/50"
+              {recent.map((room) => {
+                const systemName = room.gameSystemId
+                  ? getGameSystem(room.gameSystemId).name
+                  : 'Generic';
+                return (
+                  <li
+                    key={room.id}
+                    className="flex items-center gap-2 rounded-lg border border-codex-border/40 bg-codex-void/40 p-2"
                   >
-                    <span className="block font-mono text-sm text-codex-text">{room.id}</span>
-                    <span className="block text-xs text-codex-text-muted">
-                      {room.label ?? 'Unnamed table'} ·{' '}
-                      {new Date(room.visitedAt).toLocaleDateString()}
-                    </span>
-                  </button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="shrink-0"
-                    onClick={() => {
-                      removeRecentPlayRoom(room.id);
-                      setRecent(readRecentPlayRooms());
-                    }}
-                  >
-                    Remove
-                  </Button>
-                </li>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() => openTable(room.id, room.gameSystemId)}
+                      className="min-h-10 flex-1 rounded-md px-3 py-2 text-left hover:bg-codex-elevated/50"
+                    >
+                      <span className="block font-mono text-sm text-codex-text">{room.id}</span>
+                      <span className="block text-xs text-codex-text-muted">
+                        {room.label ?? 'Unnamed table'} · {systemName} ·{' '}
+                        {new Date(room.visitedAt).toLocaleDateString()}
+                      </span>
+                    </button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => {
+                        removeRecentPlayRoom(room.id);
+                        setRecent(readRecentPlayRooms());
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>

@@ -1,4 +1,5 @@
 import { IndexeddbPersistence } from 'y-indexeddb';
+import { Awareness } from 'y-protocols/awareness';
 import YPartyKitProvider from 'y-partykit/provider';
 import type * as Y from 'yjs';
 
@@ -7,6 +8,7 @@ export type PlayRoomConnectionStatus = 'connecting' | 'connected' | 'disconnecte
 export interface PlayRoomProviders {
   indexedDb: IndexeddbPersistence;
   party?: YPartyKitProvider;
+  awareness: Awareness;
   cleanup: () => void;
   getStatus: () => PlayRoomConnectionStatus;
 }
@@ -28,15 +30,18 @@ export function createPlayRoomProviders(
   const indexedDb = new IndexeddbPersistence(`codex-play-${options.roomId}`, options.doc);
 
   let party: YPartyKitProvider | undefined;
+  let localAwareness: Awareness | undefined;
 
   if (options.connect !== false && typeof globalThis.WebSocket !== 'undefined') {
     party = new YPartyKitProvider(options.host, options.roomId, options.doc, {
       party: options.party ?? 'main',
       connect: true,
-      // Cap backoff so a dead PartyKit dev server doesn't hammer the console forever.
       maxBackoffTime: 5_000,
     });
   }
+
+  const awareness = party?.awareness ?? new Awareness(options.doc);
+  if (!party) localAwareness = awareness;
 
   const getStatus = (): PlayRoomConnectionStatus => {
     if (!party) return 'local-only';
@@ -48,8 +53,10 @@ export function createPlayRoomProviders(
   return {
     indexedDb,
     party,
+    awareness,
     cleanup: () => {
       party?.destroy();
+      localAwareness?.destroy();
       indexedDb.destroy();
     },
     getStatus,

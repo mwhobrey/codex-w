@@ -6,8 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const appLinks = [
-  { href: '/play', label: 'Play' },
-  { href: '/solo', label: 'Solo' },
+  { href: '/play', label: 'Tables' },
   { href: '/characters', label: 'Characters' },
   { href: '/dice', label: 'Dice' },
 ] as const;
