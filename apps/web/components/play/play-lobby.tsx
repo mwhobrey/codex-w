@@ -3,7 +3,13 @@
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from '@codex/ui';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  readRecentPlayRooms,
+  recordRecentPlayRoom,
+  removeRecentPlayRoom,
+  type RecentPlayRoom,
+} from '@/lib/recent-play-rooms';
 
 function createRoomId(): string {
   return crypto.randomUUID().slice(0, 8);
@@ -12,9 +18,19 @@ function createRoomId(): string {
 export function PlayLobby() {
   const router = useRouter();
   const [joinId, setJoinId] = useState('');
+  const [recent, setRecent] = useState<RecentPlayRoom[]>([]);
+
+  useEffect(() => {
+    setRecent(readRecentPlayRooms());
+  }, []);
+
+  const joinRoom = (id: string) => {
+    recordRecentPlayRoom(id);
+    router.push(`/play/${encodeURIComponent(id)}`);
+  };
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-lg space-y-6">
       <Card className="border-codex-border/60 bg-codex-surface/80 shadow-xl shadow-black/20">
         <CardHeader>
           <CardTitle className="font-display text-2xl">Play together</CardTitle>
@@ -28,7 +44,7 @@ export function PlayLobby() {
             <Button
               type="button"
               className="codex-glow w-full"
-              onClick={() => router.push(`/play/${createRoomId()}`)}
+              onClick={() => joinRoom(createRoomId())}
             >
               Create new room
             </Button>
@@ -58,7 +74,7 @@ export function PlayLobby() {
                 type="button"
                 variant="outline"
                 disabled={!joinId}
-                onClick={() => router.push(`/play/${encodeURIComponent(joinId)}`)}
+                onClick={() => joinRoom(joinId)}
               >
                 Join
               </Button>
@@ -66,13 +82,56 @@ export function PlayLobby() {
           </div>
 
           <p className="text-center text-xs text-codex-text-muted">
-            Maps save on this device. Live sync works when multiplayer relay is running — your
-            room still works offline.
+            Maps save on this device. Live sync works when multiplayer relay is running — your room
+            still works offline.
           </p>
         </CardContent>
       </Card>
 
-      <p className="mt-8 text-center">
+      {recent.length > 0 ? (
+        <Card className="border-codex-border/60 bg-codex-surface/80">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Recent tables</CardTitle>
+            <CardDescription>Pick up where you left off — no ID memorization required.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2" data-testid="recent-play-rooms">
+              {recent.map((room) => (
+                <li
+                  key={room.id}
+                  className="flex items-center gap-2 rounded-lg border border-codex-border/40 bg-codex-void/40 p-2"
+                >
+                  <button
+                    type="button"
+                    onClick={() => joinRoom(room.id)}
+                    className="min-h-10 flex-1 rounded-md px-3 py-2 text-left hover:bg-codex-elevated/50"
+                  >
+                    <span className="block font-mono text-sm text-codex-text">{room.id}</span>
+                    <span className="block text-xs text-codex-text-muted">
+                      {room.label ?? 'Unnamed table'} ·{' '}
+                      {new Date(room.visitedAt).toLocaleDateString()}
+                    </span>
+                  </button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => {
+                      removeRecentPlayRoom(room.id);
+                      setRecent(readRecentPlayRooms());
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <p className="text-center">
         <Link href="/" className="text-sm text-codex-text-muted hover:text-codex-ember">
           ← Back home
         </Link>

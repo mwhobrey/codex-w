@@ -62,3 +62,29 @@ export function paintFogBrush(
     }
   }, PLAY_ROOM_KEYS.FOG);
 }
+
+export function paintFogRect(
+  doc: Y.Doc,
+  minSceneX: number,
+  minSceneY: number,
+  maxSceneX: number,
+  maxSceneY: number,
+  mode: 'hide' | 'reveal',
+  cellSize = FOG_CELL_SIZE,
+): void {
+  const minGx = Math.floor(Math.min(minSceneX, maxSceneX) / cellSize);
+  const maxGx = Math.floor(Math.max(minSceneX, maxSceneX) / cellSize);
+  const minGy = Math.floor(Math.min(minSceneY, maxSceneY) / cellSize);
+  const maxGy = Math.floor(Math.max(minSceneY, maxSceneY) / cellSize);
+
+  const yFog = getPlayRoomFogMap(doc);
+  doc.transact(() => {
+    for (let gx = minGx; gx <= maxGx; gx += 1) {
+      for (let gy = minGy; gy <= maxGy; gy += 1) {
+        const key = fogCellKey(gx, gy);
+        if (mode === 'hide') yFog.set(key, true);
+        else yFog.delete(key);
+      }
+    }
+  }, PLAY_ROOM_KEYS.FOG);
+}

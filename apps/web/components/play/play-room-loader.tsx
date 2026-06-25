@@ -7,7 +7,7 @@ const PlayRoomSurface = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center text-sm text-codex-text-muted">
+      <div className="flex h-dvh items-center justify-center text-sm text-codex-text-muted">
         Loading play room…
       </div>
     ),

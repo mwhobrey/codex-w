@@ -4,7 +4,12 @@ import { CodexMapToolbar } from '@/components/play/codex-map-toolbar';
 import { FogOverlay } from '@/components/play/fog-overlay';
 import { useYjsExcalidraw } from '@/hooks/use-yjs-excalidraw';
 import { useYjsFog } from '@/hooks/use-yjs-fog';
-import { createCodexSymbolElements, isFogTool, type CodexMapTool } from '@/lib/map-symbols';
+import { sceneBoundsFromDrag } from '@/lib/map-bounds';
+import {
+  createCodexSymbolElements,
+  isFogTool,
+  type CodexMapTool,
+} from '@/lib/map-symbols';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -29,15 +34,22 @@ const Excalidraw = dynamic(
 interface VttCanvasProps {
   doc: Y.Doc | null;
   showToolbar?: boolean;
+  /** Use floating in-canvas toolbar (play rooms). */
+  floatingToolbar?: boolean;
 }
 
-export function VttCanvas({ doc, showToolbar = true }: VttCanvasProps) {
+export function VttCanvas({
+  doc,
+  showToolbar = true,
+  floatingToolbar = false,
+}: VttCanvasProps) {
   const { ready, initialElements, onChange, bindApi } = useYjsExcalidraw(doc);
-  const { hiddenCells, paintAtScene, clearAllFog } = useYjsFog(doc);
+  const { hiddenCells, paintRectAtScene, clearAllFog } = useYjsFog(doc);
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const [apiReady, setApiReady] = useState(false);
   const [activeTool, setActiveTool] = useState<CodexMapTool>('select');
   const [activeStamp, setActiveStamp] = useState<string | null>(null);
+  const [toolbarCollapsed, setToolbarCollapsed] = useState(floatingToolbar);
   const activeToolRef = useRef(activeTool);
   const activeStampRef = useRef<string | null>(null);
 
@@ -49,6 +61,12 @@ export function VttCanvas({ doc, showToolbar = true }: VttCanvasProps) {
     activeStampRef.current = activeStamp;
   }, [activeStamp]);
 
+  useEffect(() => {
+    if (activeStamp || isFogTool(activeTool)) {
+      setToolbarCollapsed(false);
+    }
+  }, [activeStamp, activeTool]);
+
   const handleApi = useCallback(
     (api: ExcalidrawImperativeAPI) => {
       apiRef.current = api;
@@ -58,34 +76,35 @@ export function VttCanvas({ doc, showToolbar = true }: VttCanvasProps) {
     [bindApi],
   );
 
-  const placeStampAt = useCallback(async (sceneX: number, sceneY: number) => {
+  const placeStampInBounds = useCallback(async (x1: number, y1: number, x2: number, y2: number) => {
     const stampId = activeStampRef.current;
     const api = apiRef.current;
     if (!stampId || !api) return;
 
-    const created = await createCodexSymbolElements(stampId, sceneX, sceneY);
+    const bounds = sceneBoundsFromDrag(x1, y1, x2, y2);
+    const created = await createCodexSymbolElements(stampId, bounds);
     const existing = api.getSceneElements();
     api.updateScene({ elements: [...existing, ...created] });
     setActiveStamp(null);
     setActiveTool('select');
   }, []);
 
-  const handleMapPointer = useCallback(
-    (sceneX: number, sceneY: number) => {
+  const handleMapPointerDrag = useCallback(
+    (x1: number, y1: number, x2: number, y2: number) => {
       const tool = activeToolRef.current;
       if (tool === 'stamp' && activeStampRef.current) {
-        void placeStampAt(sceneX, sceneY);
+        void placeStampInBounds(x1, y1, x2, y2);
         return;
       }
       if (tool === 'fog-hide') {
-        paintAtScene(sceneX, sceneY, 'hide', 1);
+        paintRectAtScene(x1, y1, x2, y2, 'hide');
         return;
       }
       if (tool === 'fog-reveal') {
-        paintAtScene(sceneX, sceneY, 'reveal', 1);
+        paintRectAtScene(x1, y1, x2, y2, 'reveal');
       }
     },
-    [paintAtScene, placeStampAt],
+    [paintRectAtScene, placeStampInBounds],
   );
 
   useEffect(() => {
@@ -99,12 +118,13 @@ export function VttCanvas({ doc, showToolbar = true }: VttCanvasProps) {
       const tool = activeToolRef.current;
       if (tool === 'select') return;
       if (tool === 'stamp' && !activeStampRef.current) return;
-      const { x, y } = pointerDownState.origin;
-      handleMapPointer(x, y);
+      const { x: x1, y: y1 } = pointerDownState.origin;
+      const { x: x2, y: y2 } = pointerDownState.lastCoords;
+      handleMapPointerDrag(x1, y1, x2, y2);
     });
 
     return unsubscribe;
-  }, [activeTool, activeStamp, handleMapPointer, apiReady]);
+  }, [activeTool, activeStamp, handleMapPointerDrag, apiReady]);
 
   useEffect(() => {
     const needsEscape = activeStamp || isFogTool(activeTool);
@@ -136,8 +156,8 @@ export function VttCanvas({ doc, showToolbar = true }: VttCanvasProps) {
   }
 
   return (
-    <div className="flex h-full w-full flex-col" data-testid="vtt-canvas">
-      {showToolbar ? (
+    <div className="relative flex h-full w-full flex-col" data-testid="vtt-canvas">
+      {showToolbar && !floatingToolbar ? (
         <CodexMapToolbar
           activeTool={activeTool}
           activeStamp={activeStamp}
@@ -171,6 +191,18 @@ export function VttCanvas({ doc, showToolbar = true }: VttCanvasProps) {
           }}
         />
         <FogOverlay api={apiRef.current} hiddenCells={hiddenCells} />
+        {showToolbar && floatingToolbar ? (
+          <CodexMapToolbar
+            variant="floating"
+            collapsed={toolbarCollapsed}
+            onToggleCollapse={() => setToolbarCollapsed((open) => !open)}
+            activeTool={activeTool}
+            activeStamp={activeStamp}
+            onSelectTool={setActiveTool}
+            onStampSelect={setActiveStamp}
+            onClearFog={clearAllFog}
+          />
+        ) : null}
       </div>
     </div>
   );

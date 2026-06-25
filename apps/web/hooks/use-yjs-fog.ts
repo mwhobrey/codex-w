@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  FOG_CELL_SIZE,
-  getPlayRoomFogMap,
-  paintFogBrush,
-  parseFogCellKey,
-  sceneToFogCell,
-} from '@codex/sync';
+import { FOG_CELL_SIZE, getPlayRoomFogMap, paintFogRect } from '@codex/sync';
 import { useCallback, useEffect, useState } from 'react';
 import type * as Y from 'yjs';
 
@@ -35,11 +29,16 @@ export function useYjsFog(doc: Y.Doc | null) {
     };
   }, [doc]);
 
-  const paintAtScene = useCallback(
-    (sceneX: number, sceneY: number, mode: 'hide' | 'reveal', radius = 1) => {
+  const paintRectAtScene = useCallback(
+    (
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+      mode: 'hide' | 'reveal',
+    ) => {
       if (!doc) return;
-      const { gx, gy } = sceneToFogCell(sceneX, sceneY, FOG_CELL_SIZE);
-      paintFogBrush(doc, gx, gy, mode, radius);
+      paintFogRect(doc, x1, y1, x2, y2, mode, FOG_CELL_SIZE);
     },
     [doc],
   );
@@ -54,5 +53,5 @@ export function useYjsFog(doc: Y.Doc | null) {
     });
   }, [doc]);
 
-  return { hiddenCells, paintAtScene, clearAllFog, cellSize: FOG_CELL_SIZE, parseFogCellKey };
+  return { hiddenCells, paintRectAtScene, clearAllFog, cellSize: FOG_CELL_SIZE };
 }

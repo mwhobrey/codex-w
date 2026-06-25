@@ -13,6 +13,7 @@ export {
   FOG_CELL_SIZE,
   fogCellKey,
   paintFogBrush,
+  paintFogRect,
   parseFogCellKey,
   readHiddenFogCells,
   sceneToFogCell,

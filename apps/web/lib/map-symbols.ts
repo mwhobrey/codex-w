@@ -1,5 +1,6 @@
 'use client';
 
+import type { SceneBounds } from '@/lib/map-bounds';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 
 export type CodexMapKind = 'terrain' | 'structure' | 'token';
@@ -19,66 +20,53 @@ const CODEX_CUSTOM = (kind: CodexMapKind, type: string) => ({
   codexType: type,
 });
 
-function tokenElements(
-  x: number,
-  y: number,
-  type: string,
-  fill: string,
-  stroke: string,
-  letter: string,
-) {
-  const size = 56;
-  const half = size / 2;
+function tokenSkeleton(bounds: SceneBounds, type: string, fill: string, stroke: string, letter: string) {
+  const fontSize = Math.max(14, Math.min(bounds.width, bounds.height) * 0.38);
   return [
     {
       type: 'ellipse' as const,
-      x: x - half,
-      y: y - half,
-      width: size,
-      height: size,
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
       backgroundColor: fill,
       strokeColor: stroke,
       fillStyle: 'solid' as const,
       strokeWidth: 2,
+      label: { text: letter, fontSize },
       customData: CODEX_CUSTOM('token', type),
-    },
-    {
-      type: 'text' as const,
-      x: x - 8,
-      y: y - 10,
-      text: letter,
-      fontSize: 20,
-      strokeColor: stroke,
-      customData: CODEX_CUSTOM('token', `${type}-label`),
     },
   ];
 }
 
-function skeletonForSymbol(symbolId: string, x: number, y: number) {
-  const size = 80;
-  const half = size / 2;
+function skeletonForSymbol(symbolId: string, bounds: SceneBounds, groupId?: string) {
+  const groupIds = groupId ? [groupId] : undefined;
+  const { x, y, width, height } = bounds;
+  const cx = x + width / 2;
+  const cy = y + height / 2;
 
   switch (symbolId) {
     case 'token-player':
-      return tokenElements(x, y, 'player', '#93c5fd', '#1d4ed8', 'P');
+      return tokenSkeleton(bounds, 'player', '#93c5fd', '#1d4ed8', 'P');
     case 'token-npc':
-      return tokenElements(x, y, 'npc', '#fca5a5', '#b91c1c', 'N');
+      return tokenSkeleton(bounds, 'npc', '#fca5a5', '#b91c1c', 'N');
     case 'token-monster':
-      return tokenElements(x, y, 'monster', '#d8b4fe', '#7e22ce', 'M');
+      return tokenSkeleton(bounds, 'monster', '#d8b4fe', '#7e22ce', 'M');
     case 'token-ally':
-      return tokenElements(x, y, 'ally', '#86efac', '#15803d', 'A');
+      return tokenSkeleton(bounds, 'ally', '#86efac', '#15803d', 'A');
     case 'grass':
       return [
         {
           type: 'rectangle' as const,
-          x: x - half,
-          y: y - half,
-          width: size,
-          height: size,
+          x,
+          y,
+          width,
+          height,
           backgroundColor: '#4ade80',
           strokeColor: '#166534',
           fillStyle: 'solid' as const,
           opacity: 70,
+          groupIds,
           customData: CODEX_CUSTOM('terrain', 'grass'),
         },
       ];
@@ -86,14 +74,15 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'ellipse' as const,
-          x: x - half,
-          y: y - half,
-          width: size,
-          height: size * 0.75,
+          x,
+          y,
+          width,
+          height,
           backgroundColor: '#38bdf8',
           strokeColor: '#0369a1',
           fillStyle: 'solid' as const,
           opacity: 65,
+          groupIds,
           customData: CODEX_CUSTOM('terrain', 'water'),
         },
       ];
@@ -101,14 +90,15 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'rectangle' as const,
-          x: x - half,
-          y: y - half,
-          width: size,
-          height: size,
+          x,
+          y,
+          width,
+          height,
           backgroundColor: '#fde68a',
           strokeColor: '#b45309',
           fillStyle: 'hachure' as const,
           opacity: 80,
+          groupIds,
           customData: CODEX_CUSTOM('terrain', 'sand'),
         },
       ];
@@ -116,14 +106,15 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'ellipse' as const,
-          x: x - half,
-          y: y - half,
-          width: size,
-          height: size,
+          x,
+          y,
+          width,
+          height,
           backgroundColor: '#15803d',
           strokeColor: '#14532d',
           fillStyle: 'cross-hatch' as const,
           opacity: 75,
+          groupIds,
           customData: CODEX_CUSTOM('terrain', 'forest'),
         },
       ];
@@ -131,14 +122,15 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'diamond' as const,
-          x: x - half,
-          y: y - half,
-          width: size,
-          height: size,
+          x,
+          y,
+          width,
+          height,
           backgroundColor: '#a8a29e',
           strokeColor: '#44403c',
           fillStyle: 'solid' as const,
           opacity: 90,
+          groupIds,
           customData: CODEX_CUSTOM('terrain', 'rock'),
         },
       ];
@@ -146,22 +138,24 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'rectangle' as const,
-          x: x - half,
-          y: y - half * 0.4,
-          width: size,
-          height: size * 0.55,
+          x,
+          y: y + height * 0.35,
+          width,
+          height: height * 0.65,
           backgroundColor: '#fef3c7',
           strokeColor: '#78350f',
           fillStyle: 'solid' as const,
+          groupIds,
           customData: CODEX_CUSTOM('structure', 'house'),
         },
         {
           type: 'line' as const,
-          x: x - half,
-          y: y - half * 0.4,
-          width: size,
-          height: size * 0.45,
+          x,
+          y: y + height * 0.35,
+          width,
+          height: height * 0.4,
           strokeColor: '#78350f',
+          groupIds,
           customData: CODEX_CUSTOM('structure', 'house-roof'),
         },
       ];
@@ -169,13 +163,14 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'rectangle' as const,
-          x: x - size * 0.2,
-          y: y - half,
-          width: size * 0.4,
-          height: size,
+          x: cx - width * 0.2,
+          y,
+          width: width * 0.4,
+          height,
           backgroundColor: '#e7e5e4',
           strokeColor: '#292524',
           fillStyle: 'solid' as const,
+          groupIds,
           customData: CODEX_CUSTOM('structure', 'tower'),
         },
       ];
@@ -183,13 +178,14 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'rectangle' as const,
-          x: x - size,
-          y: y - size * 0.15,
-          width: size * 2,
-          height: size * 0.3,
+          x,
+          y: cy - height * 0.15,
+          width,
+          height: height * 0.3,
           backgroundColor: '#d6d3d1',
           strokeColor: '#57534e',
           fillStyle: 'solid' as const,
+          groupIds,
           customData: CODEX_CUSTOM('structure', 'bridge'),
         },
       ];
@@ -197,24 +193,26 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'rectangle' as const,
-          x: x - half,
-          y: y - half * 0.35,
-          width: size * 0.45,
-          height: size * 0.7,
+          x,
+          y: y + height * 0.15,
+          width: width * 0.45,
+          height: height * 0.85,
           backgroundColor: '#a8a29e',
           strokeColor: '#44403c',
           fillStyle: 'cross-hatch' as const,
+          groupIds,
           customData: CODEX_CUSTOM('structure', 'ruins'),
         },
         {
           type: 'rectangle' as const,
-          x: x + size * 0.05,
-          y: y - half * 0.2,
-          width: size * 0.35,
-          height: size * 0.55,
+          x: x + width * 0.5,
+          y: y + height * 0.28,
+          width: width * 0.35,
+          height: height * 0.72,
           backgroundColor: '#a8a29e',
           strokeColor: '#44403c',
           fillStyle: 'cross-hatch' as const,
+          groupIds,
           customData: CODEX_CUSTOM('structure', 'ruins'),
         },
       ];
@@ -222,21 +220,23 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'ellipse' as const,
-          x: x - half,
-          y: y - half * 0.35,
-          width: size,
-          height: size * 0.7,
+          x,
+          y: y + height * 0.1,
+          width,
+          height: height * 0.9,
           backgroundColor: '#fdba74',
           strokeColor: '#9a3412',
           fillStyle: 'solid' as const,
+          groupIds,
           customData: CODEX_CUSTOM('structure', 'camp'),
         },
         {
           type: 'text' as const,
-          x: x - 18,
-          y: y - 8,
+          x: cx - 12,
+          y: cy - 10,
           text: '⛺',
-          fontSize: 24,
+          fontSize: Math.max(16, Math.min(width, height) * 0.35),
+          groupIds,
           customData: CODEX_CUSTOM('structure', 'camp'),
         },
       ];
@@ -244,12 +244,13 @@ function skeletonForSymbol(symbolId: string, x: number, y: number) {
       return [
         {
           type: 'rectangle' as const,
-          x: x - 20,
-          y: y - 20,
-          width: 40,
-          height: 40,
+          x,
+          y,
+          width: Math.max(width, 24),
+          height: Math.max(height, 24),
           backgroundColor: '#c4b5fd',
           strokeColor: '#5b21b6',
+          groupIds,
           customData: CODEX_CUSTOM('terrain', 'unknown'),
         },
       ];
@@ -287,20 +288,17 @@ export const CODEX_MAP_SYMBOLS: CodexMapSymbol[] = [
 
 export async function createCodexSymbolElements(
   symbolId: string,
-  sceneX: number,
-  sceneY: number,
+  bounds: SceneBounds,
 ): Promise<ExcalidrawElement[]> {
   const { convertToExcalidrawElements } = await import('@excalidraw/excalidraw');
-  const skeleton = skeletonForSymbol(symbolId, sceneX, sceneY);
+  const needsGroup = !symbolId.startsWith('token-');
+  const groupId = needsGroup ? crypto.randomUUID() : undefined;
+  const skeleton = skeletonForSymbol(symbolId, bounds, groupId);
   return convertToExcalidrawElements(skeleton, { regenerateIds: true });
 }
 
 export function getCodexSymbol(id: string): CodexMapSymbol | undefined {
   return CODEX_MAP_SYMBOLS.find((symbol) => symbol.id === id);
-}
-
-export function isStampTool(tool: CodexMapTool): tool is 'stamp' {
-  return tool === 'stamp';
 }
 
 export function isFogTool(tool: CodexMapTool): boolean {

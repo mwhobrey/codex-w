@@ -1,10 +1,8 @@
 'use client';
 
-import { rollDiceNotation, DiceParseError } from '@codex/game-engine';
 import type { PlaySessionLogEntry } from '@codex/schemas';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Textarea } from '@codex/ui';
-import { useMemo, useState } from 'react';
-import { useDiceSets } from '@/hooks/use-dice-sets';
+import { Button, Card, CardContent, CardHeader, CardTitle, Label, Textarea } from '@codex/ui';
+import { useState } from 'react';
 
 interface SessionLogPanelProps {
   entries: PlaySessionLogEntry[];
@@ -21,33 +19,7 @@ function formatTime(iso: string): string {
 }
 
 export function SessionLogPanel({ entries, onAppend }: SessionLogPanelProps) {
-  const [notation, setNotation] = useState('d20');
   const [journal, setJournal] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const { sets } = useDiceSets();
-
-  const formulaPresets = useMemo(() => {
-    const first = sets?.[0];
-    return first?.formulas ?? [];
-  }, [sets]);
-
-  const rollToLog = (activeNotation?: string) => {
-    const rollNotation = activeNotation ?? notation;
-    setError(null);
-    try {
-      const result = rollDiceNotation(rollNotation);
-      if (activeNotation) setNotation(activeNotation);
-      onAppend({
-        type: 'roll',
-        content: `${rollNotation} → ${result.total}`,
-        notation: result.notation,
-        total: result.total,
-        author: 'You',
-      });
-    } catch (err) {
-      setError(err instanceof DiceParseError ? err.message : 'Invalid notation');
-    }
-  };
 
   const addJournal = () => {
     const trimmed = journal.trim();
@@ -61,56 +33,11 @@ export function SessionLogPanel({ entries, onAppend }: SessionLogPanelProps) {
   };
 
   return (
-    <Card className="flex h-full flex-col border-codex-border/60 bg-codex-surface/80">
+    <Card className="flex h-full min-h-0 flex-col border-codex-border/60 bg-codex-surface/80">
       <CardHeader className="pb-3">
         <CardTitle className="text-base">Session log</CardTitle>
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
-        <div>
-          <Label htmlFor="room-roll" className="text-xs">
-            Roll to log
-          </Label>
-          <div className="mt-1 flex gap-2">
-            <Input
-              id="room-roll"
-              value={notation}
-              onChange={(event) => setNotation(event.target.value)}
-              className="font-mono"
-              spellCheck={false}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  rollToLog();
-                }
-              }}
-            />
-            <Button type="button" size="sm" onClick={() => rollToLog()}>
-              Roll
-            </Button>
-          </div>
-          {formulaPresets.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {formulaPresets.map((formula) => (
-                <Button
-                  key={`${formula.label}-${formula.notation}`}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 font-mono text-xs"
-                  onClick={() => rollToLog(formula.notation)}
-                >
-                  {formula.label}
-                </Button>
-              ))}
-            </div>
-          )}
-          {error && (
-            <p className="mt-1 text-xs text-destructive" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-
         <div>
           <Label htmlFor="room-journal" className="text-xs">
             Journal note

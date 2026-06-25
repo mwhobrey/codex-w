@@ -16,6 +16,9 @@ interface CodexMapToolbarProps {
   onSelectTool: (tool: CodexMapTool) => void;
   onStampSelect: (symbolId: string | null) => void;
   onClearFog?: () => void;
+  variant?: 'dock' | 'floating';
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
   className?: string;
 }
 
@@ -32,9 +35,13 @@ export function CodexMapToolbar({
   onSelectTool,
   onStampSelect,
   onClearFog,
+  variant = 'dock',
+  collapsed = false,
+  onToggleCollapse,
   className,
 }: CodexMapToolbarProps) {
   const [tab, setTab] = useState<CodexMapTab>('terrain');
+  const floating = variant === 'floating';
 
   const symbols = useMemo(() => {
     if (tab === 'fog') return [];
@@ -55,22 +62,52 @@ export function CodexMapToolbar({
 
   const hint =
     activeTool === 'fog-hide'
-      ? 'Paint fog on the map · Esc to cancel'
+      ? 'Drag on the map to hide · Esc to cancel'
       : activeTool === 'fog-reveal'
-        ? 'Reveal hidden areas · Esc to cancel'
+        ? 'Drag on the map to reveal · Esc to cancel'
         : activeStamp
-          ? 'Tap the map to place · Esc to cancel'
+          ? 'Drag on the map to place · Esc to cancel'
           : null;
+
+  if (floating && collapsed) {
+    return (
+      <div
+        className={cn('absolute bottom-3 left-3 z-30', className)}
+        data-testid="codex-map-toolbar"
+      >
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="rounded-full border border-codex-border/60 bg-codex-surface/95 px-4 py-2.5 text-xs font-medium text-codex-text shadow-lg backdrop-blur-md min-h-11"
+        >
+          Map tools
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
       className={cn(
-        'shrink-0 border-b border-codex-border/50 bg-codex-surface/80',
+        floating
+          ? 'absolute bottom-3 left-3 right-3 z-30 mx-auto max-w-xl rounded-xl border border-codex-border/60 bg-codex-surface/95 shadow-2xl backdrop-blur-md'
+          : 'shrink-0 border-b border-codex-border/50 bg-codex-surface/80',
         className,
       )}
       data-testid="codex-map-toolbar"
     >
       <div className="flex items-center gap-2 overflow-x-auto px-2 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {floating && onToggleCollapse ? (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="shrink-0 rounded-md px-2 py-2 text-xs text-codex-text-muted hover:text-codex-text min-h-10"
+            aria-label="Collapse map tools"
+          >
+            ✕
+          </button>
+        ) : null}
+
         <button
           type="button"
           onClick={() => {

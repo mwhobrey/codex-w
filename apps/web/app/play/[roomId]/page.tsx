@@ -1,5 +1,4 @@
 import { PlayRoomLoader } from '@/components/play/play-room-loader';
-import { SiteHeader } from '@/components/site-header';
 
 export async function generateMetadata({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = await params;
@@ -13,11 +12,8 @@ export default async function PlayRoomPage({ params }: { params: Promise<{ roomI
   const { roomId } = await params;
 
   return (
-    <>
-      <SiteHeader />
-      <main>
-        <PlayRoomLoader roomId={roomId} />
-      </main>
-    </>
+    <main className="h-dvh overflow-hidden">
+      <PlayRoomLoader roomId={roomId} />
+    </main>
   );
 }
