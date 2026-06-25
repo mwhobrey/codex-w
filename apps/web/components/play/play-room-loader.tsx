@@ -17,8 +17,11 @@ const PlayRoomSurface = dynamic(
 interface PlayRoomLoaderProps {
   roomId: string;
   initialSystem?: string;
+  importSessionId?: string;
 }
 
-export function PlayRoomLoader({ roomId, initialSystem }: PlayRoomLoaderProps) {
-  return <PlayRoomSurface roomId={roomId} initialSystem={initialSystem} />;
+export function PlayRoomLoader({ roomId, initialSystem, importSessionId }: PlayRoomLoaderProps) {
+  return (
+    <PlayRoomSurface roomId={roomId} initialSystem={initialSystem} importSessionId={importSessionId} />
+  );
 }

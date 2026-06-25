@@ -23,9 +23,19 @@ import {
   type RecentPlayRoom,
 } from '@/lib/recent-play-rooms';
 import { parseGameSystemId } from '@/lib/table-systems';
+import { SoloImportPanel } from './solo-import-panel';
+import type { SoloSession } from '@codex/schemas';
 
 function createRoomId(): string {
   return crypto.randomUUID().slice(0, 8);
+}
+
+function buildTablePath(id: string, options?: { gameSystemId?: GameSystemId; importSessionId?: string }) {
+  const params = new URLSearchParams();
+  if (options?.gameSystemId) params.set('system', options.gameSystemId);
+  if (options?.importSessionId) params.set('import', options.importSessionId);
+  const qs = params.toString();
+  return `/play/${encodeURIComponent(id)}${qs ? `?${qs}` : ''}`;
 }
 
 export function PlayLobby() {
@@ -46,10 +56,16 @@ export function PlayLobby() {
     setRecent(readRecentPlayRooms());
   }, []);
 
-  const openTable = (id: string, gameSystemId?: GameSystemId) => {
-    const qs = gameSystemId ? `?system=${encodeURIComponent(gameSystemId)}` : '';
-    recordRecentPlayRoom(id, undefined, gameSystemId);
-    router.push(`/play/${encodeURIComponent(id)}${qs}`);
+  const openTable = (id: string, options?: { gameSystemId?: GameSystemId; importSessionId?: string }) => {
+    recordRecentPlayRoom(id, undefined, options?.gameSystemId);
+    router.push(buildTablePath(id, options));
+  };
+
+  const importSoloSession = (session: SoloSession) => {
+    openTable(createRoomId(), {
+      gameSystemId: session.gameSystemId,
+      importSessionId: session.id,
+    });
   };
 
   return (
@@ -81,7 +97,7 @@ export function PlayLobby() {
               type="button"
               className="codex-glow mt-3 w-full"
               data-testid="create-table-button"
-              onClick={() => openTable(createRoomId(), createSystem)}
+              onClick={() => openTable(createRoomId(), { gameSystemId: createSystem })}
             >
               Create new table
             </Button>
@@ -143,7 +159,7 @@ export function PlayLobby() {
                   >
                     <button
                       type="button"
-                      onClick={() => openTable(room.id, room.gameSystemId)}
+                      onClick={() => openTable(room.id, { gameSystemId: room.gameSystemId })}
                       className="min-h-10 flex-1 rounded-md px-3 py-2 text-left hover:bg-codex-elevated/50"
                     >
                       <span className="block font-mono text-sm text-codex-text">{room.id}</span>
@@ -171,6 +187,8 @@ export function PlayLobby() {
           </CardContent>
         </Card>
       ) : null}
+
+      <SoloImportPanel onImport={importSoloSession} />
 
       <p className="text-center">
         <Link href="/" className="text-sm text-codex-text-muted hover:text-codex-ember">

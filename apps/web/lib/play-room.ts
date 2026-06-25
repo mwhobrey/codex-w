@@ -10,9 +10,11 @@ export function shouldConnectPartyKit(): boolean {
   return process.env.NEXT_PUBLIC_PARTYKIT_CONNECT !== 'false';
 }
 
-export function createPlayRoomUrl(roomId: string): string {
+export function createPlayRoomUrl(roomId: string, gameSystemId?: string): string {
+  const path = `/play/${encodeURIComponent(roomId)}`;
+  const qs = gameSystemId ? `?system=${encodeURIComponent(gameSystemId)}` : '';
   if (typeof window === 'undefined') {
-    return `/play/${roomId}`;
+    return `${path}${qs}`;
   }
-  return `${window.location.origin}/play/${roomId}`;
+  return `${window.location.origin}${path}${qs}`;
 }

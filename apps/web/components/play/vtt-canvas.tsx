@@ -17,6 +17,7 @@ import {
 import type { MapViewRole } from '@/lib/table-systems';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import dynamic from 'next/dynamic';
+import { viewportCoordsToSceneCoords } from '@excalidraw/excalidraw';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as Y from 'yjs';
 import '@excalidraw/excalidraw/index.css';
@@ -184,21 +185,49 @@ export function VttCanvas({
 
   useEffect(() => {
     if (!onPointerScene) return;
+    let frame = 0;
+    let lastPoint: { x: number; y: number } | null = null;
+
     const onMove = (event: PointerEvent) => {
       const api = apiRef.current;
       if (!api) return;
-      const rect = api.getAppState();
-      const canvas = document.querySelector('.excalidraw canvas.interactive');
-      if (!(canvas instanceof HTMLCanvasElement)) return;
-      const bounds = canvas.getBoundingClientRect();
-      const x = (event.clientX - bounds.left - rect.scrollX) / rect.zoom.value;
-      const y = (event.clientY - bounds.top - rect.scrollY) / rect.zoom.value;
-      if (event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom) {
-        onPointerScene({ x, y });
+      const root = document.querySelector('.excalidraw');
+      if (!(root instanceof HTMLElement)) return;
+      const bounds = root.getBoundingClientRect();
+      if (
+        event.clientX < bounds.left ||
+        event.clientX > bounds.right ||
+        event.clientY < bounds.top ||
+        event.clientY > bounds.bottom
+      ) {
+        return;
       }
+
+      const appState = api.getAppState();
+      const scene = viewportCoordsToSceneCoords(
+        { clientX: event.clientX, clientY: event.clientY },
+        {
+          zoom: appState.zoom,
+          offsetLeft: bounds.left,
+          offsetTop: bounds.top,
+          scrollX: appState.scrollX,
+          scrollY: appState.scrollY,
+        },
+      );
+      lastPoint = scene;
+
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        if (lastPoint) onPointerScene(lastPoint);
+      });
     };
-    window.addEventListener('pointermove', onMove);
-    return () => window.removeEventListener('pointermove', onMove);
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [onPointerScene, apiReady]);
 
   const mapCursor =

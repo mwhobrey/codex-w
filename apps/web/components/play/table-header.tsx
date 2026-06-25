@@ -41,6 +41,22 @@ export function TableHeader({
     }
   }, [roomUrl]);
 
+  const shareInvite = useCallback(async () => {
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: tableName.trim() || 'codex-w table',
+          text: 'Join my table on codex-w',
+          url: roomUrl,
+        });
+        return;
+      } catch {
+        // User dismissed or share failed — fall back to copy.
+      }
+    }
+    await copyLink();
+  }, [copyLink, roomUrl, tableName]);
+
   const copyId = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(roomId);
@@ -96,7 +112,8 @@ export function TableHeader({
         type="button"
         size="sm"
         className="codex-glow shrink-0"
-        onClick={copyLink}
+        onClick={shareInvite}
+        title={roomUrl}
         data-testid="copy-invite-link"
       >
         {copiedLink ? 'Copied!' : 'Invite'}

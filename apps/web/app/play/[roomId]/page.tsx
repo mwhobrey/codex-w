@@ -13,14 +13,14 @@ export default async function PlayRoomPage({
   searchParams,
 }: {
   params: Promise<{ roomId: string }>;
-  searchParams: Promise<{ system?: string }>;
+  searchParams: Promise<{ system?: string; import?: string }>;
 }) {
   const { roomId } = await params;
-  const { system } = await searchParams;
+  const { system, import: importSessionId } = await searchParams;
 
   return (
     <main className="h-dvh overflow-hidden">
-      <PlayRoomLoader roomId={roomId} initialSystem={system} />
+      <PlayRoomLoader roomId={roomId} initialSystem={system} importSessionId={importSessionId} />
     </main>
   );
 }

@@ -18,7 +18,3 @@ export function parseGameSystemId(value: string | null | undefined): GameSystemI
 }
 
 export type MapViewRole = 'gm' | 'player';
-
-export function readMapViewRole(gameState: Record<string, unknown> | undefined): MapViewRole {
-  return gameState?.mapRole === 'player' ? 'player' : 'gm';
-}

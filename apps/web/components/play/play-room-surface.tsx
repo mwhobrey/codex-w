@@ -2,6 +2,7 @@
 
 import type { RollResult } from '@codex/game-engine';
 import { getGameSystem } from '@codex/game-systems';
+import { importSoloSessionToTable, journalRepo, soloSessionRepo } from '@codex/sync';
 import { Button, cn } from '@codex/ui';
 import { CharacterPicker, useCharacter } from '@/components/solo/character-picker';
 import { useOwnerId } from '@/hooks/use-owner-id';
@@ -10,10 +11,10 @@ import { useTableAwareness } from '@/hooks/use-table-awareness';
 import { useTableMeta } from '@/hooks/use-table-meta';
 import { useTableSidebarWidth } from '@/hooks/use-table-sidebar-width';
 import { MAP_FLOATING_BOTTOM_STYLE } from '@/lib/map-overlay-layout';
-import { patchGameState } from './table-panel-types';
+import { createPlayRoomUrl } from '@/lib/play-room';
 import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
-import { parseGameSystemId, readMapViewRole } from '@/lib/table-systems';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { parseGameSystemId } from '@/lib/table-systems';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CharacterPeekDrawer } from './character-peek-drawer';
 import { FloatingDiceWidget } from './floating-dice-widget';
 import { PlayDicePanel } from './play-dice-panel';
@@ -43,13 +44,14 @@ function writeStoredCharacterId(roomId: string, characterId: string | undefined)
 interface PlayRoomSurfaceProps {
   roomId: string;
   initialSystem?: string;
+  importSessionId?: string;
 }
 
 type MobileView = 'map' | TableSidebarTab;
 
-export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps) {
+export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: PlayRoomSurfaceProps) {
   const systemSeed = parseGameSystemId(initialSystem);
-  const { doc, awareness, logEntries, connectionStatus, roomUrl, appendLog, ready } =
+  const { doc, awareness, logEntries, connectionStatus, appendLog, ready } =
     usePlayRoom(roomId);
   const { meta, updateMeta } = useTableMeta(doc, {
     initialSystem: systemSeed,
@@ -61,18 +63,23 @@ export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps)
   const [sidebarTab, setSidebarTab] = useState<TableSidebarTab>('play');
   const [tableNameDraft, setTableNameDraft] = useState('');
   const [peekOpen, setPeekOpen] = useState(false);
+  const importStartedRef = useRef(false);
 
   const localCharacterId =
     awarenessState.localCharacterId ?? meta?.characterId ?? readStoredCharacterId(roomId);
   const activeCharacter = useCharacter(localCharacterId);
   const isSoloAtTable = awarenessState.peers.filter((peer) => !peer.isSelf).length === 0;
+  const inviteUrl = useMemo(
+    () => createPlayRoomUrl(roomId, meta?.gameSystemId),
+    [meta?.gameSystemId, roomId],
+  );
 
   const plugin = useMemo(
     () => (meta ? getGameSystem(meta.gameSystemId) : null),
     [meta],
   );
 
-  const mapRole = meta ? readMapViewRole(meta.gameState) : 'gm';
+  const mapRole = awarenessState.localMapRole;
 
   const activeSidebarTab: TableSidebarTab =
     mobileView === 'map' ? sidebarTab : mobileView;
@@ -111,6 +118,29 @@ export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps)
     if (seed) awarenessState.setCharacterId(seed);
   }, [awarenessState.localCharacterId, awarenessState.setCharacterId, meta?.characterId, ready, roomId]);
 
+  useEffect(() => {
+    if (!ready || !doc || !importSessionId || importStartedRef.current) return;
+    importStartedRef.current = true;
+
+    void (async () => {
+      const session = await soloSessionRepo.get(importSessionId);
+      if (!session) return;
+      const entries = await journalRepo.listBySession(importSessionId);
+      const nextMeta = importSoloSessionToTable(doc, roomId, session, entries);
+      if (session.characterId) {
+        awarenessState.setCharacterId(session.characterId);
+        writeStoredCharacterId(roomId, session.characterId);
+      }
+      recordRecentPlayRoom(roomId, nextMeta.name, nextMeta.gameSystemId);
+    })();
+  }, [
+    awarenessState.setCharacterId,
+    doc,
+    importSessionId,
+    ready,
+    roomId,
+  ]);
+
   const handleCharacterChange = useCallback(
     (characterId: string | undefined) => {
       awarenessState.setCharacterId(characterId);
@@ -144,14 +174,6 @@ export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps)
     setSidebarTab(tab);
     setMobileView(tab);
   };
-
-  const handleMapRoleChange = useCallback(
-    (role: 'gm' | 'player') => {
-      if (!meta) return;
-      updateMeta({ gameState: patchGameState(meta, { mapRole: role }) });
-    },
-    [meta, updateMeta],
-  );
 
   const playPanel = (
     <div className="space-y-3">
@@ -201,7 +223,7 @@ export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps)
         onTableNameChange={setTableNameDraft}
         onTableNameSave={saveTableName}
         roomId={roomId}
-        roomUrl={roomUrl}
+        roomUrl={inviteUrl}
         systemName={plugin?.name}
         connectionStatus={connectionStatus}
         presence={
@@ -252,7 +274,7 @@ export function PlayRoomSurface({ roomId, initialSystem }: PlayRoomSurfaceProps)
               floatingToolbar
               playMode
               mapRole={mapRole}
-              onMapRoleChange={handleMapRoleChange}
+              onMapRoleChange={awarenessState.setMapRole}
               tokenOptions={tokenOptions}
               peers={awarenessState.peers}
               onPointerScene={awarenessState.setCursor}

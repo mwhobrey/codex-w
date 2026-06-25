@@ -1,10 +1,19 @@
 'use client';
 
+import type { MapViewRole } from '@/lib/table-systems';
 import type { Awareness } from 'y-protocols/awareness';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const DISPLAY_NAME_KEY = 'codex-table-display-name';
 const USER_COLORS = ['#f97316', '#38bdf8', '#a78bfa', '#4ade80', '#f472b6', '#facc15'];
+
+type AwarenessUser = {
+  name?: string;
+  color?: string;
+  characterId?: string;
+  characterName?: string;
+  mapRole?: MapViewRole;
+};
 
 export interface TablePeer {
   clientId: number;
@@ -14,16 +23,19 @@ export interface TablePeer {
   cursor?: { x: number; y: number };
   characterId?: string;
   characterName?: string;
+  mapRole?: MapViewRole;
 }
 
 export interface TableAwarenessState {
   peers: TablePeer[];
   localName: string;
   localCharacterId: string | undefined;
+  localMapRole: MapViewRole;
   setLocalName: (name: string) => void;
   setCursor: (cursor: { x: number; y: number } | null) => void;
   setCharacterId: (characterId: string | undefined) => void;
   setCharacterName: (name: string | undefined) => void;
+  setMapRole: (role: MapViewRole) => void;
 }
 
 function colorForClient(clientId: number): string {
@@ -35,9 +47,14 @@ function readStoredName(): string {
   return window.localStorage.getItem(DISPLAY_NAME_KEY) ?? '';
 }
 
+function readMapRole(user: AwarenessUser | undefined): MapViewRole {
+  return user?.mapRole === 'player' ? 'player' : 'gm';
+}
+
 export function useTableAwareness(awareness: Awareness | null): TableAwarenessState {
   const [localName, setLocalNameState] = useState('');
   const [localCharacterId, setLocalCharacterId] = useState<string | undefined>();
+  const [localMapRole, setLocalMapRole] = useState<MapViewRole>('gm');
   const [peers, setPeers] = useState<TablePeer[]>([]);
 
   useEffect(() => {
@@ -51,9 +68,7 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
     }
     const next: TablePeer[] = [];
     awareness.getStates().forEach((state, clientId) => {
-      const user = state.user as
-        | { name?: string; color?: string; characterId?: string; characterName?: string }
-        | undefined;
+      const user = state.user as AwarenessUser | undefined;
       const cursor = state.cursor as { x: number; y: number } | undefined;
       if (!user?.name) return;
       next.push({
@@ -64,24 +79,25 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
         cursor,
         characterId: user.characterId,
         characterName: user.characterName,
+        mapRole: readMapRole(user),
       });
     });
     setPeers(next.sort((a, b) => a.clientId - b.clientId));
-    const localUser = awareness.getLocalState()?.user as { characterId?: string } | undefined;
+    const localUser = awareness.getLocalState()?.user as AwarenessUser | undefined;
     setLocalCharacterId(localUser?.characterId);
+    setLocalMapRole(readMapRole(localUser));
   }, [awareness]);
 
   useEffect(() => {
     if (!awareness) return;
-    const existing = awareness.getLocalState()?.user as
-      | { name?: string; characterId?: string; characterName?: string }
-      | undefined;
+    const existing = awareness.getLocalState()?.user as AwarenessUser | undefined;
     const name = localName.trim() || existing?.name || `Player ${awareness.clientID}`;
     awareness.setLocalStateField('user', {
       name,
       color: colorForClient(awareness.clientID),
       characterId: existing?.characterId,
       characterName: existing?.characterName,
+      mapRole: existing?.mapRole ?? 'gm',
     });
     syncPeers();
     awareness.on('change', syncPeers);
@@ -138,16 +154,38 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
     [awareness],
   );
 
+  const setMapRole = useCallback(
+    (mapRole: MapViewRole) => {
+      setLocalMapRole(mapRole);
+      if (!awareness) return;
+      const user = awareness.getLocalState()?.user as Record<string, unknown> | undefined;
+      awareness.setLocalStateField('user', { ...user, mapRole });
+    },
+    [awareness],
+  );
+
   return useMemo(
     () => ({
       peers,
       localName,
       localCharacterId,
+      localMapRole,
       setLocalName,
       setCursor,
       setCharacterId,
       setCharacterName,
+      setMapRole,
     }),
-    [localCharacterId, localName, peers, setCharacterId, setCharacterName, setCursor, setLocalName],
+    [
+      localCharacterId,
+      localMapRole,
+      localName,
+      peers,
+      setCharacterId,
+      setCharacterName,
+      setCursor,
+      setLocalName,
+      setMapRole,
+    ],
   );
 }

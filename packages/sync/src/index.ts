@@ -38,3 +38,8 @@ export {
   appendPlayRoomLogEntry,
   readPlayRoomLogEntries,
 } from './yjs/play-room-log';
+export {
+  importSoloSessionToTable,
+  isSoloSessionImported,
+  tableMetaFromSoloSession,
+} from './yjs/import-solo-session';
