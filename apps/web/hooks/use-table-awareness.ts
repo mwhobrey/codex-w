@@ -13,7 +13,14 @@ type AwarenessUser = {
   characterId?: string;
   characterName?: string;
   mapRole?: MapViewRole;
+  accountId?: string;
 };
+
+export interface UseTableAwarenessOptions {
+  /** When signed in, broadcast account name instead of a manual table nickname. */
+  accountDisplayName?: string;
+  accountId?: string;
+}
 
 export interface TablePeer {
   clientId: number;
@@ -31,6 +38,7 @@ export interface TableAwarenessState {
   localName: string;
   localCharacterId: string | undefined;
   localMapRole: MapViewRole;
+  usesAccountName: boolean;
   setLocalName: (name: string) => void;
   setCursor: (cursor: { x: number; y: number } | null) => void;
   setCharacterId: (characterId: string | undefined) => void;
@@ -51,15 +59,40 @@ function readMapRole(user: AwarenessUser | undefined): MapViewRole {
   return user?.mapRole === 'player' ? 'player' : 'gm';
 }
 
-export function useTableAwareness(awareness: Awareness | null): TableAwarenessState {
+function resolvePresenceName(
+  awareness: Awareness,
+  options: {
+    accountDisplayName?: string;
+    localName: string;
+    existingName?: string;
+  },
+): string {
+  const account = options.accountDisplayName?.trim();
+  if (account) return account;
+  const manual = options.localName.trim();
+  if (manual) return manual;
+  if (options.existingName?.trim()) return options.existingName.trim();
+  return `Player ${awareness.clientID}`;
+}
+
+export function useTableAwareness(
+  awareness: Awareness | null,
+  options: UseTableAwarenessOptions = {},
+): TableAwarenessState {
+  const { accountDisplayName, accountId } = options;
+  const usesAccountName = Boolean(accountDisplayName?.trim());
   const [localName, setLocalNameState] = useState('');
   const [localCharacterId, setLocalCharacterId] = useState<string | undefined>();
   const [localMapRole, setLocalMapRole] = useState<MapViewRole>('gm');
   const [peers, setPeers] = useState<TablePeer[]>([]);
 
   useEffect(() => {
+    if (usesAccountName) {
+      setLocalNameState(accountDisplayName!.trim());
+      return;
+    }
     setLocalNameState(readStoredName());
-  }, []);
+  }, [accountDisplayName, usesAccountName]);
 
   const syncPeers = useCallback(() => {
     if (!awareness) {
@@ -91,21 +124,27 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
   useEffect(() => {
     if (!awareness) return;
     const existing = awareness.getLocalState()?.user as AwarenessUser | undefined;
-    const name = localName.trim() || existing?.name || `Player ${awareness.clientID}`;
+    const name = resolvePresenceName(awareness, {
+      accountDisplayName,
+      localName,
+      existingName: existing?.name,
+    });
     awareness.setLocalStateField('user', {
       name,
       color: colorForClient(awareness.clientID),
       characterId: existing?.characterId,
       characterName: existing?.characterName,
       mapRole: existing?.mapRole ?? 'gm',
+      accountId: accountId ?? existing?.accountId,
     });
     syncPeers();
     awareness.on('change', syncPeers);
     return () => awareness.off('change', syncPeers);
-  }, [awareness, localName, syncPeers]);
+  }, [accountDisplayName, accountId, awareness, localName, syncPeers]);
 
   const setLocalName = useCallback(
     (name: string) => {
+      if (usesAccountName) return;
       const trimmed = name.trim();
       setLocalNameState(trimmed);
       if (typeof window !== 'undefined') {
@@ -119,7 +158,7 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
         color: colorForClient(awareness.clientID),
       });
     },
-    [awareness],
+    [awareness, usesAccountName],
   );
 
   const setCursor = useCallback(
@@ -170,6 +209,7 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
       localName,
       localCharacterId,
       localMapRole,
+      usesAccountName,
       setLocalName,
       setCursor,
       setCharacterId,
@@ -186,6 +226,7 @@ export function useTableAwareness(awareness: Awareness | null): TableAwarenessSt
       setCursor,
       setLocalName,
       setMapRole,
+      usesAccountName,
     ],
   );
 }

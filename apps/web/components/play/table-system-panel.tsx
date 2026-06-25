@@ -22,6 +22,7 @@ interface TableSystemPanelProps {
     entry: Omit<PlaySessionLogEntry, 'id' | 'roomId' | 'createdAt'>,
   ) => PlaySessionLogEntry | null;
   activeCharacter?: CharacterSheet | null;
+  logAuthor?: string;
 }
 
 export function TableSystemPanel({
@@ -30,6 +31,7 @@ export function TableSystemPanel({
   onUpdateMeta,
   onAppendLog,
   activeCharacter,
+  logAuthor = 'You',
 }: TableSystemPanelProps) {
   const plugin = getGameSystem(gameSystemId);
   const engine = plugin.soloEngine;
@@ -48,10 +50,10 @@ export function TableSystemPanel({
       onAppendLog({
         type,
         content,
-        author: 'You',
+        author: logAuthor,
       });
     },
-    [onAppendLog],
+    [logAuthor, onAppendLog],
   );
 
   const handleAskOracle = useCallback(() => {

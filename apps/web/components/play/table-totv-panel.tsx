@@ -13,6 +13,7 @@ export function TableTotvPanel({
   onUpdateMeta,
   onAppendLog,
   activeCharacter,
+  logAuthor = 'You',
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
   const engine = plugin.soloEngine;
@@ -59,7 +60,7 @@ export function TableTotvPanel({
       savePromptIndex(result.next);
       const text = `d10 (${result.d10}) − d6 (${result.d6}) = ${result.delta >= 0 ? '+' : ''}${result.delta} → prompt ${result.next}`;
       setRollReveal(text);
-      onAppendLog({ type: 'oracle', content: text, author: 'You' });
+      onAppendLog({ type: 'oracle', content: text, author: logAuthor });
       setRolling(false);
     }, 480);
   }, [engine?.promptAdvance, onAppendLog, promptIndex, savePromptIndex]);
@@ -72,7 +73,7 @@ export function TableTotvPanel({
     onAppendLog({
       type: 'note',
       content: `Declined prompt ${currentPrompt.id} — moved on without writing.`,
-      author: 'You',
+      author: logAuthor,
     });
     setRollReveal(`Declined · navigation → prompt ${result.next}`);
   }, [currentPrompt, engine?.promptAdvance, onAppendLog, promptIndex, savePromptIndex]);
@@ -83,7 +84,7 @@ export function TableTotvPanel({
     onAppendLog({
       type: 'scene',
       content: `${prefix}Prompt ${currentPrompt.id}: ${currentPrompt.text}`,
-      author: 'You',
+      author: logAuthor,
     });
   }, [activeCharacter, currentPrompt, onAppendLog]);
 
@@ -95,14 +96,14 @@ export function TableTotvPanel({
     const clamped = Math.max(minPrompt, Math.min(maxPrompt, n));
     savePromptIndex(clamped);
     setJumpPrompt('');
-    onAppendLog({ type: 'note', content: `Jumped to prompt ${clamped}`, author: 'You' });
+    onAppendLog({ type: 'note', content: `Jumped to prompt ${clamped}`, author: logAuthor });
   }, [engine?.promptAdvance, jumpPrompt, onAppendLog, savePromptIndex]);
 
   const handleScenePrompt = useCallback(() => {
     if (!engine) return;
     const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
     setScenePromptIndex((i) => i + 1);
-    onAppendLog({ type: 'scene', content: prompt, author: 'You' });
+    onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
   }, [engine, onAppendLog, scenePromptIndex]);
 
   if (!engine || engine.kind !== 'prompt-journal') return null;

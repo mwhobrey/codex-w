@@ -13,6 +13,7 @@ export function TableIronforgePanel({
   onUpdateMeta,
   onAppendLog,
   activeCharacter,
+  logAuthor = 'You',
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
   const engine = plugin.soloEngine;
@@ -57,7 +58,7 @@ export function TableIronforgePanel({
         const die = rollDiceNotation(`1d${tableMaxRoll(vowConfig.complicationTable)}`).groups[0]?.rolls[0]?.value ?? 1;
         const comp = lookupTable(vowConfig.complicationTable, die);
         text += ` · ${comp.entry}`;
-        onAppendLog({ type: 'twist', content: comp.entry, author: 'You' });
+        onAppendLog({ type: 'twist', content: comp.entry, author: logAuthor });
       } else if (result.progressGain > 0) {
         const next = Math.min(progressMax, vowProgress + result.progressGain);
         saveVowProgress(next);
@@ -65,7 +66,7 @@ export function TableIronforgePanel({
       }
 
       setRollReveal(text);
-      onAppendLog({ type: 'risk', content: text, author: 'You' });
+      onAppendLog({ type: 'risk', content: text, author: logAuthor });
       setRolling(false);
     }, 520);
   }, [difficulty, grit, onAppendLog, progressMax, saveVowProgress, vowConfig, vowProgress]);
@@ -76,19 +77,19 @@ export function TableIronforgePanel({
     const hazard = lookupTable(vowConfig.hazardTable, die);
     const text = `Hazard (${die}): ${hazard.entry}`;
     setRollReveal(text);
-    onAppendLog({ type: 'scene', content: text, author: 'You' });
+    onAppendLog({ type: 'scene', content: text, author: logAuthor });
   }, [onAppendLog, vowConfig?.hazardTable]);
 
   const handleScenePrompt = useCallback(() => {
     if (!engine) return;
     const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
     setScenePromptIndex((i) => i + 1);
-    onAppendLog({ type: 'scene', content: prompt, author: 'You' });
+    onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
   }, [engine, onAppendLog, scenePromptIndex]);
 
   const handleResetVow = useCallback(() => {
     saveVowProgress(0);
-    onAppendLog({ type: 'note', content: 'Oath track reset — swear anew.', author: 'You' });
+    onAppendLog({ type: 'note', content: 'Oath track reset — swear anew.', author: logAuthor });
   }, [onAppendLog, saveVowProgress]);
 
   if (!engine || engine.kind !== 'vow-progress' || !vowConfig) return null;

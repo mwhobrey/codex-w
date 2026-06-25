@@ -14,6 +14,7 @@ export function TableSnallygasterPanel({
   onUpdateMeta,
   onAppendLog,
   activeCharacter,
+  logAuthor = 'You',
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
   const engine = plugin.soloEngine;
@@ -43,7 +44,7 @@ export function TableSnallygasterPanel({
     (week: number) => {
       const clamped = Math.max(1, Math.min(8, week));
       onUpdateMeta({ gameState: patchGameState(meta, { campWeek: clamped }) });
-      onAppendLog({ type: 'note', content: `Summer week ${clamped} of 8`, author: 'You' });
+      onAppendLog({ type: 'note', content: `Summer week ${clamped} of 8`, author: logAuthor });
     },
     [meta, onAppendLog, onUpdateMeta],
   );
@@ -57,7 +58,7 @@ export function TableSnallygasterPanel({
       const label = mode === 'counselor' ? lf.counselorLabel : lf.monsterLabel;
       const text = `${label} (${stat}): [${result.dice.join(', ')}] → ${result.success ? 'SUCCESS' : 'FAIL'}`;
       setRollReveal(text);
-      onAppendLog({ type: 'risk', content: text, author: 'You' });
+      onAppendLog({ type: 'risk', content: text, author: logAuthor });
       setRolling(false);
     }, 520);
   }, [lf, mode, onAppendLog, stat]);
@@ -69,7 +70,7 @@ export function TableSnallygasterPanel({
     const problem = lookupTable(lf.problemTable, die);
     const text = `Camp problem (${die}): ${problem.entry}`;
     setRollReveal(text);
-    onAppendLog({ type: 'scene', content: text, author: 'You' });
+    onAppendLog({ type: 'scene', content: text, author: logAuthor });
   }, [lf, onAppendLog]);
 
   const handleActivity = useCallback(() => {
@@ -79,7 +80,7 @@ export function TableSnallygasterPanel({
     const activity = lookupTable(lf.activityTable, die);
     const text = `Camp activity (${die}): ${activity.entry}`;
     setRollReveal(text);
-    onAppendLog({ type: 'scene', content: text, author: 'You' });
+    onAppendLog({ type: 'scene', content: text, author: logAuthor });
   }, [lf?.activityTable, onAppendLog]);
 
   const handleTwist = useCallback(() => {
@@ -89,14 +90,14 @@ export function TableSnallygasterPanel({
     const twist = lookupTable(engine.twistTable, die);
     const text = `Twist (${die}): ${twist.entry}`;
     setRollReveal(text);
-    onAppendLog({ type: 'twist', content: text, author: 'You' });
+    onAppendLog({ type: 'twist', content: text, author: logAuthor });
   }, [engine?.twistTable, onAppendLog]);
 
   const handleScenePrompt = useCallback(() => {
     if (!engine) return;
     const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
     setScenePromptIndex((i) => i + 1);
-    onAppendLog({ type: 'scene', content: prompt, author: 'You' });
+    onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
   }, [engine, onAppendLog, scenePromptIndex]);
 
   if (!engine || engine.kind !== 'lasers-feelings' || !lf) return null;

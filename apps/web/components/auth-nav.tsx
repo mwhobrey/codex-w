@@ -1,6 +1,7 @@
 'use client';
 
 import { signOut, useSession } from '@/lib/auth-client';
+import { userDisplayName } from '@/lib/user-display-name';
 import { Button } from '@codex/ui';
 import Link from 'next/link';
 
@@ -25,7 +26,7 @@ export function AuthNav() {
   return (
     <div className="hidden items-center gap-2 sm:flex">
       <span className="max-w-[140px] truncate text-sm text-codex-text-muted" title={session.user.email}>
-        {session.user.name || session.user.email}
+        {userDisplayName(session.user)}
       </span>
       <Button
         type="button"

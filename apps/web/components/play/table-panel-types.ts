@@ -8,6 +8,8 @@ export interface TablePanelProps {
     entry: Omit<PlaySessionLogEntry, 'id' | 'roomId' | 'createdAt'>,
   ) => PlaySessionLogEntry | null;
   activeCharacter?: CharacterSheet | null;
+  /** Label for log entries from this client (account name or table nickname). */
+  logAuthor?: string;
 }
 
 export function readGameStateNumber(meta: TableMeta, key: string, fallback: number): number {

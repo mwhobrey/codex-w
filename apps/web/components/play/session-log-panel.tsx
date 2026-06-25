@@ -16,6 +16,7 @@ interface SessionLogPanelProps {
   onAppend: (
     entry: Omit<PlaySessionLogEntry, 'id' | 'roomId' | 'createdAt'>,
   ) => PlaySessionLogEntry | null;
+  logAuthor?: string;
 }
 
 function formatTime(iso: string): string {
@@ -25,7 +26,7 @@ function formatTime(iso: string): string {
   });
 }
 
-export function SessionLogPanel({ entries, onAppend }: SessionLogPanelProps) {
+export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: SessionLogPanelProps) {
   const [journal, setJournal] = useState('');
   const [activeFilters, setActiveFilters] = useState<Set<LogFilterKey>>(new Set());
 
@@ -49,7 +50,7 @@ export function SessionLogPanel({ entries, onAppend }: SessionLogPanelProps) {
     onAppend({
       type: 'journal',
       content: trimmed,
-      author: 'You',
+      author: logAuthor,
     });
     setJournal('');
   };

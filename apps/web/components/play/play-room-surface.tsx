@@ -10,10 +10,12 @@ import { usePlayRoom } from '@/hooks/use-play-room';
 import { useTableAwareness } from '@/hooks/use-table-awareness';
 import { useTableMeta } from '@/hooks/use-table-meta';
 import { useTableSidebarWidth } from '@/hooks/use-table-sidebar-width';
+import { useSession } from '@/lib/auth-client';
 import { MAP_FLOATING_BOTTOM_STYLE } from '@/lib/map-overlay-layout';
 import { createPlayRoomUrl } from '@/lib/play-room';
 import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
 import { parseGameSystemId } from '@/lib/table-systems';
+import { userDisplayName } from '@/lib/user-display-name';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CharacterPeekDrawer } from './character-peek-drawer';
 import { FloatingDiceWidget } from './floating-dice-widget';
@@ -57,8 +59,13 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
     initialSystem: systemSeed,
   });
   const { ownerId, ready: ownerReady } = useOwnerId();
+  const { data: authSession } = useSession();
+  const accountDisplayName = authSession?.user ? userDisplayName(authSession.user) : undefined;
   const { width: sidebarWidth, adjustWidth } = useTableSidebarWidth();
-  const awarenessState = useTableAwareness(awareness);
+  const awarenessState = useTableAwareness(awareness, {
+    accountDisplayName,
+    accountId: authSession?.user?.id,
+  });
   const [mobileView, setMobileView] = useState<MobileView>('map');
   const [sidebarTab, setSidebarTab] = useState<TableSidebarTab>('play');
   const [tableNameDraft, setTableNameDraft] = useState('');
@@ -80,6 +87,7 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
   );
 
   const mapRole = awarenessState.localMapRole;
+  const logAuthor = awarenessState.localName.trim() || 'You';
 
   const activeSidebarTab: TableSidebarTab =
     mobileView === 'map' ? sidebarTab : mobileView;
@@ -157,10 +165,10 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
         content: `${result.notation} → ${result.total}`,
         notation: result.notation,
         total: result.total,
-        author: 'You',
+        author: logAuthor,
       });
     },
-    [appendLog],
+    [appendLog, logAuthor],
   );
 
   const saveTableName = useCallback(() => {
@@ -207,6 +215,7 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
           onUpdateMeta={updateMeta}
           onAppendLog={appendLog}
           activeCharacter={activeCharacter}
+          logAuthor={logAuthor}
         />
       ) : null}
 
@@ -230,6 +239,7 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
           <TablePresence
             peers={awarenessState.peers}
             localName={awarenessState.localName}
+            usesAccountName={awarenessState.usesAccountName}
             onLocalNameChange={awarenessState.setLocalName}
           />
         }
@@ -302,7 +312,7 @@ export function PlayRoomSurface({ roomId, initialSystem, importSessionId }: Play
                 <PlayDicePanel onRoll={handleDiceRoll} />
               ) : null}
               {activeSidebarTab === 'log' ? (
-                <SessionLogPanel entries={logEntries} onAppend={appendLog} />
+                <SessionLogPanel entries={logEntries} onAppend={appendLog} logAuthor={logAuthor} />
               ) : null}
             </div>
           </aside>
