@@ -33,6 +33,7 @@ export {
   isValidInviteToken,
   parseInviteFromUri,
   type InviteAdmissionResult,
+  resolveTableInviteToken,
 } from './room-invite';
 export {
   FOG_CELL_SIZE,
@@ -47,6 +48,7 @@ export {
 } from './yjs/fog';
 export {
   createPlayRoomProviders,
+  hydratePlayRoomIndexedDb,
   type CreatePlayRoomProvidersOptions,
   type PlayRoomConnectionStatus,
   type PlayRoomProviders,

@@ -8,6 +8,8 @@ const STATUS_LABEL: Record<PlayRoomConnectionStatus, string> = {
   connecting: 'Connecting…',
   disconnected: 'Reconnecting…',
   'local-only': 'Offline (start PartyKit for sync)',
+  'invite-required': 'Invite code required for live sync',
+  'auth-failed': 'Invite rejected — check your link',
 };
 
 const STATUS_LABEL_COMPACT: Record<PlayRoomConnectionStatus, string> = {
@@ -15,6 +17,8 @@ const STATUS_LABEL_COMPACT: Record<PlayRoomConnectionStatus, string> = {
   connecting: 'Syncing…',
   disconnected: 'Reconnecting',
   'local-only': 'Offline',
+  'invite-required': 'Need invite',
+  'auth-failed': 'Invite rejected',
 };
 
 const STATUS_VARIANT: Record<PlayRoomConnectionStatus, 'default' | 'secondary' | 'outline'> = {
@@ -22,6 +26,8 @@ const STATUS_VARIANT: Record<PlayRoomConnectionStatus, 'default' | 'secondary' |
   connecting: 'secondary',
   disconnected: 'outline',
   'local-only': 'secondary',
+  'invite-required': 'outline',
+  'auth-failed': 'outline',
 };
 
 interface ConnectionStatusProps {
@@ -43,9 +49,11 @@ export function ConnectionStatus({ status, compact }: ConnectionStatusProps) {
         className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${
           status === 'connected'
             ? 'bg-emerald-400'
-            : status === 'local-only'
+            : status === 'local-only' || status === 'invite-required'
               ? 'bg-amber-400'
-              : 'bg-codex-ember animate-pulse'
+              : status === 'auth-failed'
+                ? 'bg-red-400'
+                : 'bg-codex-ember animate-pulse'
         }`}
         aria-hidden
       />

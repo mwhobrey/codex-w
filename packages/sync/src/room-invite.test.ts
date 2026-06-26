@@ -4,6 +4,7 @@ import {
   generateInviteToken,
   isValidInviteToken,
   parseInviteFromUri,
+  resolveTableInviteToken,
 } from './room-invite';
 
 describe('room invite helpers', () => {
@@ -11,6 +12,21 @@ describe('room invite helpers', () => {
     const token = generateInviteToken();
     expect(isValidInviteToken(token)).toBe(true);
     expect(token.length).toBeGreaterThanOrEqual(16);
+  });
+
+  it('resolves invite from url, meta, storage, and recent', () => {
+    expect(
+      resolveTableInviteToken('url-token-abcdefghij', 'meta-token-abcdefghij', 'stored-token-abc'),
+    ).toBe('url-token-abcdefghij');
+    expect(resolveTableInviteToken(undefined, 'meta-token-abcdefghij', 'stored-token-abc')).toBe(
+      'meta-token-abcdefghij',
+    );
+    expect(resolveTableInviteToken(undefined, undefined, 'stored-token-abcdefghij')).toBe(
+      'stored-token-abcdefghij',
+    );
+    expect(resolveTableInviteToken(undefined, undefined, undefined, 'recent-token-abcdefgh')).toBe(
+      'recent-token-abcdefgh',
+    );
   });
 
   it('parses invite from websocket uri', () => {

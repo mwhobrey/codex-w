@@ -15,10 +15,12 @@ import { useSession } from '@/lib/auth-client';
 import { MAP_FLOATING_BOTTOM_STYLE } from '@/lib/map-overlay-layout';
 import { createPlayRoomUrl } from '@/lib/play-room';
 import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
+import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
+import { writeStoredTableInvite } from '@/lib/table-invite-storage';
 import { parseGameSystemId, type MapViewRole } from '@/lib/table-systems';
 import { isTableGm, resolveFogViewRole } from '@/lib/table-gm';
 import { userDisplayName } from '@/lib/user-display-name';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CharacterPeekDrawer } from './character-peek-drawer';
 import { FloatingDiceWidget } from './floating-dice-widget';
 import { PlayDicePanel } from './play-dice-panel';
@@ -63,12 +65,22 @@ export function PlayRoomSurface({
   inviteToken,
 }: PlayRoomSurfaceProps) {
   const systemSeed = parseGameSystemId(initialSystem);
-  const { doc, awareness, logEntries, connectionStatus, appendLog, ready } =
-    usePlayRoom(roomId, inviteToken);
+  const [partyInvite, setPartyInvite] = useState(() => resolvePlayRoomInvite(roomId, inviteToken));
+  const { doc, awareness, logEntries, connectionStatus, appendLog, ready, resolvedInvite } =
+    usePlayRoom(roomId, partyInvite);
   const { meta, updateMeta } = useTableMeta(doc, {
     initialSystem: systemSeed,
-    initialInviteToken: inviteToken,
+    initialInviteToken: partyInvite ?? inviteToken,
   });
+
+  useLayoutEffect(() => {
+    if (inviteToken) writeStoredTableInvite(roomId, inviteToken);
+  }, [inviteToken, roomId]);
+
+  useEffect(() => {
+    const next = resolvePlayRoomInvite(roomId, inviteToken, meta?.inviteToken);
+    if (next && next !== partyInvite) setPartyInvite(next);
+  }, [inviteToken, meta?.inviteToken, partyInvite, roomId]);
   const { ownerId, ready: ownerReady } = useOwnerId();
   const { data: authSession } = useSession();
   const accountDisplayName = authSession?.user ? userDisplayName(authSession.user) : undefined;
@@ -92,8 +104,13 @@ export function PlayRoomSurface({
   const { patchCharacter } = useTableCharacterPatch(localCharacterId);
   const isSoloAtTable = awarenessState.peers.filter((peer) => !peer.isSelf).length === 0;
   const inviteUrl = useMemo(
-    () => createPlayRoomUrl(roomId, meta?.gameSystemId, meta?.inviteToken ?? inviteToken),
-    [inviteToken, meta?.gameSystemId, meta?.inviteToken, roomId],
+    () =>
+      createPlayRoomUrl(
+        roomId,
+        meta?.gameSystemId,
+        meta?.inviteToken ?? resolvedInvite ?? partyInvite ?? inviteToken,
+      ),
+    [inviteToken, meta?.gameSystemId, meta?.inviteToken, partyInvite, resolvedInvite, roomId],
   );
 
   const plugin = useMemo(
@@ -106,9 +123,21 @@ export function PlayRoomSurface({
   const logAuthor = awarenessState.localName.trim() || 'You';
 
   useEffect(() => {
-    if (!ready || !doc || !inviteToken) return;
-    ensureTableInviteToken(doc, inviteToken);
-  }, [doc, inviteToken, ready]);
+    if (!ready || !doc) return;
+    const token = inviteToken ?? resolvedInvite ?? partyInvite ?? meta?.inviteToken;
+    if (token) {
+      ensureTableInviteToken(doc, token);
+      writeStoredTableInvite(roomId, token);
+    }
+  }, [doc, inviteToken, meta?.inviteToken, partyInvite, ready, resolvedInvite, roomId]);
+
+  useEffect(() => {
+    if (!ready || inviteToken || !resolvedInvite || typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('invite') === resolvedInvite) return;
+    url.searchParams.set('invite', resolvedInvite);
+    window.history.replaceState(null, '', url.toString());
+  }, [inviteToken, ready, resolvedInvite]);
 
   useEffect(() => {
     if (!ready || !ownerReady || !doc || !ownerId) return;
@@ -162,9 +191,14 @@ export function PlayRoomSurface({
 
   useEffect(() => {
     if (ready && meta) {
-      recordRecentPlayRoom(roomId, meta.name, meta.gameSystemId, meta.inviteToken ?? inviteToken);
+      recordRecentPlayRoom(
+        roomId,
+        meta.name,
+        meta.gameSystemId,
+        meta.inviteToken ?? resolvedInvite ?? partyInvite ?? inviteToken,
+      );
     }
-  }, [inviteToken, ready, roomId, meta?.name, meta?.gameSystemId, meta?.inviteToken]);
+  }, [inviteToken, ready, roomId, meta?.name, meta?.gameSystemId, meta?.inviteToken, partyInvite, resolvedInvite]);
 
   useEffect(() => {
     setTableNameDraft(meta?.name ?? '');
@@ -193,7 +227,12 @@ export function PlayRoomSurface({
         awarenessState.setCharacterId(session.characterId);
         writeStoredCharacterId(roomId, session.characterId);
       }
-      recordRecentPlayRoom(roomId, nextMeta.name, nextMeta.gameSystemId);
+      recordRecentPlayRoom(
+        roomId,
+        nextMeta.name,
+        nextMeta.gameSystemId,
+        nextMeta.inviteToken ?? inviteToken,
+      );
     })();
   }, [
     awarenessState.setCharacterId,

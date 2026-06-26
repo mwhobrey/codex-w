@@ -24,6 +24,7 @@ import {
   type RecentPlayRoom,
 } from '@/lib/recent-play-rooms';
 import { parseGameSystemId } from '@/lib/table-systems';
+import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 import { SoloImportPanel } from './solo-import-panel';
 import type { SoloSession } from '@codex/schemas';
 
@@ -191,7 +192,7 @@ export function PlayLobby() {
                       onClick={() =>
                         openTable(room.id, {
                           gameSystemId: room.gameSystemId,
-                          inviteToken: room.inviteToken,
+                          inviteToken: resolvePlayRoomInvite(room.id, room.inviteToken),
                         })
                       }
                       className="min-h-10 flex-1 rounded-md px-3 py-2 text-left hover:bg-codex-elevated/50"

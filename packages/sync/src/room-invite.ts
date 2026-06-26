@@ -9,6 +9,16 @@ export function isValidInviteToken(token: string | null | undefined): boolean {
   return typeof token === 'string' && token.trim().length >= INVITE_TOKEN_MIN_LENGTH;
 }
 
+/** Prefer the first valid invite from URL, Yjs meta, storage, or recent tables. */
+export function resolveTableInviteToken(
+  ...candidates: Array<string | null | undefined>
+): string | undefined {
+  for (const candidate of candidates) {
+    if (isValidInviteToken(candidate)) return candidate!.trim();
+  }
+  return undefined;
+}
+
 export function parseInviteFromUri(uri: string): string | null {
   try {
     const url = new URL(uri);

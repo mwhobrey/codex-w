@@ -4,7 +4,11 @@ import {
   appendPlayRoomLogEntry,
   createPlayRoomDoc,
   createPlayRoomProviders,
+  ensureTableInviteToken,
   getPlayRoomLogArray,
+  hydratePlayRoomIndexedDb,
+  isValidInviteToken,
+  readTableMeta,
   type PlayRoomConnectionStatus,
 } from '@codex/sync';
 import type { PlaySessionLogEntry } from '@codex/schemas';
@@ -19,6 +23,8 @@ import {
   partyKitWsParams,
   shouldConnectPartyKit,
 } from '@/lib/play-room';
+import { readStoredTableInvite, writeStoredTableInvite } from '@/lib/table-invite-storage';
+import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 
 export interface UsePlayRoomResult {
   doc: Y.Doc | null;
@@ -26,6 +32,7 @@ export interface UsePlayRoomResult {
   logEntries: PlaySessionLogEntry[];
   connectionStatus: PlayRoomConnectionStatus;
   roomUrl: string;
+  resolvedInvite?: string;
   appendLog: (
     entry: Omit<PlaySessionLogEntry, 'id' | 'roomId' | 'createdAt'>,
   ) => PlaySessionLogEntry | null;
@@ -39,6 +46,7 @@ export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomRe
   const [connectionStatus, setConnectionStatus] =
     useState<PlayRoomConnectionStatus>('connecting');
   const [ready, setReady] = useState(false);
+  const [resolvedInvite, setResolvedInvite] = useState<string | undefined>(inviteToken);
 
   useEffect(() => {
     let providers: ReturnType<typeof createPlayRoomProviders> | null = null;
@@ -48,19 +56,40 @@ export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomRe
     let statusTimer: number | undefined;
 
     const boot = async () => {
-      let connectParty = shouldConnectPartyKit();
+      const indexedDb = await hydratePlayRoomIndexedDb(roomId, doc);
+
+      if (cancelled) {
+        indexedDb.destroy();
+        return;
+      }
+
+      const invite = resolvePlayRoomInvite(roomId, inviteToken, readTableMeta(doc).inviteToken);
+
+      if (invite) {
+        writeStoredTableInvite(roomId, invite);
+        ensureTableInviteToken(doc, invite);
+      }
+
+      if (!cancelled) {
+        setResolvedInvite(invite);
+      }
+
+      let connectParty = shouldConnectPartyKit() && isValidInviteToken(invite);
 
       if (connectParty) {
         const reachable = await probePartyKitReachable(
           getPartyKitHost(),
           getPartyKitParty(),
           roomId,
-          inviteToken,
+          invite,
         );
         if (!reachable) connectParty = false;
       }
 
-      if (cancelled) return;
+      if (cancelled) {
+        indexedDb.destroy();
+        return;
+      }
 
       providers = createPlayRoomProviders({
         doc,
@@ -68,7 +97,9 @@ export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomRe
         host: getPartyKitHost(),
         party: getPartyKitParty(),
         connect: connectParty,
-        params: partyKitWsParams(inviteToken),
+        attemptLiveSync: shouldConnectPartyKit(),
+        params: partyKitWsParams(invite),
+        indexedDb,
       });
 
       if (cancelled) {
@@ -126,7 +157,8 @@ export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomRe
     awareness,
     logEntries,
     connectionStatus,
-    roomUrl: createPlayRoomUrl(roomId, undefined, inviteToken),
+    roomUrl: createPlayRoomUrl(roomId, undefined, resolvedInvite ?? inviteToken),
+    resolvedInvite,
     appendLog,
     ready,
   };

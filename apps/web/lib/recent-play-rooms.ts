@@ -32,6 +32,12 @@ export function readRecentPlayRooms(): RecentPlayRoom[] {
   return readRaw().sort((a, b) => b.visitedAt.localeCompare(a.visitedAt));
 }
 
+export function findRecentPlayRoomInvite(roomId: string): string | undefined {
+  const trimmed = roomId.trim();
+  if (!trimmed) return undefined;
+  return readRaw().find((room) => room.id === trimmed)?.inviteToken?.trim() || undefined;
+}
+
 export function recordRecentPlayRoom(
   id: string,
   label?: string,
