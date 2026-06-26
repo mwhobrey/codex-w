@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 const appLinks = [
   { href: '/play', label: 'Tables' },
   { href: '/characters', label: 'Characters' },
+  { href: '/library', label: 'Library' },
   { href: '/dice', label: 'Dice' },
 ] as const;
 

@@ -9,6 +9,7 @@ import { useOwnerId } from '@/hooks/use-owner-id';
 import { usePlayRoom } from '@/hooks/use-play-room';
 import { useTableAwareness } from '@/hooks/use-table-awareness';
 import { useTableMeta } from '@/hooks/use-table-meta';
+import { useTableCharacterPatch } from '@/hooks/use-table-character-patch';
 import { useTableSidebarWidth } from '@/hooks/use-table-sidebar-width';
 import { useSession } from '@/lib/auth-client';
 import { MAP_FLOATING_BOTTOM_STYLE } from '@/lib/map-overlay-layout';
@@ -22,6 +23,7 @@ import { CharacterPeekDrawer } from './character-peek-drawer';
 import { FloatingDiceWidget } from './floating-dice-widget';
 import { PlayDicePanel } from './play-dice-panel';
 import { SessionLogPanel } from './session-log-panel';
+import { TableExportPanel } from './table-export-panel';
 import { TableGmControl } from './table-gm-control';
 import { TableHeader } from './table-header';
 import { TablePlayPanel } from './table-play-panel';
@@ -81,11 +83,13 @@ export function PlayRoomSurface({
   const [sidebarTab, setSidebarTab] = useState<TableSidebarTab>('play');
   const [tableNameDraft, setTableNameDraft] = useState('');
   const [peekOpen, setPeekOpen] = useState(false);
+  const [peekHighlightField, setPeekHighlightField] = useState<string | undefined>();
   const importStartedRef = useRef(false);
 
   const localCharacterId =
     awarenessState.localCharacterId ?? meta?.characterId ?? readStoredCharacterId(roomId);
   const activeCharacter = useCharacter(localCharacterId);
+  const { patchCharacter } = useTableCharacterPatch(localCharacterId);
   const isSoloAtTable = awarenessState.peers.filter((peer) => !peer.isSelf).length === 0;
   const inviteUrl = useMemo(
     () => createPlayRoomUrl(roomId, meta?.gameSystemId, meta?.inviteToken ?? inviteToken),
@@ -136,6 +140,13 @@ export function PlayRoomSurface({
     mobileView === 'map' ? sidebarTab : mobileView;
 
   const showMap = mobileView === 'map';
+
+  const systemDicePresets = plugin?.dicePresets ?? [];
+
+  const openCharacterPeek = useCallback((highlightFieldKey?: string) => {
+    setPeekHighlightField(highlightFieldKey);
+    setPeekOpen(true);
+  }, []);
 
   const tokenOptions = useMemo(
     () =>
@@ -243,7 +254,7 @@ export function PlayRoomSurface({
             variant="outline"
             className="w-full"
             disabled={!localCharacterId}
-            onClick={() => setPeekOpen(true)}
+            onClick={() => openCharacterPeek()}
             data-testid="character-peek-button"
           >
             {activeCharacter ? `Peek · ${activeCharacter.name}` : 'Peek character'}
@@ -259,7 +270,13 @@ export function PlayRoomSurface({
           onAppendLog={appendLog}
           activeCharacter={activeCharacter}
           logAuthor={logAuthor}
+          onPatchCharacter={patchCharacter}
+          onOpenCharacterPeek={openCharacterPeek}
         />
+      ) : null}
+
+      {ownerReady && meta ? (
+        <TableExportPanel meta={meta} logEntries={logEntries} ownerId={ownerId} />
       ) : null}
 
       {meta ? (
@@ -347,7 +364,7 @@ export function PlayRoomSurface({
               localClientId={awarenessState.clientId}
               onPointerScene={awarenessState.setCursor}
             />
-            <FloatingDiceWidget onRoll={handleDiceRoll} />
+            <FloatingDiceWidget onRoll={handleDiceRoll} systemPresets={systemDicePresets} />
           </div>
 
           <TableResizeHandle onResize={adjustWidth} />
@@ -367,7 +384,7 @@ export function PlayRoomSurface({
             <div className="min-h-0 flex-1 overflow-y-auto p-3">
               {activeSidebarTab === 'play' ? playPanel : null}
               {activeSidebarTab === 'dice' ? (
-                <PlayDicePanel onRoll={handleDiceRoll} />
+                <PlayDicePanel onRoll={handleDiceRoll} systemPresets={systemDicePresets} />
               ) : null}
               {activeSidebarTab === 'log' ? (
                 <SessionLogPanel entries={logEntries} onAppend={appendLog} logAuthor={logAuthor} />
@@ -379,8 +396,12 @@ export function PlayRoomSurface({
 
       <CharacterPeekDrawer
         open={peekOpen}
-        onClose={() => setPeekOpen(false)}
+        onClose={() => {
+          setPeekOpen(false);
+          setPeekHighlightField(undefined);
+        }}
         character={activeCharacter}
+        highlightFieldKey={peekHighlightField}
       />
     </div>
   );

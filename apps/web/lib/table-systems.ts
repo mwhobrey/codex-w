@@ -1,16 +1,10 @@
 import type { GameSystemId } from '@codex/schemas';
 import { GameSystemIdSchema } from '@codex/schemas';
-import type { SoloEngineKind } from '@codex/game-systems';
-
-export function supportsTablePlayPanel(kind: SoloEngineKind | undefined): boolean {
-  return (
-    kind === 'oracle' ||
-    kind === 'mentor' ||
-    kind === 'prompt-journal' ||
-    kind === 'lasers-feelings' ||
-    kind === 'vow-progress'
-  );
-}
+export {
+  supportsTablePlayPanel,
+  resolveTablePanelId,
+  type TablePanelId,
+} from '@codex/game-systems';
 
 export function parseGameSystemId(value: string | null | undefined): GameSystemId | undefined {
   const parsed = GameSystemIdSchema.safeParse(value);

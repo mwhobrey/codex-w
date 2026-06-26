@@ -10,9 +10,15 @@ interface CharacterPeekDrawerProps {
   open: boolean;
   onClose: () => void;
   character: CharacterSheet | null;
+  highlightFieldKey?: string;
 }
 
-export function CharacterPeekDrawer({ open, onClose, character }: CharacterPeekDrawerProps) {
+export function CharacterPeekDrawer({
+  open,
+  onClose,
+  character,
+  highlightFieldKey,
+}: CharacterPeekDrawerProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -58,7 +64,7 @@ export function CharacterPeekDrawer({ open, onClose, character }: CharacterPeekD
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <ActiveCharacterPanel character={character} />
+          <ActiveCharacterPanel character={character} highlightFieldKey={highlightFieldKey} />
         </div>
       </aside>
     </div>

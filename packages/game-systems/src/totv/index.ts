@@ -11,6 +11,13 @@ function createId(): string {
 export { totvSheetDefinition, totvSoloEngine } from './definition';
 export { totvPrompts } from './prompts';
 export { getTyovCapacity, type TyovCapacity } from './capacity';
+export { TYOV_SLOT_KEYS } from './slots';
+export {
+  buildTyovPromptGuidance,
+  seedTyovSlotFromPrompt,
+  clearTyovSlot,
+  type TyovPromptGuidance,
+} from './tag-engine';
 
 export const totvPlugin = {
   id: 'totv' as const,
@@ -18,6 +25,10 @@ export const totvPlugin = {
   tagline: 'Journaling solo RPG — memories fade, prompts endure, centuries unfold.',
   sheetDefinition: totvSheetDefinition,
   soloEngine: totvSoloEngine,
+  dicePresets: [
+    { label: 'Navigate', notation: 'd10-d6' },
+    { label: 'Mood', notation: '1d6' },
+  ],
   createEmptySheet(name: string, ownerId: string) {
     const now = new Date().toISOString();
     return createSheetFromDefinition(totvSheetDefinition, {

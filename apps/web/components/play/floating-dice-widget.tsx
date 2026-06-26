@@ -1,6 +1,7 @@
 'use client';
 
 import type { RollResult } from '@codex/game-engine';
+import type { DicePreset } from '@codex/game-systems';
 import { MAP_FLOATING_BOTTOM_CLASS } from '@/lib/map-overlay-layout';
 import { Button, Input, cn } from '@codex/ui';
 import { useMemo, useState } from 'react';
@@ -11,9 +12,10 @@ import { useDiceSets } from '@/hooks/use-dice-sets';
 interface FloatingDiceWidgetProps {
   onRoll: (result: RollResult) => void;
   className?: string;
+  systemPresets?: DicePreset[];
 }
 
-export function FloatingDiceWidget({ onRoll, className }: FloatingDiceWidgetProps) {
+export function FloatingDiceWidget({ onRoll, className, systemPresets = [] }: FloatingDiceWidgetProps) {
   const [open, setOpen] = useState(false);
   const { sets } = useDiceSets();
   const { notation, setNotation, rolling, error, result, roll, defaultPresets } = useDiceRoll(
@@ -22,12 +24,13 @@ export function FloatingDiceWidget({ onRoll, className }: FloatingDiceWidgetProp
   );
 
   const presets = useMemo(() => {
+    if (systemPresets.length > 0) return systemPresets.slice(0, 4);
     const first = sets?.[0];
     if (first?.formulas?.length) {
       return first.formulas.slice(0, 4).map((f) => ({ label: f.label, notation: f.notation }));
     }
     return defaultPresets.slice(0, 4);
-  }, [sets, defaultPresets]);
+  }, [defaultPresets, sets, systemPresets]);
 
   const displayDice = result?.groups.flatMap((group) => group.rolls) ?? [];
 

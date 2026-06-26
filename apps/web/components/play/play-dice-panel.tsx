@@ -4,6 +4,7 @@ import type { RollResult } from '@codex/game-engine';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@codex/ui';
 import Link from 'next/link';
 import { useMemo } from 'react';
+import type { DicePreset } from '@codex/game-systems';
 import { useDiceRoll } from '@/hooks/use-dice-roll';
 import { useDiceSets } from '@/hooks/use-dice-sets';
 import { DieFace } from '@/components/dice/die-face';
@@ -11,9 +12,10 @@ import { DieFace } from '@/components/dice/die-face';
 interface PlayDicePanelProps {
   onRoll: (result: RollResult) => void;
   className?: string;
+  systemPresets?: DicePreset[];
 }
 
-export function PlayDicePanel({ onRoll, className }: PlayDicePanelProps) {
+export function PlayDicePanel({ onRoll, className, systemPresets = [] }: PlayDicePanelProps) {
   const { sets } = useDiceSets();
   const { notation, setNotation, rolling, error, result, roll, defaultPresets } = useDiceRoll(
     'd20',
@@ -21,12 +23,13 @@ export function PlayDicePanel({ onRoll, className }: PlayDicePanelProps) {
   );
 
   const presets = useMemo(() => {
+    if (systemPresets.length > 0) return systemPresets;
     const first = sets?.[0];
     if (first?.formulas?.length) {
       return first.formulas.map((f) => ({ label: f.label, notation: f.notation }));
     }
     return [...defaultPresets];
-  }, [sets, defaultPresets]);
+  }, [defaultPresets, sets, systemPresets]);
 
   const displayDice = result?.groups.flatMap((group) => group.rolls) ?? [];
 

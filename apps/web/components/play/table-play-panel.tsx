@@ -1,26 +1,29 @@
 'use client';
 
+import { resolveTablePanelId } from '@codex/game-systems';
 import { getGameSystem } from '@codex/game-systems';
-import { supportsTablePlayPanel } from '@/lib/table-systems';
-import { TableIronforgePanel } from './table-ironforge-panel';
 import type { TablePanelProps } from './table-panel-types';
+import { TableIronforgePanel } from './table-ironforge-panel';
+import { TableMuscadinesPanel } from './table-muscadines-panel';
 import { TableSnallygasterPanel } from './table-snallygaster-panel';
 import { TableSystemPanel } from './table-system-panel';
 import { TableTotvPanel } from './table-totv-panel';
 
 export function TablePlayPanel(props: TablePanelProps) {
   const engine = getGameSystem(props.gameSystemId).soloEngine;
-  if (!engine || !supportsTablePlayPanel(engine.kind)) return null;
+  const panelId = resolveTablePanelId(engine?.kind);
+  if (!panelId) return null;
 
-  switch (engine.kind) {
-    case 'prompt-journal':
+  switch (panelId) {
+    case 'totv':
       return <TableTotvPanel {...props} />;
-    case 'lasers-feelings':
+    case 'snallygaster':
       return <TableSnallygasterPanel {...props} />;
-    case 'vow-progress':
+    case 'ironforge':
       return <TableIronforgePanel {...props} />;
-    case 'oracle':
-    case 'mentor':
+    case 'muscadines':
+      return <TableMuscadinesPanel {...props} />;
+    case 'system':
     default:
       return <TableSystemPanel {...props} />;
   }

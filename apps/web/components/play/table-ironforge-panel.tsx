@@ -1,10 +1,10 @@
 'use client';
 
 import { lookupTable, resolveForgeRoll, rollDiceNotation, tableMaxRoll } from '@codex/game-engine';
-import { getGameSystem, getSheetFieldValue } from '@codex/game-systems';
+import { getGameSystem, bumpIronforgeHeat, getIronforgeHeat, getSheetFieldValue, IRONFORGE_HEAT_MAX } from '@codex/game-systems';
 import { Button, Card, CardDescription, CardHeader, CardTitle, Input } from '@codex/ui';
 import { useCallback, useEffect, useState } from 'react';
-import { patchGameState, readGameStateNumber, type TablePanelProps } from './table-panel-types';
+import { patchGameState, readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
 export function TableIronforgePanel({
@@ -14,6 +14,7 @@ export function TableIronforgePanel({
   onAppendLog,
   activeCharacter,
   logAuthor = 'You',
+  onPatchCharacter,
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
   const engine = plugin.soloEngine;
@@ -23,9 +24,10 @@ export function TableIronforgePanel({
   const [rollReveal, setRollReveal] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
   const [difficulty, setDifficulty] = useState('dangerous');
-  const [scenePromptIndex, setScenePromptIndex] = useState(0);
+  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
 
   const vowProgress = readGameStateNumber(meta, 'vowProgress', 0);
+  const heat = getIronforgeHeat(activeCharacter ?? null);
   const progressMax = vowConfig?.progressMax ?? 10;
   const grit = Number(activeCharacter?.fields.find((f) => f.key === 'grit')?.value ?? 1);
   const oath = activeCharacter ? getSheetFieldValue(activeCharacter, 'iron_oath') : '';
@@ -59,6 +61,9 @@ export function TableIronforgePanel({
         const comp = lookupTable(vowConfig.complicationTable, die);
         text += ` · ${comp.entry}`;
         onAppendLog({ type: 'twist', content: comp.entry, author: logAuthor });
+        if (onPatchCharacter && activeCharacter) {
+          void onPatchCharacter((sheet) => bumpIronforgeHeat(sheet, 1));
+        }
       } else if (result.progressGain > 0) {
         const next = Math.min(progressMax, vowProgress + result.progressGain);
         saveVowProgress(next);
@@ -69,7 +74,7 @@ export function TableIronforgePanel({
       onAppendLog({ type: 'risk', content: text, author: logAuthor });
       setRolling(false);
     }, 520);
-  }, [difficulty, grit, onAppendLog, progressMax, saveVowProgress, vowConfig, vowProgress]);
+  }, [activeCharacter, difficulty, grit, logAuthor, onAppendLog, onPatchCharacter, progressMax, saveVowProgress, vowConfig, vowProgress]);
 
   const handleHazard = useCallback(() => {
     if (!vowConfig?.hazardTable.length) return;
@@ -83,9 +88,9 @@ export function TableIronforgePanel({
   const handleScenePrompt = useCallback(() => {
     if (!engine) return;
     const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
-    setScenePromptIndex((i) => i + 1);
+    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', scenePromptIndex + 1);
     onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
-  }, [engine, onAppendLog, scenePromptIndex]);
+  }, [engine, logAuthor, meta, onAppendLog, onUpdateMeta, scenePromptIndex]);
 
   const handleResetVow = useCallback(() => {
     saveVowProgress(0);
@@ -129,6 +134,18 @@ export function TableIronforgePanel({
         <p className="text-xs text-codex-text-muted">
           Progress {vowProgress}/{progressMax}
         </p>
+        <div className="flex flex-wrap items-center gap-1" data-testid="ironforge-heat-track">
+          <span className="text-xs text-codex-text-muted">Heat</span>
+          {Array.from({ length: IRONFORGE_HEAT_MAX }, (_, i) => (
+            <span
+              key={i}
+              className={`h-2 w-4 rounded-sm border ${
+                i < heat ? 'border-amber-500 bg-amber-500/80' : 'border-codex-border bg-codex-void/40'
+              }`}
+              aria-hidden
+            />
+          ))}
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {vowConfig.difficulties.map((d) => (
             <Button

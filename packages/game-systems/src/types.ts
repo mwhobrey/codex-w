@@ -29,7 +29,14 @@ export interface GameSystemPlugin {
   tagline: string;
   sheetDefinition: SheetDefinition;
   soloEngine?: SoloEngineConfig;
+  /** Quick-roll presets for play table dice UI */
+  dicePresets?: DicePreset[];
   createEmptySheet: (name: string, ownerId: string) => CharacterSheet;
+}
+
+export interface DicePreset {
+  label: string;
+  notation: string;
 }
 
 export type OracleLikelihoodId =

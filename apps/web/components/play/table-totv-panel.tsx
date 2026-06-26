@@ -1,10 +1,16 @@
 'use client';
 
 import { advancePromptIndex } from '@codex/game-engine';
-import { getGameSystem, getTyovCapacity } from '@codex/game-systems';
+import {
+  buildTyovPromptGuidance,
+  clearTyovSlot,
+  getGameSystem,
+  getTyovCapacity,
+  seedTyovSlotFromPrompt,
+} from '@codex/game-systems';
 import { Badge, Button, Card, CardHeader, CardTitle, Input } from '@codex/ui';
 import { useCallback, useEffect, useState } from 'react';
-import { patchGameState, readGameStateNumber, type TablePanelProps } from './table-panel-types';
+import { patchGameState, readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
 export function TableTotvPanel({
@@ -14,6 +20,8 @@ export function TableTotvPanel({
   onAppendLog,
   activeCharacter,
   logAuthor = 'You',
+  onPatchCharacter,
+  onOpenCharacterPeek,
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
   const engine = plugin.soloEngine;
@@ -26,7 +34,7 @@ export function TableTotvPanel({
   const [jumpPrompt, setJumpPrompt] = useState('');
   const [rollReveal, setRollReveal] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
-  const [scenePromptIndex, setScenePromptIndex] = useState(0);
+  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
 
   useEffect(() => {
     setSceneFocus(meta.sceneFocus ?? '');
@@ -35,6 +43,9 @@ export function TableTotvPanel({
 
   const currentPrompt = prompts.find((p) => p.id === promptIndex) ?? prompts[0];
   const capacity = getTyovCapacity(activeCharacter ?? null);
+  const guidance = currentPrompt
+    ? buildTyovPromptGuidance(currentPrompt, activeCharacter ?? null)
+    : null;
 
   const savePromptIndex = useCallback(
     (next: number) => {
@@ -78,7 +89,7 @@ export function TableTotvPanel({
     setRollReveal(`Declined · navigation → prompt ${result.next}`);
   }, [currentPrompt, engine?.promptAdvance, onAppendLog, promptIndex, savePromptIndex]);
 
-  const handleTakePrompt = useCallback(() => {
+  const handleTakePrompt = useCallback(async () => {
     if (!currentPrompt) return;
     const prefix = activeCharacter ? `[${activeCharacter.name}] ` : '';
     onAppendLog({
@@ -86,7 +97,30 @@ export function TableTotvPanel({
       content: `${prefix}Prompt ${currentPrompt.id}: ${currentPrompt.text}`,
       author: logAuthor,
     });
-  }, [activeCharacter, currentPrompt, onAppendLog]);
+
+    if (!guidance || !onPatchCharacter || !activeCharacter) {
+      onOpenCharacterPeek?.(guidance?.suggestedFieldKey);
+      return;
+    }
+
+    if (guidance.action === 'gain' && guidance.suggestedFieldKey && !guidance.blocked) {
+      await onPatchCharacter((sheet) =>
+        seedTyovSlotFromPrompt(sheet, guidance.suggestedFieldKey!, currentPrompt),
+      );
+    } else if (guidance.action === 'loss' && guidance.suggestedFieldKey && !guidance.blocked) {
+      await onPatchCharacter((sheet) => clearTyovSlot(sheet, guidance.suggestedFieldKey!));
+    }
+
+    onOpenCharacterPeek?.(guidance.suggestedFieldKey);
+  }, [
+    activeCharacter,
+    currentPrompt,
+    guidance,
+    logAuthor,
+    onAppendLog,
+    onOpenCharacterPeek,
+    onPatchCharacter,
+  ]);
 
   const handleJumpPrompt = useCallback(() => {
     if (!engine?.promptAdvance) return;
@@ -102,9 +136,9 @@ export function TableTotvPanel({
   const handleScenePrompt = useCallback(() => {
     if (!engine) return;
     const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
-    setScenePromptIndex((i) => i + 1);
+    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', scenePromptIndex + 1);
     onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
-  }, [engine, onAppendLog, scenePromptIndex]);
+  }, [engine, logAuthor, meta, onAppendLog, onUpdateMeta, scenePromptIndex]);
 
   if (!engine || engine.kind !== 'prompt-journal') return null;
 
@@ -147,12 +181,26 @@ export function TableTotvPanel({
             {capacity.skills.filled}/{capacity.skills.max}
           </p>
         ) : null}
+        {guidance ? (
+          <p
+            className={`text-xs ${guidance.blocked ? 'text-amber-400' : 'text-codex-ember'}`}
+            data-testid="totv-prompt-guidance"
+          >
+            {guidance.summary}
+          </p>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           <Button type="button" size="sm" onClick={handleAdvancePrompt} disabled={rolling}>
             {rolling ? 'Rolling…' : 'Advance (d10 − d6)'}
           </Button>
-          <Button type="button" size="sm" variant="outline" onClick={handleTakePrompt}>
-            Log prompt
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void handleTakePrompt()}
+            data-testid="totv-take-prompt"
+          >
+            Take prompt
           </Button>
           <Button type="button" size="sm" variant="ghost" onClick={handleDeclinePrompt}>
             Decline

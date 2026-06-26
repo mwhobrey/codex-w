@@ -16,6 +16,11 @@ export const lonerPlugin = {
   tagline: 'Solo RPG of risky questions and sharp twists.',
   sheetDefinition: lonerSheetDefinition,
   soloEngine: lonerSoloEngine,
+  dicePresets: [
+    { label: 'Oracle', notation: '1d6' },
+    { label: 'Risk', notation: '2d6' },
+    { label: 'Twist', notation: '1d6' },
+  ],
   createEmptySheet(name: string, ownerId: string) {
     const now = new Date().toISOString();
     return createSheetFromDefinition(lonerSheetDefinition, {

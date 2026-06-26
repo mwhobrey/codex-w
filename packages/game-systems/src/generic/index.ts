@@ -16,6 +16,11 @@ export const genericPlugin = {
   tagline: 'System-neutral sheets and oracle play for any table.',
   sheetDefinition: genericSheetDefinition,
   soloEngine: genericSoloEngine,
+  dicePresets: [
+    { label: 'Oracle', notation: '1d6' },
+    { label: 'Risk', notation: '2d6' },
+    { label: 'Check', notation: 'd20' },
+  ],
   createEmptySheet(name: string, ownerId: string) {
     const now = new Date().toISOString();
     return createSheetFromDefinition(genericSheetDefinition, {

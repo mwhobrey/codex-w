@@ -10,6 +10,10 @@ export interface TablePanelProps {
   activeCharacter?: CharacterSheet | null;
   /** Label for log entries from this client (account name or table nickname). */
   logAuthor?: string;
+  onPatchCharacter?: (
+    mutator: (sheet: CharacterSheet) => CharacterSheet,
+  ) => Promise<CharacterSheet | null>;
+  onOpenCharacterPeek?: (highlightFieldKey?: string) => void;
 }
 
 export function readGameStateNumber(meta: TableMeta, key: string, fallback: number): number {
@@ -22,4 +26,13 @@ export function patchGameState(
   patch: Record<string, unknown>,
 ): Record<string, unknown> {
   return { ...(meta.gameState ?? {}), ...patch };
+}
+
+export function saveGameStateIndex(
+  meta: TableMeta,
+  onUpdateMeta: (patch: Partial<TableMeta>) => void,
+  key: string,
+  value: number,
+): void {
+  onUpdateMeta({ gameState: patchGameState(meta, { [key]: value }) });
 }

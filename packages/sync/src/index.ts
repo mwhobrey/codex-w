@@ -1,3 +1,6 @@
+export {
+  exportTableToSoloSession,
+} from './export-table-session';
 export { characterSheetRepo } from './character-sheets';
 export { diceSetRepo } from './dice-sets';
 export { journalRepo, soloSessionRepo } from './solo-sessions';

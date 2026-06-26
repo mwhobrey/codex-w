@@ -1,15 +1,22 @@
 'use client';
 
-import { extractPortableProfile, getSheetFieldValue } from '@codex/game-systems';
+import { extractPortableProfile, getSheetFieldValue, TYOV_SLOT_KEYS } from '@codex/game-systems';
 import type { CharacterSheet } from '@codex/schemas';
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Separator } from '@codex/ui';
 import Link from 'next/link';
 
 interface ActiveCharacterPanelProps {
   character: CharacterSheet | null;
+  highlightFieldKey?: string;
 }
 
-export function ActiveCharacterPanel({ character }: ActiveCharacterPanelProps) {
+function fieldHighlightClass(fieldKey: string, highlightFieldKey?: string) {
+  return highlightFieldKey === fieldKey
+    ? 'rounded-md ring-2 ring-codex-ember/70 ring-offset-2 ring-offset-codex-surface'
+    : '';
+}
+
+export function ActiveCharacterPanel({ character, highlightFieldKey }: ActiveCharacterPanelProps) {
   if (!character) {
     return (
       <Card>
@@ -94,13 +101,18 @@ export function ActiveCharacterPanel({ character }: ActiveCharacterPanelProps) {
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {headline && (
-          <div>
+          <div className={fieldHighlightClass('goal', highlightFieldKey)}>
             <p className="text-[10px] font-medium uppercase tracking-wide text-primary">{headlineLabel}</p>
             <p className="text-foreground">{headline}</p>
           </div>
         )}
         {summary && (
-          <div>
+          <div
+            className={fieldHighlightClass(
+              character.gameSystemId === 'totv' ? 'diary' : 'motive',
+              highlightFieldKey,
+            )}
+          >
             <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               {character.gameSystemId === 'totv' ? 'Diary' : 'Motive'}
             </p>
@@ -120,6 +132,27 @@ export function ActiveCharacterPanel({ character }: ActiveCharacterPanelProps) {
             </p>
           </div>
         )}
+        {character.gameSystemId === 'totv' ? (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              {(Object.keys(TYOV_SLOT_KEYS) as Array<keyof typeof TYOV_SLOT_KEYS>).flatMap((kind) =>
+                TYOV_SLOT_KEYS[kind].map((key) => {
+                  const value = getSheetFieldValue(character, key);
+                  if (!value && highlightFieldKey !== key) return null;
+                  return (
+                    <div key={key} className={fieldHighlightClass(key, highlightFieldKey)}>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {key.replace('_', ' ')}
+                      </p>
+                      <p className="text-muted-foreground">{value || '—'}</p>
+                    </div>
+                  );
+                }),
+              )}
+            </div>
+          </>
+        ) : null}
         {profile.traits.length > 0 && (
           <>
             <Separator />

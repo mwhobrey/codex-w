@@ -2,10 +2,10 @@
 
 import { lookupTable, resolveLasersFeelings, rollDiceNotation, tableMaxRoll } from '@codex/game-engine';
 import type { LasersFeelingsMode } from '@codex/game-engine';
-import { getGameSystem, getSheetFieldValue } from '@codex/game-systems';
+import { getGameSystem, campWeekArcLabel, getSheetFieldValue, lookupCampTable } from '@codex/game-systems';
 import { Button, Card, CardDescription, CardHeader, CardTitle, Input } from '@codex/ui';
 import { useCallback, useEffect, useState } from 'react';
-import { patchGameState, readGameStateNumber, type TablePanelProps } from './table-panel-types';
+import { patchGameState, readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
 export function TableSnallygasterPanel({
@@ -24,7 +24,7 @@ export function TableSnallygasterPanel({
   const [sceneFocus, setSceneFocus] = useState(meta.sceneFocus ?? '');
   const [rollReveal, setRollReveal] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
-  const [scenePromptIndex, setScenePromptIndex] = useState(0);
+  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
 
   const campWeek = readGameStateNumber(meta, 'campWeek', 1);
   const counselorStat = Number(activeCharacter?.fields.find((f) => f.key === 'counselor_stat')?.value ?? 3);
@@ -66,22 +66,22 @@ export function TableSnallygasterPanel({
   const handleProblem = useCallback(() => {
     if (!lf) return;
     const max = tableMaxRoll(lf.problemTable);
-    const die = rollDiceNotation(`1d${max}`).groups[0]?.rolls[0]?.value ?? 1;
-    const problem = lookupTable(lf.problemTable, die);
-    const text = `Camp problem (${die}): ${problem.entry}`;
+    const rawDie = rollDiceNotation(`1d${max}`).groups[0]?.rolls[0]?.value ?? 1;
+    const problem = lookupCampTable(lf.problemTable, rawDie, campWeek);
+    const text = `Camp problem (w${campWeek}, rolled ${rawDie}→${problem.die}): ${problem.entry}`;
     setRollReveal(text);
     onAppendLog({ type: 'scene', content: text, author: logAuthor });
-  }, [lf, onAppendLog]);
+  }, [campWeek, lf, onAppendLog]);
 
   const handleActivity = useCallback(() => {
     if (!lf?.activityTable?.length) return;
     const max = tableMaxRoll(lf.activityTable);
-    const die = rollDiceNotation(`1d${max}`).groups[0]?.rolls[0]?.value ?? 1;
-    const activity = lookupTable(lf.activityTable, die);
-    const text = `Camp activity (${die}): ${activity.entry}`;
+    const rawDie = rollDiceNotation(`1d${max}`).groups[0]?.rolls[0]?.value ?? 1;
+    const activity = lookupCampTable(lf.activityTable, rawDie, campWeek);
+    const text = `Camp activity (w${campWeek}, rolled ${rawDie}→${activity.die}): ${activity.entry}`;
     setRollReveal(text);
     onAppendLog({ type: 'scene', content: text, author: logAuthor });
-  }, [lf?.activityTable, onAppendLog]);
+  }, [campWeek, lf?.activityTable, onAppendLog]);
 
   const handleTwist = useCallback(() => {
     if (!engine?.twistTable) return;
@@ -96,9 +96,9 @@ export function TableSnallygasterPanel({
   const handleScenePrompt = useCallback(() => {
     if (!engine) return;
     const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
-    setScenePromptIndex((i) => i + 1);
+    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', scenePromptIndex + 1);
     onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
-  }, [engine, onAppendLog, scenePromptIndex]);
+  }, [engine, logAuthor, meta, onAppendLog, onUpdateMeta, scenePromptIndex]);
 
   if (!engine || engine.kind !== 'lasers-feelings' || !lf) return null;
 
@@ -121,6 +121,7 @@ export function TableSnallygasterPanel({
         </Button>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-codex-text-muted">Summer week {campWeek}/8</span>
+          <span className="text-[10px] text-codex-text-faint">{campWeekArcLabel(campWeek)}</span>
           <Button type="button" size="sm" variant="outline" onClick={() => setCampWeek(campWeek + 1)}>
             Next week
           </Button>

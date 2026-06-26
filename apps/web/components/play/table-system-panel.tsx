@@ -2,7 +2,7 @@
 
 import { lookupTable, resolveRiskRoll, resolveYesNoOracle, rollDiceNotation, tableMaxRoll } from '@codex/game-engine';
 import { getGameSystem, type OracleLikelihoodId } from '@codex/game-systems';
-import type { CharacterSheet, GameSystemId, PlaySessionLogEntry, TableMeta } from '@codex/schemas';
+import type { PlaySessionLogEntry } from '@codex/schemas';
 import {
   Button,
   Card,
@@ -12,18 +12,10 @@ import {
   Textarea,
 } from '@codex/ui';
 import { useCallback, useEffect, useState } from 'react';
+import { readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
-interface TableSystemPanelProps {
-  gameSystemId: GameSystemId;
-  meta: TableMeta;
-  onUpdateMeta: (patch: Partial<TableMeta>) => void;
-  onAppendLog: (
-    entry: Omit<PlaySessionLogEntry, 'id' | 'roomId' | 'createdAt'>,
-  ) => PlaySessionLogEntry | null;
-  activeCharacter?: CharacterSheet | null;
-  logAuthor?: string;
-}
+interface TableSystemPanelProps extends TablePanelProps {}
 
 export function TableSystemPanel({
   gameSystemId,
@@ -42,8 +34,7 @@ export function TableSystemPanel({
   const [oracleReveal, setOracleReveal] = useState<string | null>(null);
   const [riskReveal, setRiskReveal] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
-  const [promptIndex, setPromptIndex] = useState(0);
-  const [mentorIndex, setMentorIndex] = useState(0);
+  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
 
   const appendWithFocus = useCallback(
     (type: PlaySessionLogEntry['type'], content: string) => {
@@ -113,10 +104,11 @@ export function TableSystemPanel({
 
   const handleScenePrompt = useCallback(() => {
     if (!engine) return;
-    const prompt = engine.scenePrompts[promptIndex % engine.scenePrompts.length]!;
-    setPromptIndex((i) => i + 1);
+    const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
+    const next = scenePromptIndex + 1;
+    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', next);
     appendWithFocus('scene', prompt);
-  }, [appendWithFocus, engine, promptIndex]);
+  }, [appendWithFocus, engine, meta, onUpdateMeta, scenePromptIndex]);
 
   const handleSceneBlur = useCallback(() => {
     if (sceneFocus !== (meta.sceneFocus ?? '')) {
@@ -128,23 +120,13 @@ export function TableSystemPanel({
     setSceneFocus(meta.sceneFocus ?? '');
   }, [meta.sceneFocus]);
 
-  const handleMentorPrompt = useCallback(() => {
-    if (!engine?.mentorPrompts?.length) return;
-    const prompt = engine.mentorPrompts[mentorIndex % engine.mentorPrompts.length]!;
-    setMentorIndex((i) => i + 1);
-    appendWithFocus('scene', `${prompt.label}: ${prompt.text}`);
-  }, [appendWithFocus, engine?.mentorPrompts, mentorIndex]);
-
   if (!engine) return null;
 
   const oracleLikelihoods = engine.oracleLikelihoods ?? [];
   const twistTable = engine.twistTable ?? [];
   const oracleDice = engine.oracleDice ?? '1d6';
   const riskDice = engine.riskDice ?? '2d6';
-  const mentorPrompts = engine.mentorPrompts ?? [];
-  const folklore = engine.folkloreTables;
   const showRisk = engine.kind === 'oracle' || Boolean(riskDice && twistTable.length);
-  const currentMentor = mentorPrompts[mentorIndex % (mentorPrompts.length || 1)];
 
   return (
     <Card className="overflow-hidden border-codex-border/60 bg-codex-surface/80" data-testid="table-system-panel">
@@ -164,60 +146,6 @@ export function TableSystemPanel({
           Draw a scene prompt →
         </Button>
       </TableSection>
-
-      {mentorPrompts.length > 0 && (
-        <TableSection title="Mentor" description={currentMentor?.label ?? 'Guided prompt'}>
-          <p className="text-sm leading-relaxed text-codex-text">
-            {currentMentor?.text ?? 'Draw a mentor prompt to begin.'}
-          </p>
-          <Button type="button" variant="secondary" size="sm" onClick={handleMentorPrompt}>
-            Next mentor prompt
-          </Button>
-        </TableSection>
-      )}
-
-      {folklore && (folklore.groveOmens?.length || folklore.jarResults?.length) ? (
-        <TableSection title="Folklore" defaultOpen={false}>
-          <div className="flex flex-wrap gap-2">
-            {folklore.groveOmens?.length ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const max = tableMaxRoll(folklore.groveOmens!);
-                  const roll = rollDiceNotation(`1d${max}`);
-                  const die = roll.groups[0]?.rolls[0]?.value ?? 1;
-                  const omen = lookupTable(folklore.groveOmens!, die);
-                  const text = `Grove omen (${die}): ${omen.entry}`;
-                  setRiskReveal(text);
-                  appendWithFocus('scene', text);
-                }}
-              >
-                Grove omen
-              </Button>
-            ) : null}
-            {folklore.jarResults?.length ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const max = tableMaxRoll(folklore.jarResults!);
-                  const roll = rollDiceNotation(`1d${max}`);
-                  const die = roll.groups[0]?.rolls[0]?.value ?? 1;
-                  const result = lookupTable(folklore.jarResults!, die);
-                  const text = `Jar result (${die}): ${result.entry}`;
-                  setRiskReveal(text);
-                  appendWithFocus('oracle', text);
-                }}
-              >
-                Jar result
-              </Button>
-            ) : null}
-          </div>
-        </TableSection>
-      ) : null}
 
       {oracleLikelihoods.length > 0 && (
         <TableSection title="Oracle">

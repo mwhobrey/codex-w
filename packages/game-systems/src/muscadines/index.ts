@@ -16,6 +16,11 @@ export const muscadinesPlugin = {
   tagline: 'Cozy-dark folklore solo — mentor prompts, oracles, and magical jams.',
   sheetDefinition: muscadinesSheetDefinition,
   soloEngine: muscadinesSoloEngine,
+  dicePresets: [
+    { label: 'Oracle', notation: '1d6' },
+    { label: 'Grove omen', notation: '1d6' },
+    { label: 'Jar', notation: '1d8' },
+  ],
   createEmptySheet(name: string, ownerId: string) {
     const now = new Date().toISOString();
     return createSheetFromDefinition(muscadinesSheetDefinition, {
