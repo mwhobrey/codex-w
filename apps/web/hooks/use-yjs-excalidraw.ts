@@ -1,6 +1,7 @@
 'use client';
 
 import { getPlayRoomExcalidrawElements, PLAY_ROOM_KEYS } from '@codex/sync';
+import { repairCodexSceneElements } from '@/lib/map-symbols';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -73,12 +74,12 @@ export function useYjsExcalidraw(doc: Y.Doc | null): UseYjsExcalidrawResult {
     }
 
     const yElements = getPlayRoomExcalidrawElements(doc);
-    setInitialElements(yElements.toArray() as ExcalidrawElement[]);
+    setInitialElements(repairCodexSceneElements(yElements.toArray() as ExcalidrawElement[]));
     setReady(true);
 
     const handleRemote = () => {
       if (applyingRemoteRef.current) return;
-      const remote = yElements.toArray() as ExcalidrawElement[];
+      const remote = repairCodexSceneElements(yElements.toArray() as ExcalidrawElement[]);
       const api = apiRef.current;
       if (!api) return;
 
@@ -101,7 +102,11 @@ export function useYjsExcalidraw(doc: Y.Doc | null): UseYjsExcalidrawResult {
   const pushToYjs = useCallback(
     (elements: readonly ExcalidrawElement[]) => {
       if (!doc || applyingRemoteRef.current) return;
-      patchExcalidrawElements(doc, getPlayRoomExcalidrawElements(doc), elements);
+      patchExcalidrawElements(
+        doc,
+        getPlayRoomExcalidrawElements(doc),
+        repairCodexSceneElements(elements),
+      );
     },
     [doc],
   );

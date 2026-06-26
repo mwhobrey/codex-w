@@ -21,9 +21,9 @@ export const MAP_TEMPLATES: MapTemplate[] = [
   {
     id: 'riverside-camp',
     name: 'Riverside camp',
-    description: 'Water, sand, and a travel camp.',
+    description: 'Winding river, sand, and a travel camp.',
     stamps: [
-      { symbolId: 'water', bounds: { x: -220, y: -40, width: 200, height: 120 } },
+      { symbolId: 'river', bounds: { x: -240, y: -30, width: 220, height: 80 } },
       { symbolId: 'sand', bounds: { x: 20, y: -20, width: 180, height: 100 } },
       { symbolId: 'camp', bounds: { x: 60, y: 10, width: 72, height: 56 } },
       { symbolId: 'grass', bounds: { x: -60, y: 40, width: 140, height: 80 } },

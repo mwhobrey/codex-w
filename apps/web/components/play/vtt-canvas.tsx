@@ -12,15 +12,19 @@ import { sceneBoundsFromDrag } from '@/lib/map-bounds';
 import { MAP_TEMPLATES } from '@/lib/map-templates';
 import {
   createCodexSymbolElements,
+  createCodexSceneGroupId,
+  breakApartCodexElements,
+  selectionHasCodexGroup,
   isFogTool,
   type CodexMapTool,
   type CodexTokenOptions,
 } from '@/lib/map-symbols';
 import type { MapViewRole } from '@/lib/table-systems';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
+import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import dynamic from 'next/dynamic';
 import { viewportCoordsToSceneCoords } from '@excalidraw/excalidraw';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type * as Y from 'yjs';
 import '@excalidraw/excalidraw/index.css';
 
@@ -32,7 +36,7 @@ const Excalidraw = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full items-center justify-center bg-codex-void text-sm text-codex-text-muted">
+      <div className="flex h-full items-center justify-center bg-background text-sm text-muted-foreground">
         Loading map…
       </div>
     ),
@@ -74,9 +78,47 @@ export function VttCanvas({
   const [activeTool, setActiveTool] = useState<CodexMapTool>('select');
   const [activeStamp, setActiveStamp] = useState<string | null>(null);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(floatingToolbar);
+  const [selectedElementIds, setSelectedElementIds] = useState<readonly string[]>([]);
   const activeToolRef = useRef(activeTool);
   const activeStampRef = useRef<string | null>(null);
   const tokenOptionsRef = useRef(tokenOptions);
+  const initialDataRef = useRef<{
+    elements: readonly ExcalidrawElement[];
+    scrollToContent: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    initialDataRef.current = null;
+    apiRef.current = null;
+    setApiReady(false);
+    setSelectedElementIds([]);
+  }, [doc]);
+
+  if (ready && !initialDataRef.current) {
+    initialDataRef.current = {
+      elements: [...initialElements],
+      scrollToContent: initialElements.length === 0,
+    };
+  }
+
+  const handleExcalidrawChange = useCallback(
+    (elements: readonly ExcalidrawElement[], appState: { selectedElementIds: readonly string[] | Record<string, true> }) => {
+      onChange(elements);
+      const nextSelected = Array.isArray(appState.selectedElementIds)
+        ? appState.selectedElementIds
+        : Object.keys(appState.selectedElementIds);
+      setSelectedElementIds((previous) => {
+        if (
+          previous.length === nextSelected.length &&
+          previous.every((id, index) => id === nextSelected[index])
+        ) {
+          return previous;
+        }
+        return nextSelected;
+      });
+    },
+    [onChange],
+  );
 
   useEffect(() => {
     activeToolRef.current = activeTool;
@@ -98,6 +140,7 @@ export function VttCanvas({
 
   const handleApi = useCallback(
     (api: ExcalidrawImperativeAPI) => {
+      if (apiRef.current === api) return;
       apiRef.current = api;
       bindApi(api);
       setApiReady(true);
@@ -112,11 +155,9 @@ export function VttCanvas({
 
     const bounds = sceneBoundsFromDrag(x1, y1, x2, y2);
     const isToken = stampId.startsWith('token-');
-    const created = await createCodexSymbolElements(
-      stampId,
-      bounds,
-      isToken ? tokenOptionsRef.current : undefined,
-    );
+    const created = await createCodexSymbolElements(stampId, bounds, {
+      token: isToken ? tokenOptionsRef.current : undefined,
+    });
     const existing = api.getSceneElements();
     api.updateScene({ elements: [...existing, ...created] });
     setActiveStamp(null);
@@ -129,14 +170,33 @@ export function VttCanvas({
       const template = MAP_TEMPLATES.find((item) => item.id === templateId);
       if (!api || !template) return;
 
+      const sceneGroupId = createCodexSceneGroupId();
       const created = (
-        await Promise.all(template.stamps.map((stamp) => createCodexSymbolElements(stamp.symbolId, stamp.bounds)))
+        await Promise.all(
+          template.stamps.map((stamp) =>
+            createCodexSymbolElements(stamp.symbolId, stamp.bounds, { sceneGroupId }),
+          ),
+        )
       ).flat();
       const existing = api.getSceneElements();
       api.updateScene({ elements: [...existing, ...created] });
     },
     [],
   );
+
+  const handleBreakApart = useCallback(() => {
+    const api = apiRef.current;
+    if (!api || !selectedElementIds.length) return;
+    const elements = api.getSceneElements();
+    const broken = breakApartCodexElements(elements, selectedElementIds);
+    api.updateScene({ elements: broken });
+  }, [selectedElementIds]);
+
+  const canBreakApart = useMemo(() => {
+    const api = apiRef.current;
+    if (!api || !selectedElementIds.length) return false;
+    return selectionHasCodexGroup(api.getSceneElements(), selectedElementIds);
+  }, [selectedElementIds, apiReady]);
 
   const canEditFog = isTableGm && mapRole === 'gm';
 
@@ -248,7 +308,7 @@ export function VttCanvas({
 
   if (!doc || !ready) {
     return (
-      <div className="flex h-full items-center justify-center bg-codex-void text-sm text-codex-text-muted">
+      <div className="flex h-full items-center justify-center bg-background text-sm text-muted-foreground">
         Loading map…
       </div>
     );
@@ -268,6 +328,8 @@ export function VttCanvas({
           onMapRoleChange={onMapRoleChange}
           onApplyTemplate={applyTemplate}
           templates={MAP_TEMPLATES}
+          canBreakApart={canBreakApart}
+          onBreakApart={handleBreakApart}
         />
       ) : null}
       <div
@@ -283,8 +345,8 @@ export function VttCanvas({
       >
         <Excalidraw
           excalidrawAPI={handleApi}
-          initialData={{ elements: [...initialElements], scrollToContent: true }}
-          onChange={onChange}
+          initialData={initialDataRef.current ?? { elements: [], scrollToContent: true }}
+          onChange={handleExcalidrawChange}
           gridModeEnabled
           UIOptions={{
             canvasActions: {
@@ -323,6 +385,8 @@ export function VttCanvas({
             onMapRoleChange={onMapRoleChange}
             onApplyTemplate={applyTemplate}
             templates={MAP_TEMPLATES}
+            canBreakApart={canBreakApart}
+            onBreakApart={handleBreakApart}
           />
         ) : null}
       </div>
