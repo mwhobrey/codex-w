@@ -1,7 +1,7 @@
 export {
   exportTableToSoloSession,
 } from './export-table-session';
-export { characterSheetRepo } from './character-sheets';
+export { characterSheetRepo, isCharacterSheetDeleted } from './character-sheets';
 export { characterPortraitRepo, type CharacterPortraitRecord } from './character-portraits';
 export { diceSetRepo } from './dice-sets';
 export { userLibraryTableRepo } from './user-library-tables';

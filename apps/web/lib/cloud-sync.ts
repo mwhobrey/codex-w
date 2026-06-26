@@ -1,6 +1,7 @@
 import {
   characterSheetRepo,
   diceSetRepo,
+  isCharacterSheetDeleted,
   journalRepo,
   soloSessionRepo,
   userLibraryTableRepo,
@@ -32,6 +33,8 @@ function isNewer(isoA: string, isoB: string): boolean {
 }
 
 async function mergeSheet(remote: CharacterSheet, userId: string): Promise<void> {
+  if (isCharacterSheetDeleted(remote.id)) return;
+
   const local = await characterSheetRepo.get(remote.id);
   const next: CharacterSheet = {
     ...(local && isNewer(local.updatedAt, remote.updatedAt) ? local : remote),

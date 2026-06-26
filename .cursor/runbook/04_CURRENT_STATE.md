@@ -42,6 +42,7 @@
 - [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (29 tests)
 - [x] **Design system polish** — shadcn `Dialog`/`Sheet` in `@codex/ui`; semantic Tailwind tokens (`primary`, `muted-foreground`, etc.); skip link, reduced-motion, mobile play header
 - [x] **Portrait cloud sync** — local IndexedDB blobs + optional S3 upload; `/api/assets/status`; sync on sign-in via `portrait-cloud-sync.ts`
+- [x] **Character delete** — local tombstone + cloud `DELETE /api/sheets/:id`; blocks auto-save race and cloud re-merge
 - [x] **Map / VTT hardening** — codex scene grouping (`codexSceneId`), river/road path stamps, **Break apart** toolbar; Excalidraw infinite-loop fix on room enter
 - [x] **Dice hub** — per-system starter sets (`system-dice-sets.ts`)
 - [x] **Library** — Reference + **My tables** tabs; clone reference table → editable local copy (Dexie v5 + Postgres `library_tables`); `/api/library-tables`

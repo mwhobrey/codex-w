@@ -5,13 +5,14 @@ import {
   listAvailableSystems,
   updateSheetField,
 } from '@codex/game-systems';
-import { characterSheetRepo } from '@codex/sync';
+import { characterPortraitRepo, characterSheetRepo } from '@codex/sync';
 import type { CharacterSheet, GameSystemId } from '@codex/schemas';
 import { GameSystemIdSchema } from '@codex/schemas';
 import { Badge, Button, ConfirmDialog } from '@codex/ui';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
-import { queueSheetSync } from '@/lib/sheet-sync';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { queueSheetDelete, queueSheetSync } from '@/lib/sheet-sync';
 import {
   cloneCharacterSheet,
   getCustomFields,
@@ -35,6 +36,8 @@ interface CharacterEditorProps {
 }
 
 export function CharacterEditor({ sheetId }: CharacterEditorProps) {
+  const router = useRouter();
+  const skipSaveRef = useRef(false);
   const [sheet, setSheet] = useState<CharacterSheet | null>(null);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -66,6 +69,7 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
   }, [sheetId]);
 
   const persist = useCallback(async (next: CharacterSheet) => {
+    if (skipSaveRef.current) return;
     setSheet(next);
     setSaveState('saving');
     await characterSheetRepo.save(next);
@@ -88,15 +92,21 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
 
   const handleDelete = useCallback(async () => {
     if (!sheet) return;
+    skipSaveRef.current = true;
     setDeleting(true);
     try {
+      await characterPortraitRepo.delete(sheet.id);
       await characterSheetRepo.delete(sheet.id);
-      window.location.href = '/characters';
+      await queueSheetDelete(sheet.id);
+      router.push('/characters');
+      router.refresh();
+    } catch {
+      skipSaveRef.current = false;
     } finally {
       setDeleting(false);
       setDeleteOpen(false);
     }
-  }, [sheet]);
+  }, [router, sheet]);
 
   const handleClone = useCallback(async () => {
     if (!sheet) return;
