@@ -8,7 +8,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   return {
-    title: `Character — codex-w`,
+    title: `Character — Codex-W`,
     description: `Edit character sheet ${id}`,
   };
 }
@@ -19,7 +19,7 @@ export default async function CharacterDetailPage({ params }: PageProps) {
   return (
     <>
       <SiteHeader />
-      <main className="px-6 pt-28 pb-16">
+      <main id="main-content" className="px-6 pt-28 pb-16">
         <CharacterEditor sheetId={id} />
       </main>
     </>

@@ -79,4 +79,35 @@ test.describe('core play loop smoke', () => {
     await expect(page.getByTestId('library-browser')).toBeVisible();
     await expect(page.getByText('All systems')).toBeVisible();
   });
+
+  test('library search filters entries', async ({ page }) => {
+    await page.goto('/library');
+    await expect(page.getByTestId('library-browser')).toBeVisible();
+
+    const search = page.getByLabel('Search library');
+    await search.fill('Prompt journal');
+    await expect(page.getByRole('heading', { name: 'Prompt journal' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Oracle likelihoods' })).not.toBeVisible();
+
+    await search.fill('zzznomatchzzz');
+    await expect(page.getByText('No entries match your search.')).toBeVisible();
+  });
+
+  test('character portrait saves locally without cloud storage', async ({ page }) => {
+    await page.goto('/characters');
+    await expect(page.getByTestId('characters-page')).toBeVisible();
+
+    const characterLinks = page.getByTestId('character-sheet-link');
+    if ((await characterLinks.count()) === 0) {
+      await page.getByTestId('characters-new-generic').click();
+      await expect(page).toHaveURL(/\/characters\/[^/]+$/);
+    } else {
+      await characterLinks.first().click();
+      await expect(page).toHaveURL(/\/characters\/[^/]+$/);
+    }
+
+    await expect(page.getByTestId('character-portrait-upload')).toBeVisible();
+    await page.getByTestId('character-portrait-input').setInputFiles('e2e/fixtures/portrait.png');
+    await expect(page.getByTestId('character-portrait-preview')).toBeVisible({ timeout: 10_000 });
+  });
 });

@@ -2,7 +2,9 @@ export {
   exportTableToSoloSession,
 } from './export-table-session';
 export { characterSheetRepo } from './character-sheets';
+export { characterPortraitRepo, type CharacterPortraitRecord } from './character-portraits';
 export { diceSetRepo } from './dice-sets';
+export { userLibraryTableRepo } from './user-library-tables';
 export { journalRepo, soloSessionRepo } from './solo-sessions';
 export { CodexDatabase, getDatabase, resetDatabaseForTests } from './db';
 export {

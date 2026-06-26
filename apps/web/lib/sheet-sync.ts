@@ -1,13 +1,25 @@
+import { characterSheetRepo } from '@codex/sync';
 import type { CharacterSheet } from '@codex/schemas';
+import { ensureSheetPortraitSynced } from '@/lib/portrait-cloud-sync';
 
 /** Push sheet to cloud when signed in and cloud is configured. */
 export async function queueSheetSync(sheet: CharacterSheet): Promise<{ synced: boolean }> {
+  let toSync = sheet;
   try {
-    const res = await fetch(`/api/sheets/${sheet.id}`, {
+    toSync = await ensureSheetPortraitSynced(sheet);
+    if (toSync.portraitUrl !== sheet.portraitUrl) {
+      await characterSheetRepo.save(toSync);
+    }
+  } catch {
+    toSync = sheet;
+  }
+
+  try {
+    const res = await fetch(`/api/sheets/${toSync.id}`, {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(sheet),
+      body: JSON.stringify(toSync),
     });
 
     if (res.status === 401 || res.status === 503) {

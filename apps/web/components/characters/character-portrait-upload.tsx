@@ -1,8 +1,11 @@
 'use client';
 
 import type { CharacterSheet } from '@codex/schemas';
+import { characterPortraitRepo } from '@codex/sync';
 import { Button } from '@codex/ui';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useRef, useState } from 'react';
+import { uploadPortraitFile } from '@/lib/portrait-cloud-sync';
 
 interface CharacterPortraitUploadProps {
   sheet: CharacterSheet;
@@ -14,18 +17,39 @@ export function CharacterPortraitUpload({ sheet, onSave }: CharacterPortraitUplo
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const localPreview = useLiveQuery(
+    () => characterPortraitRepo.getObjectUrl(sheet.id),
+    [sheet.id],
+  );
+
+  const displayUrl = sheet.portraitUrl ?? localPreview ?? undefined;
+
   const upload = async (file: File) => {
     setUploading(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.set('file', file);
-      const response = await fetch('/api/assets', { method: 'POST', body: formData });
-      const payload = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !payload.url) {
-        throw new Error(payload.error ?? 'Upload failed');
+      await characterPortraitRepo.save(sheet.id, file);
+
+      let next: CharacterSheet = {
+        ...sheet,
+        portraitUrl: undefined,
+        updatedAt: new Date().toISOString(),
+      };
+
+      try {
+        const cloudUrl = await uploadPortraitFile(file);
+        if (cloudUrl) {
+          next = { ...next, portraitUrl: cloudUrl };
+        }
+      } catch (cloudError) {
+        setError(
+          cloudError instanceof Error
+            ? `${cloudError.message} — saved on this device only.`
+            : 'Cloud upload failed — saved on this device only.',
+        );
       }
-      await onSave({ ...sheet, portraitUrl: payload.url, updatedAt: new Date().toISOString() });
+
+      await onSave(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
@@ -33,19 +57,34 @@ export function CharacterPortraitUpload({ sheet, onSave }: CharacterPortraitUplo
     }
   };
 
+  const remove = async () => {
+    await characterPortraitRepo.delete(sheet.id);
+    const next = {
+      ...sheet,
+      portraitUrl: undefined,
+      updatedAt: new Date().toISOString(),
+    };
+    await onSave(next);
+  };
+
   return (
     <div className="flex flex-col items-center gap-2" data-testid="character-portrait-upload">
       <button
         type="button"
-        className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-codex-border bg-codex-void/60 transition-colors hover:border-codex-ember/50"
+        className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border bg-background/60 transition-colors hover:border-primary/50"
         onClick={() => inputRef.current?.click()}
         title="Upload portrait"
       >
-        {sheet.portraitUrl ? (
+        {displayUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={sheet.portraitUrl} alt="" className="h-full w-full object-cover" />
+          <img
+            src={displayUrl}
+            alt=""
+            className="h-full w-full object-cover"
+            data-testid="character-portrait-preview"
+          />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-xs text-codex-text-muted">
+          <span className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
             Portrait
           </span>
         )}
@@ -55,6 +94,8 @@ export function CharacterPortraitUpload({ sheet, onSave }: CharacterPortraitUplo
         type="file"
         accept="image/png,image/jpeg,image/webp,image/gif"
         className="sr-only"
+        aria-label="Choose portrait image"
+        data-testid="character-portrait-input"
         onChange={(event) => {
           const file = event.target.files?.[0];
           if (file) void upload(file);
@@ -69,23 +110,27 @@ export function CharacterPortraitUpload({ sheet, onSave }: CharacterPortraitUplo
           disabled={uploading}
           onClick={() => inputRef.current?.click()}
         >
-          {uploading ? 'Uploading…' : sheet.portraitUrl ? 'Change' : 'Add portrait'}
+          {uploading ? 'Saving…' : displayUrl ? 'Change' : 'Add portrait'}
         </Button>
-        {sheet.portraitUrl ? (
+        {displayUrl ? (
           <Button
             type="button"
             size="sm"
             variant="ghost"
-            className="text-codex-text-muted"
-            onClick={() => void onSave({ ...sheet, portraitUrl: undefined, updatedAt: new Date().toISOString() })}
+            className="text-muted-foreground"
+            onClick={() => void remove()}
           >
             Remove
           </Button>
         ) : null}
       </div>
-      {error ? <p className="max-w-[12rem] text-center text-[10px] text-red-400">{error}</p> : null}
-      <p className="max-w-[12rem] text-center text-[10px] text-codex-text-faint">
-        Shown on your map token. Sign in to upload.
+      {error ? (
+        <p className="max-w-[12rem] text-center text-[10px] text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <p className="max-w-[12rem] text-center text-[10px] text-muted-foreground/60">
+        Stored on this device. Sign in to back up portrait URL to the cloud.
       </p>
     </div>
   );
