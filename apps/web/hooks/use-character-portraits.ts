@@ -52,13 +52,13 @@ export function useCharacterPortraits(characterIds: string[]): Map<string, strin
 
   return useMemo(() => {
     const map = new Map<string, string>();
+    for (const [id, url] of localUrls) {
+      map.set(id, url);
+    }
     for (const sheet of sheets ?? []) {
-      if (!sheet) continue;
+      if (!sheet || map.has(sheet.id)) continue;
       const remote = readCharacterPortraitUrl(sheet);
       if (remote) map.set(sheet.id, remote);
-    }
-    for (const [id, url] of localUrls) {
-      if (!map.has(id)) map.set(id, url);
     }
     return map;
   }, [localUrls, sheets]);

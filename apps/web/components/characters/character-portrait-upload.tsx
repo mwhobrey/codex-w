@@ -4,7 +4,7 @@ import type { CharacterSheet } from '@codex/schemas';
 import { characterPortraitRepo } from '@codex/sync';
 import { Button } from '@codex/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { uploadPortraitFile } from '@/lib/portrait-cloud-sync';
 
 interface CharacterPortraitUploadProps {
@@ -17,12 +17,25 @@ export function CharacterPortraitUpload({ sheet, onSave }: CharacterPortraitUplo
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const localPreview = useLiveQuery(
-    () => characterPortraitRepo.getObjectUrl(sheet.id),
+  const portraitRecord = useLiveQuery(
+    () => characterPortraitRepo.get(sheet.id),
     [sheet.id],
   );
 
-  const displayUrl = sheet.portraitUrl ?? localPreview ?? undefined;
+  const [localDisplayUrl, setLocalDisplayUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!portraitRecord) {
+      setLocalDisplayUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(portraitRecord.blob);
+    setLocalDisplayUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [portraitRecord]);
+
+  // Prefer on-device blob — cloud URLs may be private or briefly stale after upload.
+  const displayUrl = localDisplayUrl ?? sheet.portraitUrl ?? undefined;
 
   const upload = async (file: File) => {
     setUploading(true);
