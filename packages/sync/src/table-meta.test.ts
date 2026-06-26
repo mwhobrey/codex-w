@@ -50,4 +50,14 @@ describe('table meta GM + invite', () => {
     const seeded = ensureTableInviteToken(doc2, 'fresh-token-abcdefghij');
     expect(seeded.inviteToken).toBe('fresh-token-abcdefghij');
   });
+
+  it('does not materialize generic meta before system seed', () => {
+    const doc = createPlayRoomDoc();
+    ensureTableInviteToken(doc, 'fresh-token-abcdefghij');
+    expect(doc.getMap('meta').size).toBe(0);
+
+    const meta = seedTableMetaIfEmpty(doc, 'totv', undefined, undefined, 'fresh-token-abcdefghij');
+    expect(meta.gameSystemId).toBe('totv');
+    expect(meta.inviteToken).toBe('fresh-token-abcdefghij');
+  });
 });

@@ -5,6 +5,7 @@ import {
   isValidInviteToken,
   parseInviteFromUri,
   resolveTableInviteToken,
+  admissionAfterInviteSeed,
 } from './room-invite';
 
 describe('room invite helpers', () => {
@@ -27,6 +28,17 @@ describe('room invite helpers', () => {
     expect(resolveTableInviteToken(undefined, undefined, undefined, 'recent-token-abcdefgh')).toBe(
       'recent-token-abcdefgh',
     );
+  });
+
+  it('rejects loser of concurrent seed race after storage settles', () => {
+    expect(admissionAfterInviteSeed('winner-token-abcdefgh', 'loser-token-abcdefgh')).toEqual({
+      allowed: false,
+      reason: 'invite_invalid',
+    });
+    expect(admissionAfterInviteSeed('winner-token-abcdefgh', 'winner-token-abcdefgh')).toEqual({
+      allowed: true,
+      seeded: false,
+    });
   });
 
   it('parses invite from websocket uri', () => {

@@ -54,3 +54,11 @@ export function checkRoomInviteAdmission(
 
   return { allowed: true, seeded: false };
 }
+
+/** Re-check admission after a seed write (handles concurrent first-connect races). */
+export function admissionAfterInviteSeed(
+  storedToken: string | null | undefined,
+  providedToken: string | null | undefined,
+): InviteAdmissionResult {
+  return checkRoomInviteAdmission(storedToken, providedToken);
+}

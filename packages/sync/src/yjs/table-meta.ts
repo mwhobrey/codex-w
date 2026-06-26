@@ -59,19 +59,31 @@ export function seedTableMetaIfEmpty(
   inviteToken?: string,
 ): TableMeta {
   const yMeta = getPlayRoomMetaMap(doc);
-  if (yMeta.size > 0) return readTableMeta(doc);
+  if (yMeta.has('gameSystemId')) return readTableMeta(doc);
+
+  const current = yMeta.size > 0 ? readTableMeta(doc) : null;
   return writeTableMeta(doc, {
     ...defaultTableMeta(gameSystemId),
-    name,
-    gmUserId,
-    inviteToken: isValidInviteToken(inviteToken) ? inviteToken!.trim() : undefined,
+    ...(current ?? {}),
+    gameSystemId,
+    name: name ?? current?.name,
+    gmUserId: gmUserId ?? current?.gmUserId,
+    inviteToken: isValidInviteToken(inviteToken)
+      ? inviteToken!.trim()
+      : current?.inviteToken,
   });
 }
 
 /** Persist invite token in meta when the table has none yet (creator URL seed). */
 export function ensureTableInviteToken(doc: Y.Doc, inviteToken: string): TableMeta {
+  if (!isValidInviteToken(inviteToken)) return readTableMeta(doc);
+
+  const yMeta = getPlayRoomMetaMap(doc);
+  // Avoid materializing default generic meta before the play room seeds gameSystemId.
+  if (yMeta.size === 0) return readTableMeta(doc);
+
   const meta = readTableMeta(doc);
-  if (meta.inviteToken || !isValidInviteToken(inviteToken)) return meta;
+  if (meta.inviteToken) return meta;
   return patchTableMeta(doc, { inviteToken: inviteToken.trim() });
 }
 

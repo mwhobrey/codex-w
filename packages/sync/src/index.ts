@@ -34,6 +34,7 @@ export {
   parseInviteFromUri,
   type InviteAdmissionResult,
   resolveTableInviteToken,
+  admissionAfterInviteSeed,
 } from './room-invite';
 export {
   FOG_CELL_SIZE,
@@ -46,6 +47,17 @@ export {
   isScenePointFogged,
   setFogCellHidden,
 } from './yjs/fog';
+export {
+  applyUpdateRespectingFog,
+  captureFogSnapshot,
+  connectionIsTableGm,
+  fogSnapshotsDiffer,
+  PLAY_ROOM_FOG_MAP_KEY,
+  PLAY_ROOM_META_MAP_KEY,
+  readTableGmUserId,
+  restoreFogSnapshot,
+  type FogSnapshot,
+} from './yjs/fog-guard';
 export {
   createPlayRoomProviders,
   hydratePlayRoomIndexedDb,
