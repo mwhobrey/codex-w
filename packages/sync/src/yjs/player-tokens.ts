@@ -55,6 +55,19 @@ function normalizeRecord(record: PlayerTokenRecord): PlayerTokenRecord {
   };
 }
 
+function recordsEqual(a: PlayerTokenRecord, b: PlayerTokenRecord): boolean {
+  return (
+    a.clientId === b.clientId &&
+    a.x === b.x &&
+    a.y === b.y &&
+    a.radius === b.radius &&
+    a.playerName === b.playerName &&
+    a.characterId === b.characterId &&
+    a.characterName === b.characterName &&
+    a.color === b.color
+  );
+}
+
 export function readPlayerTokens(doc: Y.Doc): PlayerTokenView[] {
   const map = getPlayRoomPlayerTokensMap(doc);
   const tokens: PlayerTokenView[] = [];
@@ -89,7 +102,9 @@ export function upsertPlayerToken(
   );
 
   doc.transact(() => {
-    map.set(key, next);
+    if (!existing || !recordsEqual(existing, next)) {
+      map.set(key, next);
+    }
   }, PLAY_ROOM_KEYS.PLAYER_TOKENS);
 
   return next;
@@ -104,8 +119,12 @@ export function updatePlayerToken(
   const existing = map.get(key) as PlayerTokenRecord | undefined;
   if (!existing) return;
 
+  const merged = normalizeRecord({ ...existing, ...patch });
+
   doc.transact(() => {
-    map.set(key, normalizeRecord({ ...existing, ...patch }));
+    if (!recordsEqual(existing, merged)) {
+      map.set(key, merged);
+    }
   }, PLAY_ROOM_KEYS.PLAYER_TOKENS);
 }
 

@@ -29,7 +29,7 @@ import { SoloImportPanel } from './solo-import-panel';
 import type { SoloSession } from '@codex/schemas';
 
 function createRoomId(): string {
-  return crypto.randomUUID().slice(0, 8);
+  return crypto.randomUUID().replace(/-/g, '').slice(0, 16);
 }
 
 function buildTablePath(

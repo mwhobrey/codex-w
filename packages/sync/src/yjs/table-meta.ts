@@ -28,10 +28,17 @@ export function writeTableMeta(doc: Y.Doc, meta: TableMeta): TableMeta {
   const parsed = TableMetaSchema.parse(meta);
   const yMeta = getPlayRoomMetaMap(doc);
   doc.transact(() => {
-    yMeta.clear();
+    const nextKeys = new Set<string>();
     for (const [key, value] of Object.entries(parsed)) {
-      if (value !== undefined) yMeta.set(key, value);
+      if (value === undefined) continue;
+      nextKeys.add(key);
+      if (yMeta.get(key) !== value) {
+        yMeta.set(key, value);
+      }
     }
+    yMeta.forEach((_value, key) => {
+      if (!nextKeys.has(key)) yMeta.delete(key);
+    });
   }, PLAY_ROOM_KEYS.META);
   return parsed;
 }

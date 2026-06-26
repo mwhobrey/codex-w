@@ -67,6 +67,9 @@ export function PlayerTokenOverlay({
 }: PlayerTokenOverlayProps) {
   const [viewport, setViewport] = useState<ViewportState>({ scrollX: 0, scrollY: 0, zoom: 1 });
   const interactionRef = useRef<InteractionState | null>(null);
+  const dragPositionRef = useRef<{ key: string; x: number; y: number } | null>(null);
+  const syncThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [, bumpDragFrame] = useState(0);
   const characterIds = useMemo(() => tokens.map((token) => token.characterId), [tokens]);
   const portraits = useCharacterPortraits(characterIds);
 
@@ -110,6 +113,36 @@ export function PlayerTokenOverlay({
       updatePlayerToken(doc, key, { x: snapped.x, y: snapped.y });
     },
     [doc],
+  );
+
+  const queueDragSync = useCallback(
+    (key: string, x: number, y: number) => {
+      if (!doc) return;
+      if (syncThrottleRef.current) return;
+      syncThrottleRef.current = setTimeout(() => {
+        syncThrottleRef.current = null;
+        updatePlayerToken(doc, key, { x, y });
+      }, 100);
+    },
+    [doc],
+  );
+
+  useEffect(
+    () => () => {
+      if (syncThrottleRef.current) clearTimeout(syncThrottleRef.current);
+    },
+    [],
+  );
+
+  const displayPosition = useCallback(
+    (token: PlayerTokenView) => {
+      const drag = dragPositionRef.current;
+      if (drag?.key === token.key) {
+        return { x: drag.x, y: drag.y };
+      }
+      return { x: token.x, y: token.y };
+    },
+    [],
   );
 
   const onMovePointerDown = useCallback(
@@ -158,10 +191,11 @@ export function PlayerTokenOverlay({
       if (!point) return;
 
       if (interaction.mode === 'move') {
-        updatePlayerToken(doc, interaction.key, {
-          x: point.x - interaction.offsetX,
-          y: point.y - interaction.offsetY,
-        });
+        const x = point.x - interaction.offsetX;
+        const y = point.y - interaction.offsetY;
+        dragPositionRef.current = { key: interaction.key, x, y };
+        bumpDragFrame((value) => value + 1);
+        queueDragSync(interaction.key, x, y);
         return;
       }
 
@@ -186,10 +220,18 @@ export function PlayerTokenOverlay({
       }
 
       if (interaction.mode === 'move') {
-        const token = tokens.find((item) => item.key === interaction.key);
-        if (token) {
-          finishInteraction(interaction.key, token.x, token.y);
+        const drag = dragPositionRef.current;
+        if (drag?.key === interaction.key) {
+          if (syncThrottleRef.current) {
+            clearTimeout(syncThrottleRef.current);
+            syncThrottleRef.current = null;
+          }
+          finishInteraction(interaction.key, drag.x, drag.y);
+        } else {
+          const token = tokens.find((item) => item.key === interaction.key);
+          if (token) finishInteraction(interaction.key, token.x, token.y);
         }
+        dragPositionRef.current = null;
       }
 
       interactionRef.current = null;
@@ -225,6 +267,7 @@ export function PlayerTokenOverlay({
 
       <g transform={`translate(${viewport.scrollX} ${viewport.scrollY}) scale(${viewport.zoom})`}>
         {visibleTokens.map((token) => {
+          const position = displayPosition(token);
           const r = token.radius ?? DEFAULT_PLAYER_TOKEN_RADIUS;
           const label = formatPlayerTag(token.playerName, token.characterName);
           const portrait = portraits.get(token.characterId);
@@ -236,7 +279,7 @@ export function PlayerTokenOverlay({
           return (
             <g
               key={token.key}
-              transform={`translate(${token.x} ${token.y})`}
+              transform={`translate(${position.x} ${position.y})`}
               opacity={opacity}
             >
               {portrait ? (

@@ -8,7 +8,9 @@ import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Inpu
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { createPlayRoomUrl } from '@/lib/play-room';
 import { queueDiceSetSync } from '@/lib/dice-set-sync';
+import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 import { createEmptyDiceSet, useDiceSets } from '@/hooks/use-dice-sets';
 import { usePlayRoomLogPush } from '@/hooks/use-play-room-log-push';
 import { DiceRoller } from './dice-roller';
@@ -211,7 +213,9 @@ export function DiceHub() {
               ) : null}
             </div>
             <Button type="button" variant="outline" size="sm" asChild>
-              <Link href={`/play/${roomId}`}>Back to room</Link>
+              <Link href={createPlayRoomUrl(roomId, undefined, resolvePlayRoomInvite(roomId))}>
+                Back to room
+              </Link>
             </Button>
           </CardContent>
         </Card>

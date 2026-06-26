@@ -7,7 +7,7 @@ import {
   updatePlayerToken,
   upsertPlayerToken,
 } from './yjs/player-tokens';
-import { createPlayRoomDoc } from './yjs/play-room-doc';
+import { createPlayRoomDoc, getPlayRoomPlayerTokensMap } from './yjs/play-room-doc';
 
 const baseRecord = {
   clientId: 1,
@@ -38,6 +38,16 @@ describe('player tokens', () => {
     upsertPlayerToken(doc, baseRecord.characterId, baseRecord);
     updatePlayerToken(doc, baseRecord.characterId, { radius: 999 });
     expect(readPlayerTokens(doc)[0]?.radius).toBe(72);
+  });
+
+  it('skips no-op upserts', () => {
+    const doc = createPlayRoomDoc();
+    upsertPlayerToken(doc, baseRecord.characterId, baseRecord);
+    const map = getPlayRoomPlayerTokensMap(doc);
+    const writes: number[] = [];
+    map.observe(() => writes.push(1));
+    upsertPlayerToken(doc, baseRecord.characterId, baseRecord);
+    expect(writes).toHaveLength(0);
   });
 
   it('prunes inactive token keys', () => {

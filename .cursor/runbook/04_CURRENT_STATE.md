@@ -1,6 +1,6 @@
 # Current State
 
-> Last updated: 2025-06-24 — Arc A multiplayer polish shipped; dogfood next
+> Last updated: 2025-06-24 — Story integration sprint + invite resume + token stability
 
 ## What Is Working
 
@@ -36,18 +36,22 @@
 - [x] **Arc B (partial)** — Better Auth at `/login`, Drizzle + Docker Postgres (`npm run stack:up`)
 - [x] **`packages/ui`** — shadcn/Radix design system
 - [x] **CI/CD** — GitHub Actions: unit tests, web build, Playwright smoke on PR/push to `main`
-- [x] **E2E tests** — Playwright smoke: landing → `/dice` → `/characters` → `/play?system=loner` (presence, peek, TYOV panel)
+- [x] **Invite tokens** — PartyKit `4403` gate; multi-source resume (URL, meta, storage, recent)
+- [x] **Story integration** — per-system table panels, TYOV tag engine, Ironforge heat, `/library`, table export
+- [x] **E2E tests** — smoke (all systems + library) + multiplayer invite (PartyKit in CI)
+- [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (21 tests)
 
 ## What Is Explicitly Not Built Yet
 
 - [ ] `apps/sync-server` — deferred; PartyKit handles MVP multiplayer relay
-- [ ] Room auth / invite tokens (PartyKit rooms are open-link)
+- [ ] Room squatting hardening (atomic invite seed on PartyKit)
+- [ ] Fog / GM server-side enforcement (currently UI-only)
 - [ ] Map snapshots to Postgres (Yjs state is local + PartyKit only)
 - [ ] Solo session / journal full cloud sync
 - [ ] R2/S3 / MinIO asset pipeline wired in UI (portrait upload needs storage)
 - [ ] Neon production deploy + PartyKit env on Vercel preview
-- [ ] `packages/sync` unit tests (GM, tokens, fog primitives untested)
-- [ ] Multiplayer E2E (2-browser / PartyKit in CI)
+- [ ] `packages/sync` unit tests — expand excalidraw / play-room provider coverage
+- [ ] Dice hub live log push with invite auth
 
 ## Immediate Next Steps (Recommended Order)
 

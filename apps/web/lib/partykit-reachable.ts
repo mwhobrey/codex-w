@@ -1,3 +1,20 @@
+/** Match y-partykit local-vs-remote websocket protocol selection. */
+export function partyKitWsProtocol(host: string): 'ws' | 'wss' {
+  const normalized = host.replace(/^(https?|wss?):\/\//, '').replace(/\/$/, '');
+  if (
+    normalized.startsWith('localhost:') ||
+    normalized.startsWith('127.0.0.1:') ||
+    normalized.startsWith('192.168.') ||
+    normalized.startsWith('10.') ||
+    (normalized.startsWith('172.') &&
+      Number(normalized.split('.')[1]) >= 16 &&
+      Number(normalized.split('.')[1]) <= 31)
+  ) {
+    return 'ws';
+  }
+  return 'wss';
+}
+
 /** Quick websocket probe — avoids y-partykit reconnect spam when PartyKit isn't running. */
 export function probePartyKitReachable(
   host: string,
@@ -25,10 +42,10 @@ export function probePartyKitReachable(
     const inviteQs = inviteToken?.trim()
       ? `?invite=${encodeURIComponent(inviteToken.trim())}`
       : '';
-    const ws = new WebSocket(`ws://${host}/parties/${party}/${roomId}${inviteQs}`);
+    const protocol = partyKitWsProtocol(host);
+    const ws = new WebSocket(`${protocol}://${host}/parties/${party}/${roomId}${inviteQs}`);
     const timer = window.setTimeout(() => finish(false), timeoutMs);
     ws.onopen = () => {
-      // Server may accept then immediately close with 4403 when invite is missing/invalid.
       window.setTimeout(() => {
         if (!settled && ws.readyState === WebSocket.OPEN) finish(true);
       }, 50);
