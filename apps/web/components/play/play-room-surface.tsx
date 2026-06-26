@@ -132,12 +132,14 @@ export function PlayRoomSurface({
   }, [doc, inviteToken, meta?.inviteToken, partyInvite, ready, resolvedInvite, roomId]);
 
   useEffect(() => {
-    if (!ready || inviteToken || !resolvedInvite || typeof window === 'undefined') return;
+    if (!ready || typeof window === 'undefined') return;
+    const token = inviteToken ?? resolvedInvite ?? partyInvite ?? meta?.inviteToken;
+    if (!token) return;
     const url = new URL(window.location.href);
-    if (url.searchParams.get('invite') === resolvedInvite) return;
-    url.searchParams.set('invite', resolvedInvite);
+    if (!url.searchParams.has('invite')) return;
+    url.searchParams.delete('invite');
     window.history.replaceState(null, '', url.toString());
-  }, [inviteToken, ready, resolvedInvite]);
+  }, [inviteToken, meta?.inviteToken, partyInvite, ready, resolvedInvite]);
 
   useEffect(() => {
     if (!ready || !ownerReady || !doc || !ownerId) return;

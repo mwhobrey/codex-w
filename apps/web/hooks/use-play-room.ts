@@ -1,36 +1,18 @@
 'use client';
 
-import {
-  appendPlayRoomLogEntry,
-  createPlayRoomDoc,
-  createPlayRoomProviders,
-  ensureTableInviteToken,
-  getPlayRoomLogArray,
-  hydratePlayRoomIndexedDb,
-  isValidInviteToken,
-  readTableMeta,
-  type PlayRoomConnectionStatus,
-} from '@codex/sync';
+import { appendPlayRoomLogEntry, getPlayRoomLogArray } from '@codex/sync';
 import type { PlaySessionLogEntry } from '@codex/schemas';
 import type { Awareness } from 'y-protocols/awareness';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type * as Y from 'yjs';
-import { probePartyKitReachable } from '@/lib/partykit-reachable';
-import {
-  createPlayRoomUrl,
-  getPartyKitHost,
-  getPartyKitParty,
-  partyKitWsParams,
-  shouldConnectPartyKit,
-} from '@/lib/play-room';
-import { readStoredTableInvite, writeStoredTableInvite } from '@/lib/table-invite-storage';
-import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
+import { acquirePlayRoomSession } from '@/lib/play-room-session';
+import { createPlayRoomUrl } from '@/lib/play-room';
 
 export interface UsePlayRoomResult {
   doc: Y.Doc | null;
   awareness: Awareness | null;
   logEntries: PlaySessionLogEntry[];
-  connectionStatus: PlayRoomConnectionStatus;
+  connectionStatus: import('@codex/sync').PlayRoomConnectionStatus;
   roomUrl: string;
   resolvedInvite?: string;
   appendLog: (
@@ -40,79 +22,35 @@ export interface UsePlayRoomResult {
 }
 
 export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomResult {
-  const doc = useMemo(() => createPlayRoomDoc(), []);
+  const [doc, setDoc] = useState<Y.Doc | null>(null);
   const [awareness, setAwareness] = useState<Awareness | null>(null);
   const [logEntries, setLogEntries] = useState<PlaySessionLogEntry[]>([]);
   const [connectionStatus, setConnectionStatus] =
-    useState<PlayRoomConnectionStatus>('connecting');
+    useState<import('@codex/sync').PlayRoomConnectionStatus>('connecting');
   const [ready, setReady] = useState(false);
   const [resolvedInvite, setResolvedInvite] = useState<string | undefined>(inviteToken);
 
   useEffect(() => {
-    let providers: ReturnType<typeof createPlayRoomProviders> | null = null;
     let cancelled = false;
+    let release: (() => void) | null = null;
     let logArray: ReturnType<typeof getPlayRoomLogArray> | null = null;
     let syncLog: (() => void) | null = null;
     let statusTimer: number | undefined;
 
     const boot = async () => {
-      const indexedDb = await hydratePlayRoomIndexedDb(roomId, doc);
-
+      const session = await acquirePlayRoomSession(roomId, inviteToken);
       if (cancelled) {
-        indexedDb.destroy();
+        session.release();
         return;
       }
 
-      const invite = resolvePlayRoomInvite(roomId, inviteToken, readTableMeta(doc).inviteToken);
+      release = session.release;
+      setDoc(session.doc);
+      setResolvedInvite(session.resolvedInvite);
+      setAwareness(session.providers.awareness);
 
-      if (invite) {
-        writeStoredTableInvite(roomId, invite);
-        ensureTableInviteToken(doc, invite);
-      }
-
-      if (!cancelled) {
-        setResolvedInvite(invite);
-      }
-
-      let connectParty = shouldConnectPartyKit() && isValidInviteToken(invite);
-
-      if (connectParty) {
-        const reachable = await probePartyKitReachable(
-          getPartyKitHost(),
-          getPartyKitParty(),
-          roomId,
-          invite,
-        );
-        if (!reachable) connectParty = false;
-      }
-
-      if (cancelled) {
-        indexedDb.destroy();
-        return;
-      }
-
-      providers = createPlayRoomProviders({
-        doc,
-        roomId,
-        host: getPartyKitHost(),
-        party: getPartyKitParty(),
-        connect: connectParty,
-        attemptLiveSync: shouldConnectPartyKit(),
-        params: partyKitWsParams(invite),
-        indexedDb,
-      });
-
-      if (cancelled) {
-        providers.cleanup();
-        return;
-      }
-
-      setAwareness(providers.awareness);
-      logArray = getPlayRoomLogArray(doc);
-
-      syncLog = () => {
-        setLogEntries(logArray!.toArray());
-      };
+      logArray = getPlayRoomLogArray(session.doc);
+      syncLog = () => setLogEntries(logArray!.toArray());
 
       const handleIndexedDbSynced = () => {
         syncLog?.();
@@ -120,16 +58,17 @@ export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomRe
       };
 
       logArray.observe(syncLog);
-      providers.indexedDb.on('synced', handleIndexedDbSynced);
+      session.providers.indexedDb.on('synced', handleIndexedDbSynced);
 
-      if (providers.indexedDb.synced) {
+      if (session.providers.indexedDb.synced) {
         handleIndexedDbSynced();
+      } else {
+        syncLog();
       }
 
-      setConnectionStatus(providers.getStatus());
-
+      setConnectionStatus(session.getStatus());
       statusTimer = window.setInterval(() => {
-        if (providers) setConnectionStatus(providers.getStatus());
+        setConnectionStatus(session.getStatus());
       }, 500);
     };
 
@@ -139,10 +78,12 @@ export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomRe
       cancelled = true;
       if (statusTimer !== undefined) window.clearInterval(statusTimer);
       if (logArray && syncLog) logArray.unobserve(syncLog);
-      providers?.cleanup();
+      release?.();
+      setDoc(null);
       setAwareness(null);
+      setReady(false);
     };
-  }, [doc, inviteToken, roomId]);
+  }, [inviteToken, roomId]);
 
   const appendLog = useCallback(
     (entry: Omit<PlaySessionLogEntry, 'id' | 'roomId' | 'createdAt'>) => {

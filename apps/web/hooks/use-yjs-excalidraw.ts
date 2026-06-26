@@ -16,6 +16,41 @@ function elementsEqual(a: readonly ExcalidrawElement[], b: readonly unknown[]): 
   return true;
 }
 
+function patchExcalidrawElements(
+  doc: Y.Doc,
+  yElements: ReturnType<typeof getPlayRoomExcalidrawElements>,
+  elements: readonly ExcalidrawElement[],
+): void {
+  const remote = yElements.toArray() as ExcalidrawElement[];
+  if (elementsEqual(elements, remote)) return;
+
+  doc.transact(() => {
+    const localIds = new Set(elements.map((element) => element.id));
+
+    for (let index = remote.length - 1; index >= 0; index -= 1) {
+      if (!localIds.has(remote[index]!.id)) {
+        yElements.delete(index, 1);
+      }
+    }
+
+    let current = yElements.toArray() as ExcalidrawElement[];
+
+    elements.forEach((element, targetIndex) => {
+      const existingIndex = current.findIndex((item) => item.id === element.id);
+      if (existingIndex === -1) {
+        yElements.insert(Math.min(targetIndex, yElements.length), [element]);
+      } else {
+        const existing = current[existingIndex]!;
+        if (existing.version !== element.version || existingIndex !== targetIndex) {
+          yElements.delete(existingIndex, 1);
+          yElements.insert(Math.min(targetIndex, yElements.length), [element]);
+        }
+      }
+      current = yElements.toArray() as ExcalidrawElement[];
+    });
+  }, PLAY_ROOM_KEYS.EXCALIDRAW);
+}
+
 export interface UseYjsExcalidrawResult {
   ready: boolean;
   initialElements: readonly ExcalidrawElement[];
@@ -42,6 +77,7 @@ export function useYjsExcalidraw(doc: Y.Doc | null): UseYjsExcalidrawResult {
     setReady(true);
 
     const handleRemote = () => {
+      if (applyingRemoteRef.current) return;
       const remote = yElements.toArray() as ExcalidrawElement[];
       const api = apiRef.current;
       if (!api) return;
@@ -51,7 +87,9 @@ export function useYjsExcalidraw(doc: Y.Doc | null): UseYjsExcalidrawResult {
 
       applyingRemoteRef.current = true;
       api.updateScene({ elements: remote });
-      applyingRemoteRef.current = false;
+      queueMicrotask(() => {
+        applyingRemoteRef.current = false;
+      });
     };
 
     yElements.observe(handleRemote);
@@ -63,27 +101,18 @@ export function useYjsExcalidraw(doc: Y.Doc | null): UseYjsExcalidrawResult {
   const pushToYjs = useCallback(
     (elements: readonly ExcalidrawElement[]) => {
       if (!doc || applyingRemoteRef.current) return;
-
-      const yElements = getPlayRoomExcalidrawElements(doc);
-      const remote = yElements.toArray();
-      if (elementsEqual(elements, remote)) return;
-
-      doc.transact(() => {
-        yElements.delete(0, yElements.length);
-        if (elements.length > 0) {
-          yElements.insert(0, [...elements]);
-        }
-      }, PLAY_ROOM_KEYS.EXCALIDRAW);
+      patchExcalidrawElements(doc, getPlayRoomExcalidrawElements(doc), elements);
     },
     [doc],
   );
 
   const onChange = useCallback(
     (elements: readonly ExcalidrawElement[]) => {
+      if (applyingRemoteRef.current) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         pushToYjs(elements);
-      }, 80);
+      }, 120);
     },
     [pushToYjs],
   );

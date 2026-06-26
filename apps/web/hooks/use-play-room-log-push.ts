@@ -1,74 +1,72 @@
 'use client';
 
-import {
-  appendPlayRoomLogEntry,
-  createPlayRoomDoc,
-  createPlayRoomProviders,
-} from '@codex/sync';
+import { appendPlayRoomLogEntry } from '@codex/sync';
 import type { RollResult } from '@codex/game-engine';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { probePartyKitReachable } from '@/lib/partykit-reachable';
-import {
-  getPartyKitHost,
-  getPartyKitParty,
-  shouldConnectPartyKit,
-} from '@/lib/play-room';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type * as Y from 'yjs';
+import { acquirePlayRoomSession } from '@/lib/play-room-session';
+import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 
 export function usePlayRoomLogPush(roomId: string | null) {
-  const doc = useMemo(() => (roomId ? createPlayRoomDoc() : null), [roomId]);
   const [ready, setReady] = useState(false);
   const [connected, setConnected] = useState(false);
-  const docRef = useRef(doc);
-  docRef.current = doc;
+  const docRef = useRef<Y.Doc | null>(null);
 
   useEffect(() => {
-    if (!doc || !roomId) {
+    if (!roomId) {
+      docRef.current = null;
       setReady(false);
       setConnected(false);
       return;
     }
 
-    let providers: ReturnType<typeof createPlayRoomProviders> | null = null;
     let cancelled = false;
+    let release: (() => void) | null = null;
+    let statusTimer: number | undefined;
 
     const boot = async () => {
-      let connectParty = shouldConnectPartyKit();
-      if (connectParty) {
-        const reachable = await probePartyKitReachable(
-          getPartyKitHost(),
-          getPartyKitParty(),
-          roomId,
-        );
-        if (!reachable) connectParty = false;
+      const invite = resolvePlayRoomInvite(roomId);
+      const session = await acquirePlayRoomSession(roomId, invite);
+      if (cancelled) {
+        session.release();
+        return;
       }
 
-      if (cancelled) return;
+      release = session.release;
+      docRef.current = session.doc;
 
-      providers = createPlayRoomProviders({
-        doc,
-        roomId,
-        host: getPartyKitHost(),
-        party: getPartyKitParty(),
-        connect: connectParty,
-      });
-
-      setConnected(connectParty);
-
-      const handleSynced = () => {
-        if (!cancelled) setReady(true);
+      const syncStatus = () => {
+        const status = session.getStatus();
+        setConnected(status === 'connected');
       };
 
-      providers.indexedDb.on('synced', handleSynced);
-      if (providers.indexedDb.synced) handleSynced();
+      const handleSynced = () => {
+        if (!cancelled) {
+          setReady(true);
+          syncStatus();
+        }
+      };
+
+      session.providers.indexedDb.on('synced', handleSynced);
+      if (session.providers.indexedDb.synced) {
+        handleSynced();
+      }
+
+      syncStatus();
+      statusTimer = window.setInterval(syncStatus, 500);
     };
 
     void boot();
 
     return () => {
       cancelled = true;
-      providers?.cleanup();
+      if (statusTimer !== undefined) window.clearInterval(statusTimer);
+      release?.();
+      docRef.current = null;
+      setReady(false);
+      setConnected(false);
     };
-  }, [doc, roomId]);
+  }, [roomId]);
 
   const pushRoll = useCallback(
     (result: RollResult, author = 'You') => {
