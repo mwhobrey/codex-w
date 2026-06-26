@@ -63,6 +63,16 @@ export function removeRecentPlayRoom(id: string): void {
   writeRaw(readRaw().filter((room) => room.id !== id));
 }
 
+/** Remove invite tokens from recent rooms (e.g. on sign-out) while keeping names for convenience. */
+export function stripInviteTokensFromRecentPlayRooms(): void {
+  writeRaw(
+    readRaw().map((room) => ({
+      ...room,
+      inviteToken: undefined,
+    })),
+  );
+}
+
 export function renameRecentPlayRoom(id: string, label: string): void {
   const trimmedLabel = label.trim();
   writeRaw(

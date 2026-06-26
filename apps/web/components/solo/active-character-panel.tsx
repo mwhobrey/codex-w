@@ -8,15 +8,20 @@ import Link from 'next/link';
 interface ActiveCharacterPanelProps {
   character: CharacterSheet | null;
   highlightFieldKey?: string;
+  showHeaderEditLink?: boolean;
 }
 
 function fieldHighlightClass(fieldKey: string, highlightFieldKey?: string) {
   return highlightFieldKey === fieldKey
-    ? 'rounded-md ring-2 ring-codex-ember/70 ring-offset-2 ring-offset-codex-surface'
+    ? 'rounded-md ring-2 ring-primary/70 ring-offset-2 ring-offset-card'
     : '';
 }
 
-export function ActiveCharacterPanel({ character, highlightFieldKey }: ActiveCharacterPanelProps) {
+export function ActiveCharacterPanel({
+  character,
+  highlightFieldKey,
+  showHeaderEditLink = true,
+}: ActiveCharacterPanelProps) {
   if (!character) {
     return (
       <Card>
@@ -91,12 +96,14 @@ export function ActiveCharacterPanel({ character, highlightFieldKey }: ActiveCha
               )}
             </CardDescription>
           </div>
-          <Link
-            href={`/characters/${character.id}`}
-            className="text-xs text-primary hover:underline"
-          >
-            Edit
-          </Link>
+          {showHeaderEditLink ? (
+            <Link
+              href={`/characters/${character.id}`}
+              className="text-xs text-primary hover:underline"
+            >
+              Edit
+            </Link>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">

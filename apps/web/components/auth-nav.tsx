@@ -1,6 +1,7 @@
 'use client';
 
-import { signOut, useSession } from '@/lib/auth-client';
+import { useSession } from '@/lib/auth-client';
+import { signOutWithLocalCleanup } from '@/lib/auth-sign-out';
 import { userDisplayName } from '@/lib/user-display-name';
 import { Button } from '@codex/ui';
 import Link from 'next/link';
@@ -16,7 +17,7 @@ export function AuthNav() {
     return (
       <Link
         href="/login"
-        className="hidden rounded-full border border-codex-border px-4 py-2 text-sm font-medium text-codex-text-muted transition-colors hover:border-codex-ember/40 hover:text-codex-ember sm:block"
+        className="hidden rounded-full border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary sm:block"
       >
         Sign in
       </Link>
@@ -25,15 +26,15 @@ export function AuthNav() {
 
   return (
     <div className="hidden items-center gap-2 sm:flex">
-      <span className="max-w-[140px] truncate text-sm text-codex-text-muted" title={session.user.email}>
+      <span className="max-w-[140px] truncate text-sm text-muted-foreground" title={session.user.email}>
         {userDisplayName(session.user)}
       </span>
       <Button
         type="button"
         variant="outline"
         size="sm"
-        className="h-8 border-codex-border text-codex-text-muted hover:text-codex-ember"
-        onClick={() => void signOut()}
+        className="h-8 border-border text-muted-foreground hover:text-primary"
+        onClick={() => void signOutWithLocalCleanup()}
       >
         Sign out
       </Button>

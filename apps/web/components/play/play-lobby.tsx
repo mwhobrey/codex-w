@@ -81,7 +81,7 @@ export function PlayLobby() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6" data-testid="play-lobby">
-      <Card className="border-codex-border/60 bg-codex-surface/80 shadow-xl shadow-black/20">
+      <Card className="border-border/60 bg-card/80 shadow-xl shadow-black/20">
         <CardHeader>
           <CardTitle className="font-display text-2xl">Tables</CardTitle>
           <CardDescription>
@@ -106,7 +106,7 @@ export function PlayLobby() {
             </Select>
             <Button
               type="button"
-              className="codex-glow mt-3 w-full"
+              className="mt-3 w-full"
               data-testid="create-table-button"
               onClick={() =>
                 openTable(createRoomId(), {
@@ -121,9 +121,9 @@ export function PlayLobby() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center" aria-hidden>
-              <div className="w-full border-t border-codex-border/50" />
+              <div className="w-full border-t border-border/50" />
             </div>
-            <p className="relative mx-auto w-fit bg-codex-surface px-2 text-xs uppercase tracking-wide text-codex-text-muted">
+            <p className="relative mx-auto w-fit bg-card px-2 text-xs uppercase tracking-wide text-muted-foreground">
               or join
             </p>
           </div>
@@ -164,17 +164,17 @@ export function PlayLobby() {
             </Button>
           </div>
 
-          <p className="text-center text-xs text-codex-text-muted">
+          <p className="text-center text-xs text-muted-foreground">
             Invite friends with the share link — you can play alone until they show up.
           </p>
         </CardContent>
       </Card>
 
       {recent.length > 0 ? (
-        <Card className="border-codex-border/60 bg-codex-surface/80">
+        <Card className="border-border/60 bg-card/80">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Recent tables</CardTitle>
-            <CardDescription>Pick up where you left off — no ID memorization required.</CardDescription>
+            <CardDescription>Pick up where you left off.</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2" data-testid="recent-play-rooms">
@@ -185,7 +185,7 @@ export function PlayLobby() {
                 return (
                   <li
                     key={room.id}
-                    className="flex items-center gap-2 rounded-lg border border-codex-border/40 bg-codex-void/40 p-2"
+                    className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/40 p-2"
                   >
                     <button
                       type="button"
@@ -195,12 +195,16 @@ export function PlayLobby() {
                           inviteToken: resolvePlayRoomInvite(room.id, room.inviteToken),
                         })
                       }
-                      className="min-h-10 flex-1 rounded-md px-3 py-2 text-left hover:bg-codex-elevated/50"
+                      className="min-h-10 flex-1 rounded-md px-3 py-2 text-left hover:bg-secondary/50"
                     >
-                      <span className="block font-mono text-sm text-codex-text">{room.id}</span>
-                      <span className="block text-xs text-codex-text-muted">
-                        {room.label ?? 'Unnamed table'} · {systemName} ·{' '}
-                        {new Date(room.visitedAt).toLocaleDateString()}
+                      <span className="block truncate text-sm font-medium text-foreground">
+                        {room.label?.trim() || 'Untitled table'}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {systemName} · {new Date(room.visitedAt).toLocaleDateString()}
+                      </span>
+                      <span className="block truncate font-mono text-[10px] text-muted-foreground/60">
+                        #{room.id}
                       </span>
                     </button>
                     <Button
@@ -226,7 +230,7 @@ export function PlayLobby() {
       <SoloImportPanel onImport={importSoloSession} />
 
       <p className="text-center">
-        <Link href="/" className="text-sm text-codex-text-muted hover:text-codex-ember">
+        <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
           ← Back home
         </Link>
       </p>

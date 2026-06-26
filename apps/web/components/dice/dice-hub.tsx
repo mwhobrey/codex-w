@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { createPlayRoomUrl } from '@/lib/play-room';
 import { queueDiceSetSync } from '@/lib/dice-set-sync';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
+import { createDiceSetFromTemplate, listSystemDiceSetTemplates } from '@/lib/system-dice-sets';
 import { createEmptyDiceSet, useDiceSets } from '@/hooks/use-dice-sets';
 import { usePlayRoomLogPush } from '@/hooks/use-play-room-log-push';
 import { DiceRoller } from './dice-roller';
@@ -176,6 +177,9 @@ export function DiceHub() {
   const { pushRoll, ready: logReady, connected } = usePlayRoomLogPush(roomId);
   const [lastPushed, setLastPushed] = useState<string | null>(null);
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
+  const [addingTemplateId, setAddingTemplateId] = useState<string | null>(null);
+
+  const systemTemplates = listSystemDiceSetTemplates();
 
   const selectedSet =
     sets?.find((s) => s.id === selectedSetId) ?? (sets && sets.length > 0 ? sets[0] : null);
@@ -189,17 +193,38 @@ export function DiceHub() {
     setSelectedSetId(created.id);
   };
 
+  const handleAddTemplate = async (templateId: string) => {
+    const template = systemTemplates.find((item) => item.gameSystemId === templateId);
+    if (!template || !ownerId) return;
+
+    const exists = sets?.some(
+      (set) => set.name === template.name && set.formulas.length === template.formulas.length,
+    );
+    if (exists) {
+      const match = sets?.find((set) => set.name === template.name);
+      if (match) setSelectedSetId(match.id);
+      return;
+    }
+
+    setAddingTemplateId(templateId);
+    const created = createDiceSetFromTemplate(ownerId, template);
+    await diceSetRepo.save(created);
+    void queueDiceSetSync(created);
+    setSelectedSetId(created.id);
+    setAddingTemplateId(null);
+  };
+
   return (
     <div className="mx-auto max-w-4xl space-y-10">
       {roomId ? (
-        <Card className="border-codex-ember/30 bg-codex-ember/5">
+        <Card className="border-primary/30 bg-primary/5">
           <CardContent className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-left text-sm">
-              <p className="font-medium text-codex-text">
+              <p className="font-medium text-foreground">
                 Logging rolls to play room
-                <span className="ml-2 font-mono text-xs text-codex-text-muted">{roomId}</span>
+                <span className="ml-2 font-mono text-xs text-muted-foreground">{roomId}</span>
               </p>
-              <p className="mt-1 text-xs text-codex-text-muted">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {logReady
                   ? connected
                     ? 'Synced live with the room.'
@@ -207,7 +232,7 @@ export function DiceHub() {
                   : 'Connecting to room log…'}
               </p>
               {lastPushed ? (
-                <p className="mt-1 text-xs text-codex-ember" aria-live="polite">
+                <p className="mt-1 text-xs text-primary" aria-live="polite">
                   Last pushed: {lastPushed}
                 </p>
               ) : null}
@@ -234,6 +259,41 @@ export function DiceHub() {
         }
       />
 
+      <section aria-labelledby="dice-starter-sets-heading">
+        <div className="mb-4">
+          <h2 id="dice-starter-sets-heading" className="font-display text-2xl font-medium">
+            Game dice sets
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            One-click shortcuts from each solo system&apos;s recommended rolls.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {systemTemplates.map((template) => (
+            <Card key={template.gameSystemId} className="border-border/60 bg-card/60">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">{template.name}</CardTitle>
+                <CardDescription>
+                  {template.formulas.map((formula) => formula.label).join(' · ')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={addingTemplateId === template.gameSystemId}
+                  onClick={() => void handleAddTemplate(template.gameSystemId)}
+                  data-testid={`dice-add-${template.gameSystemId}`}
+                >
+                  {addingTemplateId === template.gameSystemId ? 'Adding…' : 'Add set'}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       <section aria-labelledby="dice-sets-heading">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -254,7 +314,7 @@ export function DiceHub() {
         {ready && (!sets || sets.length === 0) && (
           <Card className="border-dashed">
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              No custom sets yet. Create one to save your go-to formulas for play rooms and solo.
+              No custom sets yet. Add a game set above or create your own formulas below.
             </CardContent>
           </Card>
         )}
