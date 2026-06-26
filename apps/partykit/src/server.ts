@@ -1,12 +1,38 @@
 import type * as Party from 'partykit/server';
 import {
   INVITE_QUERY_PARAM,
+  admissionAfterInviteSeed,
   checkRoomInviteAdmission,
+  isValidInviteToken,
   parseInviteFromUri,
 } from '@codex/sync';
-import { onConnect } from 'y-partykit';
+import { guardedOnConnect } from './guarded-connect';
 
 const ROOM_INVITE_STORAGE_KEY = 'inviteToken';
+
+async function admitWithInviteGate(
+  room: Party.Room,
+  provided: string | null,
+): Promise<{ allowed: true } | { allowed: false; reason: string }> {
+  let stored = (await room.storage.get<string>(ROOM_INVITE_STORAGE_KEY)) ?? null;
+  let admission = checkRoomInviteAdmission(stored, provided);
+
+  if (!admission.allowed) {
+    return { allowed: false, reason: admission.reason };
+  }
+
+  if (admission.seeded && provided && isValidInviteToken(provided)) {
+    const token = provided.trim();
+    await room.storage.put(ROOM_INVITE_STORAGE_KEY, token);
+    stored = (await room.storage.get<string>(ROOM_INVITE_STORAGE_KEY)) ?? null;
+    admission = admissionAfterInviteSeed(stored, token);
+    if (!admission.allowed) {
+      return { allowed: false, reason: admission.reason };
+    }
+  }
+
+  return { allowed: true };
+}
 
 export default class PlayRoomServer implements Party.Server {
   constructor(readonly room: Party.Room) {}
@@ -16,19 +42,14 @@ export default class PlayRoomServer implements Party.Server {
       parseInviteFromUri(conn.uri) ??
       new URL(ctx.request.url).searchParams.get(INVITE_QUERY_PARAM);
 
-    const stored = (await this.room.storage.get<string>(ROOM_INVITE_STORAGE_KEY)) ?? null;
-    const admission = checkRoomInviteAdmission(stored, provided);
+    const admission = await admitWithInviteGate(this.room, provided);
 
     if (!admission.allowed) {
       conn.close(4403, admission.reason);
       return;
     }
 
-    if (admission.seeded && provided) {
-      await this.room.storage.put(ROOM_INVITE_STORAGE_KEY, provided.trim());
-    }
-
-    return onConnect(conn, this.room, {
+    return guardedOnConnect(conn, this.room, {
       persist: { mode: 'snapshot' },
     });
   }
