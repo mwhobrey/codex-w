@@ -4,6 +4,7 @@ import {
   listCharacterSheetsByOwner,
   listDiceSetsByOwner,
   listJournalEntriesByOwner,
+  listLibraryTablesByOwner,
   listSoloSessionsByOwner,
 } from '@codex/db';
 import { NextResponse } from 'next/server';
@@ -29,11 +30,12 @@ export async function GET() {
   const db = getDb();
   const ownerId = session.user.id;
 
-  const [sheets, sessions, journalEntries, diceSets] = await Promise.all([
+  const [sheets, sessions, journalEntries, diceSets, libraryTables] = await Promise.all([
     listCharacterSheetsByOwner(db, ownerId),
     listSoloSessionsByOwner(db, ownerId),
     listJournalEntriesByOwner(db, ownerId),
     listDiceSetsByOwner(db, ownerId),
+    listLibraryTablesByOwner(db, ownerId),
   ]);
 
   return NextResponse.json({
@@ -41,6 +43,7 @@ export async function GET() {
     sessions,
     journalEntries,
     diceSets,
+    libraryTables,
     synced: true,
   });
 }

@@ -13,6 +13,12 @@ export {
   upsertDiceSet,
 } from './dice-sets';
 export {
+  deleteLibraryTable,
+  getLibraryTableById,
+  listLibraryTablesByOwner,
+  upsertLibraryTable,
+} from './library-tables';
+export {
   getSoloSessionById,
   listJournalEntriesByOwner,
   listJournalEntriesBySession,

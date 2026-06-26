@@ -3,10 +3,19 @@ import {
   diceSetRepo,
   journalRepo,
   soloSessionRepo,
+  userLibraryTableRepo,
 } from '@codex/sync';
-import type { CharacterSheet, DiceSet, JournalEntry, SoloSession } from '@codex/schemas';
+import type {
+  CharacterSheet,
+  DiceSet,
+  JournalEntry,
+  SoloSession,
+  UserLibraryTable,
+} from '@codex/schemas';
 import { getLocalOwnerId } from '@/lib/local-owner';
+import { syncPendingPortraitUploads } from '@/lib/portrait-cloud-sync';
 import { queueDiceSetSync } from '@/lib/dice-set-sync';
+import { queueLibraryTableSync } from '@/lib/library-table-sync';
 import { queueJournalSync, queueSessionSync } from '@/lib/session-sync';
 import { queueSheetSync } from '@/lib/sheet-sync';
 
@@ -15,6 +24,7 @@ interface CloudSyncPayload {
   sessions: SoloSession[];
   journalEntries: JournalEntry[];
   diceSets: DiceSet[];
+  libraryTables: UserLibraryTable[];
 }
 
 function isNewer(isoA: string, isoB: string): boolean {
@@ -55,6 +65,15 @@ async function mergeDiceSet(remote: DiceSet, userId: string): Promise<void> {
   await diceSetRepo.save(next);
 }
 
+async function mergeLibraryTable(remote: UserLibraryTable, userId: string): Promise<void> {
+  const local = await userLibraryTableRepo.get(remote.id);
+  const next: UserLibraryTable = {
+    ...(local && isNewer(local.updatedAt, remote.updatedAt) ? local : remote),
+    ownerId: userId,
+  };
+  await userLibraryTableRepo.save(next);
+}
+
 async function migrateLocalOwnerToUser(localOwnerId: string, userId: string): Promise<void> {
   if (localOwnerId === userId) return;
 
@@ -83,6 +102,13 @@ async function migrateLocalOwnerToUser(localOwnerId: string, userId: string): Pr
     await diceSetRepo.save(migrated);
     void queueDiceSetSync(migrated);
   }
+
+  const libraryTables = await userLibraryTableRepo.listByOwner(localOwnerId);
+  for (const table of libraryTables) {
+    const migrated = { ...table, ownerId: userId };
+    await userLibraryTableRepo.save(migrated);
+    void queueLibraryTableSync(migrated);
+  }
 }
 
 /** Pull cloud data and merge anonymous local records into the signed-in account. */
@@ -109,6 +135,11 @@ export async function pullCloudData(userId: string): Promise<void> {
     for (const set of payload.diceSets ?? []) {
       await mergeDiceSet(set, userId);
     }
+    for (const table of payload.libraryTables ?? []) {
+      await mergeLibraryTable(table, userId);
+    }
+
+    await syncPendingPortraitUploads(userId);
   } catch {
     // Offline or misconfigured — local-first still works.
   }

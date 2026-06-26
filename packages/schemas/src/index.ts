@@ -159,3 +159,38 @@ export const DiceSetSchema = z.object({
 });
 
 export type DiceSet = z.infer<typeof DiceSetSchema>;
+
+export const LibraryTableRowSchema = z.object({
+  roll: z.number().int().optional(),
+  label: z.string().max(128).optional(),
+  text: z.string().max(4096),
+});
+
+export type LibraryTableRow = z.infer<typeof LibraryTableRowSchema>;
+
+export const LibraryTableCategorySchema = z.enum([
+  'oracle-likelihood',
+  'twist',
+  'scene-prompt',
+  'prompt-journal',
+  'mentor',
+  'table',
+  'forge',
+]);
+
+export type LibraryTableCategory = z.infer<typeof LibraryTableCategorySchema>;
+
+export const UserLibraryTableSchema = z.object({
+  id: z.string().uuid(),
+  ownerId: z.string().min(1),
+  name: z.string().min(1).max(128),
+  systemId: GameSystemIdSchema.optional(),
+  category: LibraryTableCategorySchema,
+  description: z.string().max(512).optional(),
+  rows: z.array(LibraryTableRowSchema).min(1).max(200),
+  sourceTemplateId: z.string().max(128).optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type UserLibraryTable = z.infer<typeof UserLibraryTableSchema>;
