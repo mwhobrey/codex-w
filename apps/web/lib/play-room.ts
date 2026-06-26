@@ -1,4 +1,4 @@
-import { INVITE_QUERY_PARAM } from '@codex/sync';
+import { INVITE_QUERY_PARAM, parseInviteFromUri } from '@codex/sync';
 
 export function getPartyKitHost(): string {
   return process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? '127.0.0.1:1999';
@@ -18,23 +18,73 @@ export function partyKitWsParams(inviteToken?: string): Record<string, string> |
   return { [INVITE_QUERY_PARAM]: invite };
 }
 
+export interface PlayRoomPathOptions {
+  gameSystemId?: string;
+  importSessionId?: string;
+  inviteToken?: string;
+}
+
+export function buildPlayRoomPath(
+  roomId: string,
+  options?: PlayRoomPathOptions,
+): string {
+  const params = new URLSearchParams();
+  if (options?.gameSystemId) params.set('system', options.gameSystemId);
+  if (options?.importSessionId) params.set('import', options.importSessionId);
+  if (options?.inviteToken?.trim()) params.set(INVITE_QUERY_PARAM, options.inviteToken.trim());
+  const qs = params.toString();
+  const path = `/play/${encodeURIComponent(roomId)}`;
+  return qs ? `${path}?${qs}` : path;
+}
+
 export function createPlayRoomUrl(
   roomId: string,
   gameSystemId?: string,
   inviteToken?: string,
 ): string {
-  const params = new URLSearchParams();
-  if (gameSystemId) params.set('system', gameSystemId);
-  if (inviteToken?.trim()) params.set(INVITE_QUERY_PARAM, inviteToken.trim());
-  const qs = params.toString();
-  const path = `/play/${encodeURIComponent(roomId)}`;
+  const path = buildPlayRoomPath(roomId, { gameSystemId, inviteToken });
   if (typeof window === 'undefined') {
-    return qs ? `${path}?${qs}` : path;
+    return path;
   }
-  return `${window.location.origin}${path}${qs ? `?${qs}` : ''}`;
+  return `${window.location.origin}${path}`;
 }
 
 export function parseInviteToken(value: string | null | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed || undefined;
+}
+
+const PLAY_ROOM_PATH_RE = /\/play\/([^/?#]+)/;
+
+/** Parse a pasted invite link, URL, or bare room ID into room + optional invite token. */
+export function parseTableInviteInput(input: string): {
+  roomId?: string;
+  inviteToken?: string;
+} {
+  const trimmed = input.trim();
+  if (!trimmed) return {};
+
+  if (trimmed.includes('://') || trimmed.startsWith('/')) {
+    try {
+      const url = new URL(trimmed, typeof window !== 'undefined' ? window.location.origin : 'https://codex.local');
+      const match = url.pathname.match(PLAY_ROOM_PATH_RE);
+      const roomId = match?.[1] ? decodeURIComponent(match[1]) : undefined;
+      const inviteToken = parseInviteFromUri(url.href) ?? undefined;
+      return { roomId, inviteToken: inviteToken ?? undefined };
+    } catch {
+      return {};
+    }
+  }
+
+  if (PLAY_ROOM_PATH_RE.test(trimmed)) {
+    const match = trimmed.match(PLAY_ROOM_PATH_RE);
+    const roomId = match?.[1] ? decodeURIComponent(match[1]) : undefined;
+    return { roomId };
+  }
+
+  if (/^[a-f0-9]{12,32}$/i.test(trimmed)) {
+    return { roomId: trimmed };
+  }
+
+  return {};
 }

@@ -109,7 +109,7 @@ export function ActiveCharacterPanel({
       <CardContent className="space-y-3 text-sm">
         {headline && (
           <div className={fieldHighlightClass('goal', highlightFieldKey)}>
-            <p className="text-[10px] font-medium uppercase tracking-wide text-primary">{headlineLabel}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-primary">{headlineLabel}</p>
             <p className="text-foreground">{headline}</p>
           </div>
         )}
@@ -120,7 +120,7 @@ export function ActiveCharacterPanel({
               highlightFieldKey,
             )}
           >
-            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {character.gameSystemId === 'totv' ? 'Diary' : 'Motive'}
             </p>
             <p className="line-clamp-4 text-muted-foreground">{summary}</p>
@@ -129,7 +129,7 @@ export function ActiveCharacterPanel({
         {(lonerNemesis || profile.nemesis) &&
           (character.gameSystemId === 'loner' || character.gameSystemId === 'ironforge') && (
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {character.gameSystemId === 'ironforge' ? 'Opposition' : 'Nemesis'}
             </p>
             <p className="text-muted-foreground">
@@ -149,7 +149,7 @@ export function ActiveCharacterPanel({
                   if (!value && highlightFieldKey !== key) return null;
                   return (
                     <div key={key} className={fieldHighlightClass(key, highlightFieldKey)}>
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                         {key.replace('_', ' ')}
                       </p>
                       <p className="text-muted-foreground">{value || '—'}</p>

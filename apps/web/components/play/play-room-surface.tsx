@@ -12,7 +12,7 @@ import { useTableMeta } from '@/hooks/use-table-meta';
 import { useTableCharacterPatch } from '@/hooks/use-table-character-patch';
 import { useTableSidebarWidth } from '@/hooks/use-table-sidebar-width';
 import { useSession } from '@/lib/auth-client';
-import { MAP_FLOATING_BOTTOM_STYLE } from '@/lib/map-overlay-layout';
+import { MAP_FLOATING_BOTTOM_PLAY_STYLE } from '@/lib/map-overlay-layout';
 import { createPlayRoomUrl } from '@/lib/play-room';
 import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
@@ -32,7 +32,7 @@ import { TablePlayPanel } from './table-play-panel';
 import { TablePresence } from './table-presence';
 import { TableResizeHandle } from './table-resize-handle';
 import { TableScratchNotes } from './table-scratch-notes';
-import { type TableSidebarTab, TableSidebarTabs } from './table-sidebar';
+import { type TableSidebarTab, TableViewTablist, MOBILE_TAB_IDS, SIDEBAR_TAB_IDS, tableTabId } from './table-sidebar';
 import { VttCanvas } from './vtt-canvas';
 
 const TABLE_CHARACTER_KEY = (roomId: string) => `codex-table-character-${roomId}`;
@@ -359,31 +359,13 @@ export function PlayRoomSurface({
         }
       />
 
-      <div
-        className="flex shrink-0 gap-1 border-b border-border/40 p-1.5 lg:hidden"
-        role="tablist"
-        aria-label="Table views"
-      >
-        {(['map', 'play', 'dice', 'log'] as const).map((view) => (
-          <button
-            key={view}
-            type="button"
-            role="tab"
-            id={`table-mobile-tab-${view}`}
-            aria-selected={mobileView === view}
-            aria-controls={view === 'map' ? 'table-map-panel' : 'table-sidebar-panel'}
-            onClick={() => setMobileView(view)}
-            className={cn(
-              'min-h-10 flex-1 rounded-md px-2 py-2 text-sm font-medium capitalize transition-colors',
-              mobileView === view
-                ? 'bg-primary/20 text-primary'
-                : 'text-muted-foreground hover:bg-background/50',
-            )}
-          >
-            {view}
-          </button>
-        ))}
-      </div>
+      <TableViewTablist
+        tabs={MOBILE_TAB_IDS}
+        activeTab={mobileView}
+        onTabChange={setMobileView}
+        ariaLabel="Table views"
+        className="min-h-10 lg:hidden"
+      />
 
       {!ready ? (
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
@@ -396,13 +378,13 @@ export function PlayRoomSurface({
         >
           <div
             id="table-map-panel"
-            role="tabpanel"
-            aria-labelledby="table-mobile-tab-map"
+            role={showMap ? 'tabpanel' : undefined}
+            aria-labelledby={showMap ? tableTabId('map') : undefined}
             className={cn(
               'relative min-h-0 min-w-0 flex-1',
               !showMap && 'hidden lg:block',
             )}
-            style={MAP_FLOATING_BOTTOM_STYLE}
+            style={MAP_FLOATING_BOTTOM_PLAY_STYLE}
           >
             <VttCanvas
               doc={doc}
@@ -427,21 +409,27 @@ export function PlayRoomSurface({
               showMap ? 'hidden lg:flex' : 'flex',
             )}
           >
-            <TableSidebarTabs
+            <TableViewTablist
+              tabs={SIDEBAR_TAB_IDS}
               activeTab={activeSidebarTab}
               onTabChange={selectSidebarTab}
+              ariaLabel="Table panels"
               className="hidden lg:flex"
             />
 
             <div
               id="table-sidebar-panel"
               role="tabpanel"
-              aria-labelledby={`table-mobile-tab-${activeSidebarTab}`}
+              aria-labelledby={tableTabId(activeSidebarTab)}
               className="min-h-0 flex-1 overflow-y-auto p-3"
             >
               {activeSidebarTab === 'play' ? playPanel : null}
               {activeSidebarTab === 'dice' ? (
-                <PlayDicePanel onRoll={handleDiceRoll} systemPresets={systemDicePresets} />
+                <PlayDicePanel
+                  onRoll={handleDiceRoll}
+                  systemPresets={systemDicePresets}
+                  roomId={roomId}
+                />
               ) : null}
               {activeSidebarTab === 'log' ? (
                 <SessionLogPanel entries={logEntries} onAppend={appendLog} logAuthor={logAuthor} />

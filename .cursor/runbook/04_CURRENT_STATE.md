@@ -1,6 +1,6 @@
 # Current State
 
-> Last updated: 2025-06-26 — UX polish sprint, user library tables, map stamp grouping
+> Last updated: 2025-06-26 — UX polish sprint + VTT overlay fixes
 
 ## What Is Working
 
@@ -47,6 +47,8 @@
 - [x] **Library** — Reference + **My tables** tabs; clone reference table → editable local copy (Dexie v5 + Postgres `library_tables`); `/api/library-tables`
 - [x] **Sign-out cleanup** — strips invite tokens from recent play rooms only (keeps table names/metadata)
 - [x] **Play lobby** — recent tables show human-readable names; character peek hides duplicate Edit CTA
+- [x] **Professional UX polish sprint** — Excalidraw play-mode chrome suppression (`.codex-excalidraw-play` CSS, dark zen); unified `TableViewTablist` ARIA; paste-invite join flow (`parseTableInviteInput`); mobile sign-in in nav drawer; `ConfirmDialog` primitive; Radix `Dialog`/`Sheet` for adapt + table info; semantic `--success`/`--warning` tokens; marketing interactivity (feature links, hero dice); dice hub IA reorder; `text-xs` typography floor; page title dedup; `@codex/web` unit tests (`play-room.test.ts`, `excalidraw-viewport.test.ts`)
+- [x] **VTT overlay projection** — `useExcalidrawViewport` + `sceneCoordsToViewportCoords` for fog (per-cell viewport rects), tokens, and cursors; rAF sync during zoom; fixes fog drift/resize at non-1× zoom
 
 ## What Is Explicitly Not Built Yet
 
@@ -55,9 +57,8 @@
 - [ ] Fog / GM server-side enforcement (currently UI-only)
 - [ ] Map snapshots to Postgres (Yjs state is local + PartyKit only)
 - [ ] Solo session / journal full cloud sync
-- [ ] User library table editing UI beyond clone + list (rename/delete polish)
 - [ ] Neon production deploy + PartyKit env on Vercel preview
-- [ ] `packages/sync` unit tests — expand excalidraw / play-room provider coverage
+- [ ] `packages/sync` unit tests — expand excalidraw / play-room provider coverage (`@codex/web` has `play-room` + viewport math tests; root `npm run test` includes `@codex/web`)
 - [ ] Dice hub live log push with invite auth
 
 ## Immediate Next Steps (Recommended Order)
@@ -65,15 +66,14 @@
 ### Dogfood & harden multiplayer
 
 1. **Two-browser dogfood** — same `roomId` with PartyKit locally; validate tokens, fog split, GM transfer, log merge
-2. **Playwright 2-context test** — automate multiplayer smoke in CI (requires PartyKit in workflow or mock)
-3. **PartyKit deploy + env** — `NEXT_PUBLIC_PARTYKIT_HOST` on Vercel preview for internet dogfood
-4. **`@codex/sync` unit tests** — `claimTableGmIfVacant`, `transferTableGm`, token/fog helpers; add package to `npm run test`
+2. **PartyKit deploy + env** — `NEXT_PUBLIC_PARTYKIT_HOST` on Vercel preview for internet dogfood
+3. **`@codex/sync` unit tests** — expand excalidraw / play-room provider coverage; add package to `npm run test`
 
 ### Security & ship
 
-5. **Room security** — server-issued invite tokens before external tables
-6. **Neon + Vercel** — production Postgres, auth secrets, PartyKit deploy
-7. **Mobile pass** — touch targets, map toolbar on small screens
+4. **Room security** — server-issued invite tokens before external tables
+5. **Neon + Vercel** — production Postgres, auth secrets, PartyKit deploy
+6. **Mobile pass** — touch targets, map toolbar on small screens (partially addressed in polish sprint)
 
 ### Deferred
 
@@ -86,7 +86,7 @@
 ```bash
 # Mirror CI unit + build
 npm install
-npm run ci
+npm run ci   # includes @codex/web vitest (play-room, viewport math)
 
 # E2E (builds production server automatically unless PLAYWRIGHT_BASE_URL is set)
 npm run test:e2e --workspace=@codex/web

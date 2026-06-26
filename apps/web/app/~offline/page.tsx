@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Offline — codex-w',
+  title: 'Offline',
   description: 'You are offline. Cached pages and local data remain available.',
 };
 

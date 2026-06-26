@@ -1,43 +1,32 @@
 'use client';
 
+import { excalidrawSceneTransform, useExcalidrawViewport } from '@/hooks/use-excalidraw-viewport';
 import type { TablePeer } from '@/hooks/use-table-awareness';
 import { formatPlayerTag } from '@/lib/player-tag';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
-import { useEffect, useState } from 'react';
+import { useRef } from 'react';
 
 interface MapCursorOverlayProps {
   api: ExcalidrawImperativeAPI | null;
   peers: TablePeer[];
 }
 
-interface ViewportState {
-  scrollX: number;
-  scrollY: number;
-  zoom: number;
-}
-
 export function MapCursorOverlay({ api, peers }: MapCursorOverlayProps) {
-  const [viewport, setViewport] = useState<ViewportState>({ scrollX: 0, scrollY: 0, zoom: 1 });
-
-  useEffect(() => {
-    if (!api) return;
-    setViewport({
-      scrollX: api.getAppState().scrollX,
-      scrollY: api.getAppState().scrollY,
-      zoom: api.getAppState().zoom.value,
-    });
-    return api.onScrollChange((scrollX, scrollY, zoom) => {
-      setViewport({ scrollX, scrollY, zoom: zoom.value });
-    });
-  }, [api]);
+  const anchorRef = useRef<SVGSVGElement>(null);
+  const viewport = useExcalidrawViewport(api, anchorRef);
+  const sceneTransform = excalidrawSceneTransform(viewport);
 
   const remote = peers.filter((peer) => !peer.isSelf && peer.cursor);
 
   if (remote.length === 0) return null;
 
   return (
-    <svg className="pointer-events-none absolute inset-0 z-[3] h-full w-full overflow-hidden" aria-hidden>
-      <g transform={`translate(${viewport.scrollX} ${viewport.scrollY}) scale(${viewport.zoom})`}>
+    <svg
+      ref={anchorRef}
+      className="pointer-events-none absolute inset-0 z-[3] h-full w-full overflow-hidden"
+      aria-hidden
+    >
+      <g transform={sceneTransform}>
         {remote.map((peer) => (
           <g key={peer.clientId} transform={`translate(${peer.cursor!.x} ${peer.cursor!.y})`}>
             <path

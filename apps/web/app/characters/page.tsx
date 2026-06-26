@@ -2,7 +2,7 @@ import { CharactersPage } from '@/components/characters/characters-page';
 import { SiteHeader } from '@/components/site-header';
 
 export const metadata = {
-  title: 'Characters — Codex-W',
+  title: 'Characters',
   description: 'Create and edit system-neutral character sheets. Stored locally, offline-ready.',
 };
 

@@ -5,7 +5,7 @@ import {
   type CodexMapKind,
   type CodexMapTool,
 } from '@/lib/map-symbols';
-import { MAP_FLOATING_BOTTOM_CLASS } from '@/lib/map-overlay-layout';
+import { MAP_FLOATING_BOTTOM_PLAY_CLASS } from '@/lib/map-overlay-layout';
 import type { MapTemplate } from '@/lib/map-templates';
 import type { MapViewRole } from '@/lib/table-systems';
 import { cn } from '@codex/ui';
@@ -95,7 +95,7 @@ export function CodexMapToolbar({
   if (floating && collapsed) {
     return (
       <div
-        className={cn('absolute left-3 z-30', MAP_FLOATING_BOTTOM_CLASS, className)}
+        className={cn('absolute left-3 z-30', MAP_FLOATING_BOTTOM_PLAY_CLASS, className)}
         data-testid="codex-map-toolbar"
       >
         <button
@@ -115,7 +115,7 @@ export function CodexMapToolbar({
         floating
           ? cn(
               'absolute left-3 z-30 flex max-h-[min(70vh,28rem)] min-h-0 max-w-[min(100%-1.5rem,22rem)] flex-col overflow-hidden rounded-xl border border-border/60 bg-card/95 shadow-2xl backdrop-blur-md',
-              MAP_FLOATING_BOTTOM_CLASS,
+              MAP_FLOATING_BOTTOM_PLAY_CLASS,
             )
           : 'flex max-h-[min(40vh,18rem)] min-h-0 shrink-0 flex-col overflow-hidden border-b border-border/50 bg-card/80 lg:max-h-[min(55vh,28rem)]',
         className,
@@ -187,7 +187,7 @@ export function CodexMapToolbar({
         <div className="flex flex-wrap items-center gap-2 border-t border-border/30 px-2 py-2">
           {isTableGm && onMapRoleChange ? (
             <div className="flex w-full flex-wrap items-center gap-2 pb-1">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Preview</span>
+              <span className="text-xs uppercase tracking-wide text-muted-foreground">Preview</span>
               <button
                 type="button"
                 onClick={() => onMapRoleChange('gm')}

@@ -8,7 +8,7 @@ import {
 import { characterSheetRepo } from '@codex/sync';
 import type { CharacterSheet, GameSystemId } from '@codex/schemas';
 import { GameSystemIdSchema } from '@codex/schemas';
-import { Badge, Button } from '@codex/ui';
+import { Badge, Button, ConfirmDialog } from '@codex/ui';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { queueSheetSync } from '@/lib/sheet-sync';
@@ -41,6 +41,8 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
   const [notFound, setNotFound] = useState(false);
   const [adapting, setAdapting] = useState(false);
   const [adaptTarget, setAdaptTarget] = useState<GameSystemId | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -86,9 +88,14 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
 
   const handleDelete = useCallback(async () => {
     if (!sheet) return;
-    if (!window.confirm(`Delete "${sheet.name}"? This cannot be undone.`)) return;
-    await characterSheetRepo.delete(sheet.id);
-    window.location.href = '/characters';
+    setDeleting(true);
+    try {
+      await characterSheetRepo.delete(sheet.id);
+      window.location.href = '/characters';
+    } finally {
+      setDeleting(false);
+      setDeleteOpen(false);
+    }
   }, [sheet]);
 
   const handleClone = useCallback(async () => {
@@ -190,7 +197,7 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
           <Button type="button" variant="outline" size="sm" onClick={handleClone}>
             Clone
           </Button>
-          <Button type="button" variant="destructive" size="sm" onClick={handleDelete}>
+          <Button type="button" variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
             Delete
           </Button>
         </div>
@@ -222,11 +229,14 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
 
       {adaptTarget && adaptTargetSystem && (
         <CharacterAdaptDialog
+          open
           source={sheet}
           targetId={adaptTarget}
           targetName={adaptTargetSystem.name}
           createEmpty={adaptTargetSystem.createEmptySheet}
-          onCancel={() => setAdaptTarget(null)}
+          onOpenChange={(open) => {
+            if (!open) setAdaptTarget(null);
+          }}
           onConfirm={(result) => void handleAdaptConfirm(result)}
         />
       )}
@@ -271,6 +281,17 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
           ← All characters
         </Link>
       </p>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={`Delete "${sheet.name}"?`}
+        description="This cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        confirming={deleting}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

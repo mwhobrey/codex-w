@@ -2,7 +2,7 @@
 
 import type { RollResult } from '@codex/game-engine';
 import type { DicePreset } from '@codex/game-systems';
-import { MAP_FLOATING_BOTTOM_CLASS } from '@/lib/map-overlay-layout';
+import { MAP_FLOATING_BOTTOM_PLAY_CLASS } from '@/lib/map-overlay-layout';
 import { Button, Input, cn } from '@codex/ui';
 import { useMemo, useState } from 'react';
 import { DieFace } from '@/components/dice/die-face';
@@ -38,7 +38,7 @@ export function FloatingDiceWidget({ onRoll, className, systemPresets = [] }: Fl
     <div
       className={cn(
         'pointer-events-none absolute right-3 z-30 flex flex-col items-end gap-2',
-        MAP_FLOATING_BOTTOM_CLASS,
+        MAP_FLOATING_BOTTOM_PLAY_CLASS,
         className,
       )}
       data-testid="floating-dice-widget"
@@ -93,7 +93,7 @@ export function FloatingDiceWidget({ onRoll, className, systemPresets = [] }: Fl
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 font-mono text-[11px]"
+                className="h-7 font-mono text-xs"
                 onClick={() => roll(preset.notation)}
               >
                 {preset.label}
@@ -102,7 +102,7 @@ export function FloatingDiceWidget({ onRoll, className, systemPresets = [] }: Fl
           </div>
 
           {error ? (
-            <p className="mt-2 text-[11px] text-destructive" role="alert">
+            <p className="mt-2 text-xs text-destructive" role="alert">
               {error}
             </p>
           ) : null}
@@ -130,7 +130,7 @@ export function FloatingDiceWidget({ onRoll, className, systemPresets = [] }: Fl
                 </span>
               </div>
             ) : (
-              <p className="text-center text-[11px] text-muted-foreground">Rolls log to the table.</p>
+              <p className="text-center text-xs text-muted-foreground">Rolls log to the table.</p>
             )}
           </div>
         </div>

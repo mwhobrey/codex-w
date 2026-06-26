@@ -8,26 +8,37 @@ import {
   type FieldAdaptMapping,
 } from '@codex/game-systems';
 import type { CharacterSheet, GameSystemId } from '@codex/schemas';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Select } from '@codex/ui';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Select,
+} from '@codex/ui';
 import { useMemo, useState } from 'react';
 
 export type AdaptMode = 'copy' | 'move';
 
 interface CharacterAdaptDialogProps {
+  open: boolean;
   source: CharacterSheet;
   targetId: GameSystemId;
   targetName: string;
   createEmpty: (name: string, ownerId: string) => CharacterSheet;
-  onCancel: () => void;
+  onOpenChange: (open: boolean) => void;
   onConfirm: (result: { mode: AdaptMode; sheets: CharacterSheet[] }) => void;
 }
 
 export function CharacterAdaptDialog({
+  open,
   source,
   targetId,
   targetName,
   createEmpty,
-  onCancel,
+  onOpenChange,
   onConfirm,
 }: CharacterAdaptDialogProps) {
   const targetOptions = useMemo(() => listTargetFieldOptions(createEmpty), [createEmpty]);
@@ -58,22 +69,16 @@ export function CharacterAdaptDialog({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="adapt-dialog-title"
-    >
-      <Card className="max-h-[85vh] w-full max-w-2xl overflow-hidden shadow-2xl">
-        <CardHeader>
-          <CardTitle id="adapt-dialog-title" className="font-display text-xl">
-            Adapt to {targetName}
-          </CardTitle>
-          <CardDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="border-b border-border px-6 py-4 text-left">
+          <DialogTitle className="font-display text-xl">Adapt to {targetName}</DialogTitle>
+          <DialogDescription>
             Map fields, then choose whether to copy or move this character.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex max-h-[50vh] flex-col gap-4 overflow-y-auto">
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex max-h-[50vh] flex-col gap-4 overflow-y-auto px-6 py-4">
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button
               type="button"
@@ -132,16 +137,17 @@ export function CharacterAdaptDialog({
               ))}
             </tbody>
           </table>
-        </CardContent>
-        <div className="flex flex-col-reverse gap-2 border-t border-border p-4 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        </div>
+
+        <DialogFooter className="border-t border-border px-6 py-4">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button type="button" onClick={handleConfirm}>
             {mode === 'copy' ? 'Create adapted copy' : 'Move character'}
           </Button>
-        </div>
-      </Card>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

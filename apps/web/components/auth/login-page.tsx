@@ -53,14 +53,13 @@ function LoginForm() {
   };
 
   return (
-    <Card className="mx-auto w-full max-w-md border-codex-border bg-codex-surface">
+    <Card className="mx-auto w-full max-w-md border-border/60 bg-card/80">
       <CardHeader>
         <CardTitle className="font-display text-2xl">
           {mode === 'sign-in' ? 'Sign in' : 'Create account'}
         </CardTitle>
         <CardDescription>
-          Cloud backup for characters when Neon + Better Auth are configured. Local play still works
-          offline without an account.
+          Cloud backup for characters when signed in. Local play works offline without an account.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -117,33 +116,34 @@ function LoginForm() {
             {loading ? 'Working…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
           </Button>
         </form>
-        <p className="mt-6 text-center text-sm text-muted-foreground" role="group" aria-label="Account mode">
-          {mode === 'sign-in' ? (
-            <>
-              New here?{' '}
-              <button
-                type="button"
-                className="text-primary hover:underline"
-                aria-pressed={false}
-                onClick={() => setMode('sign-up')}
-              >
-                Create an account
-              </button>
-            </>
-          ) : (
-            <>
-              Already have an account?{' '}
-              <button
-                type="button"
-                className="text-primary hover:underline"
-                aria-pressed={false}
-                onClick={() => setMode('sign-in')}
-              >
-                Sign in
-              </button>
-            </>
-          )}
-        </p>
+        <div
+          className="mt-6 flex rounded-md border border-border/50 p-0.5"
+          role="tablist"
+          aria-label="Account mode"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'sign-in'}
+            className={`flex-1 rounded px-3 py-2 text-sm ${
+              mode === 'sign-in' ? 'bg-background text-foreground' : 'text-muted-foreground'
+            }`}
+            onClick={() => setMode('sign-in')}
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'sign-up'}
+            className={`flex-1 rounded px-3 py-2 text-sm ${
+              mode === 'sign-up' ? 'bg-background text-foreground' : 'text-muted-foreground'
+            }`}
+            onClick={() => setMode('sign-up')}
+          >
+            Create account
+          </button>
+        </div>
         <p className="mt-4 text-center">
           <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
             ← Back home

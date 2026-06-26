@@ -3,7 +3,7 @@ import { LibraryPageClient } from '@/components/library/library-page-client';
 import { SiteHeader } from '@/components/site-header';
 
 export const metadata = {
-  title: 'Library — Codex-W',
+  title: 'Library',
   description: 'Oracle tables, prompts, and story tools across all game systems.',
 };
 

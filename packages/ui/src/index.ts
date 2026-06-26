@@ -10,6 +10,7 @@ export {
   CardTitle,
 } from './components/card';
 export { Checkbox } from './components/checkbox';
+export { ConfirmDialog } from './components/confirm-dialog';
 export {
   Dialog,
   DialogClose,

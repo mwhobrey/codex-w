@@ -16,7 +16,7 @@ export const LOG_TYPE_STYLES: Record<PlaySessionLogEntryType, string> = {
   journal: 'bg-codex-elevated text-codex-text-muted',
   system: 'bg-codex-elevated text-codex-text-muted',
   oracle: 'bg-violet-500/15 text-violet-300',
-  twist: 'bg-amber-500/15 text-amber-300',
+  twist: 'bg-warning/15 text-warning',
   risk: 'bg-rose-500/15 text-rose-300',
   scene: 'bg-sky-500/15 text-sky-300',
   note: 'bg-codex-elevated text-codex-text-muted',

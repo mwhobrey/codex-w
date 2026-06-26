@@ -13,9 +13,10 @@ interface PlayDicePanelProps {
   onRoll: (result: RollResult) => void;
   className?: string;
   systemPresets?: DicePreset[];
+  roomId?: string;
 }
 
-export function PlayDicePanel({ onRoll, className, systemPresets = [] }: PlayDicePanelProps) {
+export function PlayDicePanel({ onRoll, className, systemPresets = [], roomId }: PlayDicePanelProps) {
   const { sets } = useDiceSets();
   const { notation, setNotation, rolling, error, result, roll, defaultPresets } = useDiceRoll(
     'd20',
@@ -123,7 +124,10 @@ export function PlayDicePanel({ onRoll, className, systemPresets = [] }: PlayDic
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
-          <Link href="/dice" className="hover:text-primary">
+          <Link
+            href={roomId ? `/dice?room=${encodeURIComponent(roomId)}` : '/dice'}
+            className="hover:text-primary"
+          >
             Manage dice sets →
           </Link>
         </p>

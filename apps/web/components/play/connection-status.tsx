@@ -48,11 +48,11 @@ export function ConnectionStatus({ status, compact }: ConnectionStatusProps) {
       <span
         className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${
           status === 'connected'
-            ? 'bg-emerald-400'
+            ? 'bg-success'
             : status === 'local-only' || status === 'invite-required'
-              ? 'bg-amber-400'
+              ? 'bg-warning'
               : status === 'auth-failed'
-                ? 'bg-red-400'
+                ? 'bg-destructive'
                 : 'bg-primary animate-pulse'
         }`}
         aria-hidden

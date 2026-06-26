@@ -49,7 +49,7 @@ export function TablePresence({
           />
           {localCharacterName ? (
             <span
-              className="shrink-0 truncate text-[10px] text-muted-foreground"
+              className="shrink-0 truncate text-xs text-muted-foreground"
               title={localTag}
             >
               /{localCharacterName}
@@ -66,7 +66,7 @@ export function TablePresence({
             <li
               key={peer.clientId}
               data-testid="table-presence-peer"
-              className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full border border-border/40 bg-background/40 px-2 py-0.5 text-[10px] text-muted-foreground"
+              className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full border border-border/40 bg-background/40 px-2 py-0.5 text-xs text-muted-foreground"
               title={isPeerGm ? `GM · ${tag}` : tag}
             >
               <span
@@ -83,7 +83,7 @@ export function TablePresence({
           })}
         </ul>
       ) : (
-        <span className="text-[10px] text-muted-foreground/60">Solo at table</span>
+        <span className="text-xs text-muted-foreground/60">Solo at table</span>
       )}
     </div>
   );

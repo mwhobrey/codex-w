@@ -9,14 +9,14 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
   Input,
   Label,
   Select,
 } from '@codex/ui';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { buildPlayRoomPath, parseTableInviteInput } from '@/lib/play-room';
 import {
   readRecentPlayRooms,
   recordRecentPlayRoom,
@@ -32,24 +32,13 @@ function createRoomId(): string {
   return crypto.randomUUID().replace(/-/g, '').slice(0, 16);
 }
 
-function buildTablePath(
-  id: string,
-  options?: { gameSystemId?: GameSystemId; importSessionId?: string; inviteToken?: string },
-) {
-  const params = new URLSearchParams();
-  if (options?.gameSystemId) params.set('system', options.gameSystemId);
-  if (options?.importSessionId) params.set('import', options.importSessionId);
-  if (options?.inviteToken) params.set('invite', options.inviteToken);
-  const qs = params.toString();
-  return `/play/${encodeURIComponent(id)}${qs ? `?${qs}` : ''}`;
-}
-
 export function PlayLobby() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const presetSystem = parseGameSystemId(searchParams.get('system')) ?? 'generic';
   const systems = listSoloSystems();
 
+  const [pasteLink, setPasteLink] = useState('');
   const [joinId, setJoinId] = useState('');
   const [joinInvite, setJoinInvite] = useState('');
   const [createSystem, setCreateSystem] = useState<GameSystemId>(presetSystem);
@@ -63,12 +52,19 @@ export function PlayLobby() {
     setRecent(readRecentPlayRooms());
   }, []);
 
+  const resolvedInvite = useMemo(
+    () => (joinId ? resolvePlayRoomInvite(joinId, joinInvite) : undefined),
+    [joinId, joinInvite],
+  );
+
+  const canJoin = Boolean(joinId && resolvedInvite);
+
   const openTable = (
     id: string,
     options?: { gameSystemId?: GameSystemId; importSessionId?: string; inviteToken?: string },
   ) => {
     recordRecentPlayRoom(id, undefined, options?.gameSystemId, options?.inviteToken);
-    router.push(buildTablePath(id, options));
+    router.push(buildPlayRoomPath(id, options));
   };
 
   const importSoloSession = (session: SoloSession) => {
@@ -79,11 +75,35 @@ export function PlayLobby() {
     });
   };
 
+  const handlePasteLink = (value: string) => {
+    setPasteLink(value);
+    const parsed = parseTableInviteInput(value);
+    if (parsed.roomId) setJoinId(parsed.roomId);
+    if (parsed.inviteToken) {
+      setJoinInvite(parsed.inviteToken);
+    } else if (parsed.roomId) {
+      const stored = resolvePlayRoomInvite(parsed.roomId);
+      if (stored) setJoinInvite(stored);
+    }
+  };
+
+  const handleJoinIdChange = (value: string) => {
+    setJoinId(value);
+    if (value && !joinInvite) {
+      const stored = resolvePlayRoomInvite(value);
+      if (stored) setJoinInvite(stored);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-lg space-y-6" data-testid="play-lobby">
+      <header className="sr-only">
+        <h1>Tables</h1>
+      </header>
+
       <Card className="border-border/60 bg-card/80 shadow-xl shadow-black/20">
         <CardHeader>
-          <CardTitle className="font-display text-2xl">Tables</CardTitle>
+          <h2 className="font-display text-2xl font-medium">Open a table</h2>
           <CardDescription>
             One link for solo or multiplayer — map, log, dice, and system tools stay in sync.
             Works offline; live sync when the relay is running.
@@ -130,38 +150,64 @@ export function PlayLobby() {
 
           <div className="space-y-3">
             <div>
-              <Label htmlFor="join-room">Table ID</Label>
+              <Label htmlFor="join-paste-link">Paste invite link</Label>
               <Input
-                id="join-room"
-                value={joinId}
-                onChange={(event) => setJoinId(event.target.value.trim())}
-                placeholder="e.g. a1b2c3d4"
-                className="mt-2 font-mono"
+                id="join-paste-link"
+                value={pasteLink}
+                onChange={(event) => handlePasteLink(event.target.value)}
+                placeholder="https://…/play/abc123?invite=…"
+                className="mt-2 font-mono text-sm"
                 spellCheck={false}
+                data-testid="join-paste-link"
               />
             </div>
-            <div>
-              <Label htmlFor="join-invite">Invite code</Label>
-              <Input
-                id="join-invite"
-                value={joinInvite}
-                onChange={(event) => setJoinInvite(event.target.value.trim())}
-                placeholder="From the table invite link"
-                className="mt-2 font-mono"
-                spellCheck={false}
-                data-testid="join-invite-input"
-              />
-            </div>
+
+            <details className="rounded-lg border border-border/50 bg-background/30 px-3 py-2">
+              <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                Advanced: enter table ID and invite manually
+              </summary>
+              <div className="mt-3 space-y-3">
+                <div>
+                  <Label htmlFor="join-room">Table ID</Label>
+                  <Input
+                    id="join-room"
+                    value={joinId}
+                    onChange={(event) => handleJoinIdChange(event.target.value.trim())}
+                    placeholder="e.g. a1b2c3d4"
+                    className="mt-2 font-mono"
+                    spellCheck={false}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="join-invite">Invite code</Label>
+                  <Input
+                    id="join-invite"
+                    value={joinInvite}
+                    onChange={(event) => setJoinInvite(event.target.value.trim())}
+                    placeholder="From the table invite link"
+                    className="mt-2 font-mono"
+                    spellCheck={false}
+                    data-testid="join-invite-input"
+                  />
+                </div>
+              </div>
+            </details>
+
             <Button
               type="button"
               variant="outline"
               className="w-full"
-              disabled={!joinId || !joinInvite}
+              disabled={!canJoin}
               data-testid="join-table-button"
-              onClick={() => openTable(joinId, { inviteToken: joinInvite })}
+              onClick={() => openTable(joinId, { inviteToken: resolvedInvite })}
             >
               Join table
             </Button>
+            {joinId && !resolvedInvite ? (
+              <p className="text-center text-xs text-muted-foreground">
+                Need an invite code — paste the full invite link or open from recent tables.
+              </p>
+            ) : null}
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
@@ -173,7 +219,7 @@ export function PlayLobby() {
       {recent.length > 0 ? (
         <Card className="border-border/60 bg-card/80">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Recent tables</CardTitle>
+            <h2 className="text-base font-medium">Recent tables</h2>
             <CardDescription>Pick up where you left off.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -203,7 +249,7 @@ export function PlayLobby() {
                       <span className="block truncate text-xs text-muted-foreground">
                         {systemName} · {new Date(room.visitedAt).toLocaleDateString()}
                       </span>
-                      <span className="block truncate font-mono text-[10px] text-muted-foreground/60">
+                      <span className="block truncate font-mono text-xs text-muted-foreground/60">
                         #{room.id}
                       </span>
                     </button>

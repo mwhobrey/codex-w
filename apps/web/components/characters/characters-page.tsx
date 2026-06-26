@@ -94,27 +94,21 @@ export function CharactersPage() {
           >
             {creating ? 'Creating…' : 'New character'}
           </Button>
-          <details className="w-full sm:w-auto">
-            <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-secondary [&::-webkit-details-marker]:hidden">
-              System-specific sheet
-              <span aria-hidden className="text-muted-foreground/60">▾</span>
-            </summary>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {systemPlugins.map((plugin) => (
-                <Button
-                  key={plugin.id}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={creating}
-                  onClick={() => handleCreate(plugin)}
-                  data-testid={plugin.id === 'loner' ? 'characters-new-loner' : undefined}
-                >
-                  {plugin.name}
-                </Button>
-              ))}
-            </div>
-          </details>
+          <div className="flex flex-wrap gap-2">
+            {systemPlugins.map((plugin) => (
+              <Button
+                key={plugin.id}
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={creating}
+                onClick={() => handleCreate(plugin)}
+                data-testid={plugin.id === 'loner' ? 'characters-new-loner' : undefined}
+              >
+                {plugin.name}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 

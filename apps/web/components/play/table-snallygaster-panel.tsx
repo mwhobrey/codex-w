@@ -121,7 +121,7 @@ export function TableSnallygasterPanel({
         </Button>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted-foreground">Summer week {campWeek}/8</span>
-          <span className="text-[10px] text-muted-foreground/60">{campWeekArcLabel(campWeek)}</span>
+          <span className="text-xs text-muted-foreground/60">{campWeekArcLabel(campWeek)}</span>
           <Button type="button" size="sm" variant="outline" onClick={() => setCampWeek(campWeek + 1)}>
             Next week
           </Button>

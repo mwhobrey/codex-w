@@ -125,11 +125,11 @@ export function CharacterPortraitUpload({ sheet, onSave }: CharacterPortraitUplo
         ) : null}
       </div>
       {error ? (
-        <p className="max-w-[12rem] text-center text-[10px] text-destructive" role="alert">
+        <p className="max-w-[12rem] text-center text-xs text-destructive" role="alert">
           {error}
         </p>
       ) : null}
-      <p className="max-w-[12rem] text-center text-[10px] text-muted-foreground/60">
+      <p className="max-w-[12rem] text-center text-xs text-muted-foreground/60">
         Stored on this device. Sign in to back up portrait URL to the cloud.
       </p>
     </div>

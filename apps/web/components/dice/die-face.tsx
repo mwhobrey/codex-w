@@ -56,7 +56,7 @@ export function DieFace({
       >
         <span aria-hidden>{label}</span>
       </div>
-      <span className="text-[10px] font-normal text-codex-text-faint" aria-hidden>
+      <span className="text-xs font-normal text-codex-text-faint" aria-hidden>
         {sidesLabel}
       </span>
     </div>

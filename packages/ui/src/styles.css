@@ -17,6 +17,8 @@
   --accent: var(--codex-elevated);
   --accent-foreground: var(--codex-ember);
   --destructive: var(--codex-danger);
+  --success: var(--codex-success);
+  --warning: var(--codex-ember);
   --border: var(--codex-border);
   --input: var(--codex-border);
   --ring: var(--codex-ember);
@@ -39,6 +41,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

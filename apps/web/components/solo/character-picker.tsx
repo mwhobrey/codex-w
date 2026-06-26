@@ -76,7 +76,7 @@ export function CharacterPicker({
           </Link>
         </p>
       ) : (
-        <p className="mt-1.5 text-[10px] text-muted-foreground/60">
+        <p className="mt-1.5 text-xs text-muted-foreground/60">
           <Link href="/characters" className="hover:text-primary">
             Manage characters
           </Link>

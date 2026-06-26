@@ -70,7 +70,7 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
             type="button"
             onClick={() => setActiveFilters(new Set())}
             className={cn(
-              'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+              'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
               activeFilters.size === 0
                 ? 'bg-primary/20 text-primary'
                 : 'bg-background/60 text-muted-foreground hover:text-foreground',
@@ -86,7 +86,7 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
                 type="button"
                 onClick={() => toggleFilter(option.key)}
                 className={cn(
-                  'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+                  'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
                   active
                     ? 'bg-primary/20 text-primary'
                     : 'bg-background/60 text-muted-foreground hover:text-foreground',
@@ -117,13 +117,13 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={cn(
-                        'rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide',
+                        'rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide',
                         LOG_TYPE_STYLES[entry.type],
                       )}
                     >
                       {LOG_TYPE_LABELS[entry.type]}
                     </span>
-                    <time className="text-[10px] text-muted-foreground" dateTime={entry.createdAt}>
+                    <time className="text-xs text-muted-foreground" dateTime={entry.createdAt}>
                       {formatTime(entry.createdAt)}
                     </time>
                   </div>
@@ -155,7 +155,7 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
             }}
           />
           <div className="mt-2 flex items-center justify-between gap-2">
-            <span className="text-[10px] text-muted-foreground/60">⌘/Ctrl + Enter to post</span>
+            <span className="text-xs text-muted-foreground/60">⌘/Ctrl + Enter to post</span>
             <Button
               type="button"
               variant="outline"

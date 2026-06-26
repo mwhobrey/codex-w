@@ -165,7 +165,7 @@ export function TableTotvPanel({
         {currentPrompt?.tags?.length ? (
           <div className="flex flex-wrap gap-1">
             {currentPrompt.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-[10px] uppercase">
+              <Badge key={tag} variant="secondary" className="text-xs uppercase">
                 {tag}
               </Badge>
             ))}
@@ -183,7 +183,7 @@ export function TableTotvPanel({
         ) : null}
         {guidance ? (
           <p
-            className={`text-xs ${guidance.blocked ? 'text-amber-400' : 'text-primary'}`}
+            className={`text-xs ${guidance.blocked ? 'text-warning' : 'text-primary'}`}
             data-testid="totv-prompt-guidance"
           >
             {guidance.summary}

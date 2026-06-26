@@ -28,10 +28,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type * as Y from 'yjs';
 import '@excalidraw/excalidraw/index.css';
 
-const Excalidraw = dynamic(
+const CODEX_VOID_BG = '#0c0c0f';
+
+const ExcalidrawCanvas = dynamic(
   async () => {
-    const mod = await import('@excalidraw/excalidraw');
-    return mod.Excalidraw;
+    const { Excalidraw } = await import('@excalidraw/excalidraw');
+    return Excalidraw;
   },
   {
     ssr: false,
@@ -85,6 +87,11 @@ export function VttCanvas({
   const initialDataRef = useRef<{
     elements: readonly ExcalidrawElement[];
     scrollToContent: boolean;
+    appState?: {
+      viewBackgroundColor: string;
+      theme: 'dark';
+      zenModeEnabled: boolean;
+    };
   } | null>(null);
 
   useEffect(() => {
@@ -98,6 +105,15 @@ export function VttCanvas({
     initialDataRef.current = {
       elements: [...initialElements],
       scrollToContent: initialElements.length === 0,
+      ...(playMode
+        ? {
+            appState: {
+              viewBackgroundColor: CODEX_VOID_BG,
+              theme: 'dark' as const,
+              zenModeEnabled: true,
+            },
+          }
+        : {}),
     };
   }
 
@@ -338,25 +354,29 @@ export function VttCanvas({
           mapCursor,
           '[&_.excalidraw]:!h-full',
           '[&_.excalidraw-wrapper]:!h-full',
-          playMode && '[&_.App-toolbar]:!hidden',
+          playMode ? 'codex-excalidraw-play' : '',
         ]
           .filter(Boolean)
           .join(' ')}
       >
-        <Excalidraw
+        <ExcalidrawCanvas
           excalidrawAPI={handleApi}
           initialData={initialDataRef.current ?? { elements: [], scrollToContent: true }}
           onChange={handleExcalidrawChange}
           gridModeEnabled
+          theme="dark"
+          zenModeEnabled={playMode}
           UIOptions={{
             canvasActions: {
-              changeViewBackgroundColor: true,
-              clearCanvas: true,
+              changeViewBackgroundColor: false,
+              clearCanvas: false,
               export: false,
               loadScene: false,
               saveToActiveFile: false,
+              saveAsImage: false,
               toggleTheme: false,
             },
+            tools: { image: false },
           }}
         />
         <FogOverlay api={apiRef.current} hiddenCells={hiddenCells} mapRole={mapRole} />

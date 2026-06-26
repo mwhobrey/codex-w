@@ -133,6 +133,23 @@ body {
   border-radius: 9999px;
 }
 
+/*
+ * Play-room VTT: hide native Excalidraw chrome (Tailwind arbitrary variants
+ * break on BEM class names — underscores become spaces in JIT selectors).
+ */
+.codex-excalidraw-play .App-toolbar,
+.codex-excalidraw-play .App-menu_top__left,
+.codex-excalidraw-play .App-menu__left,
+.codex-excalidraw-play .main-menu-trigger,
+.codex-excalidraw-play .layer-ui__wrapper__top-right,
+.codex-excalidraw-play .layer-ui__wrapper__footer,
+.codex-excalidraw-play .footer-center,
+.codex-excalidraw-play .sidebar,
+.codex-excalidraw-play .disable-zen-mode,
+.codex-excalidraw-play .scroll-back-to-content {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-shimmer,
   .animate-float,

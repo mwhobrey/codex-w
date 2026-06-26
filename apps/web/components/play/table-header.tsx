@@ -1,7 +1,15 @@
 'use client';
 
 import type { PlayRoomConnectionStatus } from '@codex/sync';
-import { Button, cn } from '@codex/ui';
+import {
+  Button,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@codex/ui';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
@@ -30,7 +38,7 @@ export function TableHeader({
 }: TableHeaderProps) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
 
   const copyLink = useCallback(async () => {
     try {
@@ -68,25 +76,11 @@ export function TableHeader({
     }
   }, [roomId]);
 
-  const metadata = (
-    <>
-      {systemName ? <span>{systemName}</span> : null}
-      {systemName ? <span aria-hidden>·</span> : null}
-      <button
-        type="button"
-        onClick={copyId}
-        className="inline-flex items-center gap-1 rounded px-1 font-mono transition-colors hover:bg-secondary hover:text-foreground"
-        title="Copy table ID"
-      >
-        #{roomId}
-        <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
-          {copiedId ? 'copied' : 'copy'}
-        </span>
-      </button>
-      <ConnectionStatus status={connectionStatus} compact />
-      {presence}
-    </>
-  );
+  const handleNameSave = () => {
+    onTableNameSave();
+    setSaveState('saved');
+    window.setTimeout(() => setSaveState('idle'), 1500);
+  };
 
   return (
     <header className="flex shrink-0 items-center gap-3 border-b border-border/50 bg-card/90 px-3 py-2.5 backdrop-blur-sm sm:px-4">
@@ -99,45 +93,71 @@ export function TableHeader({
       </Link>
 
       <div className="min-w-0 flex-1">
-        <input
-          value={tableName}
-          onChange={(e) => onTableNameChange(e.target.value)}
-          onBlur={onTableNameSave}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur();
-          }}
-          placeholder="Untitled table"
-          className="w-full truncate bg-transparent font-display text-base font-medium text-foreground outline-none placeholder:text-muted-foreground focus:ring-0 sm:text-lg"
-          aria-label="Table name"
-        />
-
-        {/* Desktop: inline metadata */}
-        <div className="mt-0.5 hidden flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground sm:flex">
-          {metadata}
+        <div className="flex items-center gap-2">
+          <input
+            value={tableName}
+            onChange={(e) => onTableNameChange(e.target.value)}
+            onBlur={handleNameSave}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+            }}
+            placeholder="Untitled table"
+            className="min-w-0 flex-1 truncate bg-transparent font-display text-base font-medium text-foreground outline-none placeholder:text-muted-foreground focus:ring-0 sm:text-lg"
+            aria-label="Table name"
+          />
+          {saveState === 'saved' ? (
+            <span className="shrink-0 text-xs text-primary">Saved</span>
+          ) : null}
         </div>
 
-        {/* Mobile: collapsible metadata */}
-        <div className="mt-1 sm:hidden">
-          <button
-            type="button"
-            onClick={() => setInfoOpen((open) => !open)}
-            className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground"
-            aria-expanded={infoOpen}
-            aria-controls="table-header-info"
-          >
-            Table info
-            <span aria-hidden className={cn('transition-transform', infoOpen && 'rotate-180')}>
-              ▾
-            </span>
-          </button>
-          {infoOpen ? (
-            <div
-              id="table-header-info"
-              className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground"
-            >
-              {metadata}
-            </div>
-          ) : null}
+        <div className="mt-0.5 flex items-center gap-2">
+          <ConnectionStatus status={connectionStatus} compact />
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Table info
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full max-w-sm">
+              <SheetHeader>
+                <SheetTitle>Table info</SheetTitle>
+                <SheetDescription>Room details, sync status, and players.</SheetDescription>
+              </SheetHeader>
+              <div className="mt-4 space-y-4 text-sm text-muted-foreground">
+                {systemName ? (
+                  <p>
+                    <span className="font-medium text-foreground">System</span>
+                    <br />
+                    {systemName}
+                  </p>
+                ) : null}
+                <p>
+                  <span className="font-medium text-foreground">Table ID</span>
+                  <br />
+                  <button
+                    type="button"
+                    onClick={copyId}
+                    className="mt-1 inline-flex items-center gap-1 rounded font-mono text-foreground hover:text-primary"
+                  >
+                    #{roomId}
+                    <span className="text-xs uppercase text-muted-foreground/60">
+                      {copiedId ? 'copied' : 'copy'}
+                    </span>
+                  </button>
+                </p>
+                <div>
+                  <span className="font-medium text-foreground">Sync</span>
+                  <div className="mt-1">
+                    <ConnectionStatus status={connectionStatus} />
+                  </div>
+                </div>
+                {presence ? <div className="space-y-2">{presence}</div> : null}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 

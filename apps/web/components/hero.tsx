@@ -1,4 +1,4 @@
-import { DieFace } from '@/components/dice/die-face';
+import { HeroDice } from '@/components/hero-dice';
 import Link from 'next/link';
 
 export function Hero() {
@@ -12,14 +12,14 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-codex-border bg-codex-elevated/50 px-4 py-1.5 text-xs font-medium tracking-wide text-codex-text-muted uppercase">
-            <span className="h-1.5 w-1.5 rounded-full bg-codex-success animate-pulse" />
+          <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
             Local-first · Offline-ready
           </p>
 
           <h1
             data-testid="landing-hero"
-            className="font-display text-4xl font-medium leading-[1.1] tracking-tight text-codex-text sm:text-5xl md:text-7xl"
+            className="font-display text-4xl font-medium leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-7xl"
           >
             Your table,{' '}
             <span className="bg-gradient-to-r from-codex-ember via-codex-ember-bright to-codex-ember bg-clip-text text-transparent animate-shimmer">
@@ -27,7 +27,7 @@ export function Hero() {
             </span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-codex-text-muted sm:text-lg md:text-xl">
+          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl">
             Dice, oracles, character sheets, and interactive maps — built for solo journeys
             and shared campaigns alike. Works offline. Syncs when you&apos;re back.
           </p>
@@ -35,26 +35,20 @@ export function Hero() {
           <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
             <Link
               href="/dice"
-              className="codex-glow rounded-full bg-codex-ember px-8 py-3.5 text-center text-base font-medium text-codex-void transition-transform motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]"
+              className="codex-glow rounded-full bg-primary px-8 py-3.5 text-center text-base font-medium text-primary-foreground transition-transform motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]"
             >
               Roll your first die
             </Link>
             <Link
               href="/play"
-              className="rounded-full border border-codex-border px-8 py-3.5 text-center text-base font-medium text-codex-text transition-colors hover:border-codex-ember/50 hover:text-codex-ember"
+              className="rounded-full border border-border px-8 py-3.5 text-center text-base font-medium text-foreground transition-colors hover:border-primary/50 hover:text-primary"
             >
               Open a table
             </Link>
           </div>
         </div>
 
-        <div className="relative mx-auto mt-16 flex justify-center sm:mt-20" aria-hidden>
-          <div className="animate-float flex items-end gap-3 sm:gap-5">
-            <DieFace value={20} sides={20} size="sm" />
-            <DieFace value={6} sides={6} size="md" />
-            <DieFace value={10} sides={10} size="sm" />
-          </div>
-        </div>
+        <HeroDice />
       </div>
     </section>
   );

@@ -8,7 +8,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   return {
-    title: `Character — Codex-W`,
+    title: 'Character',
     description: `Edit character sheet ${id}`,
   };
 }

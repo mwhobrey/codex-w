@@ -140,7 +140,7 @@ export function TableIronforgePanel({
             <span
               key={i}
               className={`h-2 w-4 rounded-sm border ${
-                i < heat ? 'border-amber-500 bg-amber-500/80' : 'border-border bg-background/40'
+                i < heat ? 'border-warning bg-warning/80' : 'border-border bg-background/40'
               }`}
               aria-hidden
             />

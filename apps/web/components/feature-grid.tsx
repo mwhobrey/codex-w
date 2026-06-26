@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 function FeatureIcon({ name }: { name: string }) {
   const className = 'h-6 w-6 text-primary';
 
@@ -79,36 +81,42 @@ function FeatureIcon({ name }: { name: string }) {
 const features = [
   {
     icon: 'dice' as const,
+    href: '/dice',
     title: 'Dice & Oracles',
     description:
       'Parse any notation, roll with crypto-grade RNG, resolve oracle tables — especially tuned for solo play.',
   },
   {
     icon: 'sheet' as const,
+    href: '/characters',
     title: 'Character Sheets',
     description:
       'System-aware sheets via plugins. Edit offline, sync when connected. Your character, your data.',
   },
   {
     icon: 'map' as const,
+    href: '/play',
     title: 'Interactive Maps',
     description:
       'Infinite canvas VTT powered by Excalidraw. Stamp terrain, sketch scenes — collaborate in real time or work alone.',
   },
   {
     icon: 'offline' as const,
+    href: '/#features',
     title: 'Online & Offline',
     description:
       'Local-first architecture. Play in a dead zone, sync when you surface. No cloud required for solo.',
   },
   {
     icon: 'solo' as const,
+    href: '/#solo',
     title: 'Solo to Squad',
     description:
       'One app for lonely nights and full tables. Hosted GM mode, peer play, or just you and the oracle.',
   },
   {
     icon: 'plugin' as const,
+    href: '/library',
     title: 'Game System Plugins',
     description:
       'Loner, TOTV, Snallygaster, Ironforge — each system ships as a first-class module, not an afterthought.',
@@ -117,13 +125,13 @@ const features = [
 
 export function FeatureGrid() {
   return (
-    <section id="features" className="border-t border-codex-border/50 py-24">
+    <section id="features" className="border-t border-border/50 py-24">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-medium tracking-tight text-codex-text md:text-4xl">
+          <h2 className="font-display text-3xl font-medium tracking-tight text-foreground md:text-4xl">
             Everything at the table
           </h2>
-          <p className="mt-4 text-codex-text-muted">
+          <p className="mt-4 text-muted-foreground">
             One toolkit, no tab-hopping. Built modern, built fast, built to last through a
             three-hour boss fight.
           </p>
@@ -131,17 +139,24 @@ export function FeatureGrid() {
 
         <ul className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
-            <li
-              key={feature.title}
-              className="group rounded-2xl border border-codex-border bg-codex-surface p-6 transition-colors hover:border-codex-ember/30 hover:bg-codex-elevated"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-codex-ember/20 bg-codex-elevated/60">
-                <FeatureIcon name={feature.icon} />
-              </div>
-              <h3 className="mt-4 font-medium text-codex-text">{feature.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-codex-text-muted">
-                {feature.description}
-              </p>
+            <li key={feature.title}>
+              <Link
+                href={feature.href}
+                className="group block h-full rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/30 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-primary/20 bg-secondary/60">
+                  <FeatureIcon name={feature.icon} />
+                </div>
+                <h3 className="mt-4 font-medium text-foreground group-hover:text-primary">
+                  {feature.title}
+                  <span className="ml-1 text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                    →
+                  </span>
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
+              </Link>
             </li>
           ))}
         </ul>

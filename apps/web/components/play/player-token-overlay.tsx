@@ -12,6 +12,8 @@ import {
   updatePlayerToken,
   type PlayerTokenView,
 } from '@codex/sync';
+import { excalidrawSceneTransform, useExcalidrawViewport } from '@/hooks/use-excalidraw-viewport';
+import { viewportCoordsToSceneCoords } from '@excalidraw/excalidraw';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import type * as Y from 'yjs';
@@ -24,12 +26,6 @@ interface PlayerTokenOverlayProps {
   mapRole?: MapViewRole;
   isTableGm?: boolean;
   hiddenCells: Set<string>;
-}
-
-interface ViewportState {
-  scrollX: number;
-  scrollY: number;
-  zoom: number;
 }
 
 type InteractionMode = 'move' | 'resize';
@@ -65,30 +61,20 @@ export function PlayerTokenOverlay({
   isTableGm = false,
   hiddenCells,
 }: PlayerTokenOverlayProps) {
-  const [viewport, setViewport] = useState<ViewportState>({ scrollX: 0, scrollY: 0, zoom: 1 });
+  const anchorRef = useRef<SVGSVGElement>(null);
   const interactionRef = useRef<InteractionState | null>(null);
   const dragPositionRef = useRef<{ key: string; x: number; y: number } | null>(null);
   const syncThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [, bumpDragFrame] = useState(0);
   const characterIds = useMemo(() => tokens.map((token) => token.characterId), [tokens]);
   const portraits = useCharacterPortraits(characterIds);
+  const viewport = useExcalidrawViewport(api, anchorRef);
+  const sceneTransform = excalidrawSceneTransform(viewport);
 
   const visibleTokens = useMemo(() => {
     if (mapRole === 'gm') return tokens;
     return tokens.filter((token) => !isScenePointFogged(token.x, token.y, hiddenCells));
   }, [hiddenCells, mapRole, tokens]);
-
-  useEffect(() => {
-    if (!api) return;
-    setViewport({
-      scrollX: api.getAppState().scrollX,
-      scrollY: api.getAppState().scrollY,
-      zoom: api.getAppState().zoom.value,
-    });
-    return api.onScrollChange((scrollX, scrollY, zoom) => {
-      setViewport({ scrollX, scrollY, zoom: zoom.value });
-    });
-  }, [api]);
 
   const scenePointFromEvent = useCallback(
     (clientX: number, clientY: number) => {
@@ -97,11 +83,16 @@ export function PlayerTokenOverlay({
       if (!(root instanceof HTMLElement)) return null;
       const bounds = root.getBoundingClientRect();
       const appState = api.getAppState();
-      const zoom = appState.zoom.value;
-      return {
-        x: (clientX - bounds.left - appState.scrollX) / zoom,
-        y: (clientY - bounds.top - appState.scrollY) / zoom,
-      };
+      return viewportCoordsToSceneCoords(
+        { clientX, clientY },
+        {
+          zoom: appState.zoom,
+          offsetLeft: bounds.left,
+          offsetTop: bounds.top,
+          scrollX: appState.scrollX,
+          scrollY: appState.scrollY,
+        },
+      );
     },
     [api],
   );
@@ -248,6 +239,7 @@ export function PlayerTokenOverlay({
 
   return (
     <svg
+      ref={anchorRef}
       className="pointer-events-none absolute inset-0 z-[4] h-full w-full overflow-hidden"
       data-testid="player-token-overlay"
       aria-label="Player tokens"
@@ -265,7 +257,7 @@ export function PlayerTokenOverlay({
         })}
       </defs>
 
-      <g transform={`translate(${viewport.scrollX} ${viewport.scrollY}) scale(${viewport.zoom})`}>
+      <g transform={sceneTransform}>
         {visibleTokens.map((token) => {
           const position = displayPosition(token);
           const r = token.radius ?? DEFAULT_PLAYER_TOKEN_RADIUS;

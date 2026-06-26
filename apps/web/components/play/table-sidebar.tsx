@@ -3,45 +3,85 @@
 import { cn } from '@codex/ui';
 
 export type TableSidebarTab = 'play' | 'dice' | 'log';
+export type TableMobileTab = 'map' | TableSidebarTab;
 
-const TAB_LABELS: Record<TableSidebarTab, string> = {
+export const SIDEBAR_TAB_IDS = ['play', 'dice', 'log'] as const;
+export const MOBILE_TAB_IDS = ['map', ...SIDEBAR_TAB_IDS] as const;
+
+export const TABLE_TAB_LABELS: Record<TableMobileTab, string> = {
+  map: 'Map',
   play: 'Play',
   dice: 'Dice',
   log: 'Log',
 };
 
-interface TableSidebarTabsProps {
-  activeTab: TableSidebarTab;
-  onTabChange: (tab: TableSidebarTab) => void;
-  className?: string;
+export function tableTabId(tab: TableMobileTab): string {
+  return `table-tab-${tab}`;
 }
 
-export function TableSidebarTabs({ activeTab, onTabChange, className }: TableSidebarTabsProps) {
+interface TableViewTablistProps<T extends TableMobileTab> {
+  tabs: readonly T[];
+  activeTab: T;
+  onTabChange: (tab: T) => void;
+  ariaLabel: string;
+  className?: string;
+  getPanelId?: (tab: T) => string;
+}
+
+export function TableViewTablist<T extends TableMobileTab>({
+  tabs,
+  activeTab,
+  onTabChange,
+  ariaLabel,
+  className,
+  getPanelId = (tab) => (tab === 'map' ? 'table-map-panel' : 'table-sidebar-panel'),
+}: TableViewTablistProps<T>) {
   return (
     <div
       className={cn('flex shrink-0 gap-1 border-b border-border/40 p-1.5', className)}
       role="tablist"
-      aria-label="Table panels"
+      aria-label={ariaLabel}
     >
-      {(['play', 'dice', 'log'] as const).map((tab) => (
+      {tabs.map((tab) => (
         <button
           key={tab}
           type="button"
           role="tab"
-          id={`table-sidebar-tab-${tab}`}
+          id={tableTabId(tab)}
           aria-selected={activeTab === tab}
-          aria-controls="table-sidebar-panel"
+          aria-controls={getPanelId(tab)}
           onClick={() => onTabChange(tab)}
           className={cn(
-            'min-h-9 flex-1 rounded-md px-2 py-1.5 text-sm font-medium transition-colors',
+            'min-h-9 flex-1 rounded-md px-2 py-1.5 text-sm font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             activeTab === tab
               ? 'bg-primary/20 text-primary'
               : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
           )}
         >
-          {TAB_LABELS[tab]}
+          {TABLE_TAB_LABELS[tab]}
         </button>
       ))}
     </div>
+  );
+}
+
+/** @deprecated Use TableViewTablist with SIDEBAR_TAB_IDS */
+export function TableSidebarTabs({
+  activeTab,
+  onTabChange,
+  className,
+}: {
+  activeTab: TableSidebarTab;
+  onTabChange: (tab: TableSidebarTab) => void;
+  className?: string;
+}) {
+  return (
+    <TableViewTablist
+      tabs={SIDEBAR_TAB_IDS}
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      ariaLabel="Table panels"
+      className={className}
+    />
   );
 }

@@ -4,7 +4,7 @@ import { parseDiceNotation } from '@codex/game-engine';
 import { DiceParseError } from '@codex/game-engine';
 import type { DiceFormula, DiceSet } from '@codex/schemas';
 import { diceSetRepo } from '@codex/sync';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from '@codex/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, ConfirmDialog, Input, Label } from '@codex/ui';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -83,6 +83,8 @@ function DiceSetEditor({
 }) {
   const [draft, setDraft] = useState<DiceSet>(set);
   const [saving, setSaving] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const persist = async (next: DiceSet) => {
     setSaving(true);
@@ -122,11 +124,7 @@ function DiceSetEditor({
             variant="outline"
             size="sm"
             className="text-destructive"
-            onClick={async () => {
-              if (!window.confirm(`Delete "${draft.name}"?`)) return;
-              await diceSetRepo.delete(set.id);
-              onDeleted();
-            }}
+            onClick={() => setDeleteOpen(true)}
           >
             Delete
           </Button>
@@ -166,6 +164,25 @@ function DiceSetEditor({
           </Button>
         </div>
       </CardContent>
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={`Delete "${draft.name}"?`}
+        description="This dice set will be removed from this device."
+        confirmLabel="Delete"
+        destructive
+        confirming={deleting}
+        onConfirm={async () => {
+          setDeleting(true);
+          try {
+            await diceSetRepo.delete(set.id);
+            onDeleted();
+            setDeleteOpen(false);
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      />
     </Card>
   );
 }
@@ -215,36 +232,15 @@ export function DiceHub() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-10">
-      {roomId ? (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-left text-sm">
-              <p className="font-medium text-foreground">
-                Logging rolls to play room
-                <span className="ml-2 font-mono text-xs text-muted-foreground">{roomId}</span>
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {logReady
-                  ? connected
-                    ? 'Synced live with the room.'
-                    : 'Saved locally — will sync when PartyKit is online.'
-                  : 'Connecting to room log…'}
-              </p>
-              {lastPushed ? (
-                <p className="mt-1 text-xs text-primary" aria-live="polite">
-                  Last pushed: {lastPushed}
-                </p>
-              ) : null}
-            </div>
-            <Button type="button" variant="outline" size="sm" asChild>
-              <Link href={createPlayRoomUrl(roomId, undefined, resolvePlayRoomInvite(roomId))}>
-                Back to room
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
+    <div className="mx-auto max-w-4xl space-y-8" data-testid="dice-hub">
+      <header className="text-center sm:text-left">
+        <h1 className="font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+          Dice
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          Roll with tactile feedback. Save formula sets when you want them everywhere.
+        </p>
+      </header>
 
       <DiceRoller
         presets={presets}
@@ -259,81 +255,133 @@ export function DiceHub() {
         }
       />
 
-      <section aria-labelledby="dice-starter-sets-heading">
-        <div className="mb-4">
-          <h2 id="dice-starter-sets-heading" className="font-display text-2xl font-medium">
-            Game dice sets
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            One-click shortcuts from each solo system&apos;s recommended rolls.
-          </p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {systemTemplates.map((template) => (
-            <Card key={template.gameSystemId} className="border-border/60 bg-card/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">{template.name}</CardTitle>
-                <CardDescription>
-                  {template.formulas.map((formula) => formula.label).join(' · ')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={addingTemplateId === template.gameSystemId}
+      {roomId ? (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-left text-sm">
+              <p className="font-medium text-foreground">
+                Logging to room
+                <span className="ml-2 font-mono text-xs text-muted-foreground">{roomId}</span>
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {logReady
+                  ? connected
+                    ? 'Synced live with the room.'
+                    : 'Saved locally — will sync when PartyKit is online.'
+                  : 'Connecting to room log…'}
+              </p>
+              {lastPushed ? (
+                <p className="mt-0.5 text-xs text-primary" aria-live="polite">
+                  Last pushed: {lastPushed}
+                </p>
+              ) : null}
+            </div>
+            <Button type="button" variant="outline" size="sm" asChild>
+              <Link href={createPlayRoomUrl(roomId, undefined, resolvePlayRoomInvite(roomId))}>
+                Back to room
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <details className="rounded-xl border border-border/60 bg-card/40">
+        <summary className="cursor-pointer list-none px-4 py-3 font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          Manage dice sets
+        </summary>
+        <div className="space-y-10 border-t border-border/40 px-4 py-6">
+          <section aria-labelledby="dice-starter-sets-heading">
+            <div className="mb-4">
+              <h2 id="dice-starter-sets-heading" className="font-display text-xl font-medium">
+                Game dice sets
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                One-click shortcuts from each solo system&apos;s recommended rolls.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {systemTemplates.map((template) => (
+                <Card
+                  key={template.gameSystemId}
+                  className="cursor-pointer border-border/60 bg-card/60 transition-colors hover:border-primary/30"
                   onClick={() => void handleAddTemplate(template.gameSystemId)}
-                  data-testid={`dice-add-${template.gameSystemId}`}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      void handleAddTemplate(template.gameSystemId);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
-                  {addingTemplateId === template.gameSystemId ? 'Adding…' : 'Add set'}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">{template.name}</CardTitle>
+                    <CardDescription>
+                      {template.formulas.map((formula) => formula.label).join(' · ')}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={addingTemplateId === template.gameSystemId}
+                      data-testid={`dice-add-${template.gameSystemId}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleAddTemplate(template.gameSystemId);
+                      }}
+                    >
+                      {addingTemplateId === template.gameSystemId ? 'Adding…' : 'Add set'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          <section aria-labelledby="dice-sets-heading">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 id="dice-sets-heading" className="font-display text-xl font-medium">
+                  Your dice sets
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Build formula shortcuts — saved locally, synced when you sign in.
+                </p>
+              </div>
+              <Button type="button" onClick={() => void handleCreateSet()} data-testid="dice-new-set">
+                New set
+              </Button>
+            </div>
+
+            {!ready && <p className="text-sm text-muted-foreground">Loading your sets…</p>}
+
+            {ready && (!sets || sets.length === 0) && (
+              <Card className="border-dashed">
+                <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                  No custom sets yet. Add a game set above or create your own formulas.
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="space-y-4">
+              {sets?.map((set) => (
+                <DiceSetEditor
+                  key={set.id}
+                  set={set}
+                  selected={selectedSet?.id === set.id}
+                  onSelect={() => setSelectedSetId(set.id)}
+                  onSaved={() => setSelectedSetId(set.id)}
+                  onDeleted={() => {
+                    if (selectedSetId === set.id) setSelectedSetId(null);
+                  }}
+                />
+              ))}
+            </div>
+          </section>
         </div>
-      </section>
-
-      <section aria-labelledby="dice-sets-heading">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 id="dice-sets-heading" className="font-display text-2xl font-medium">
-              Dice sets
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Build formula shortcuts — saved locally, synced when you sign in.
-            </p>
-          </div>
-          <Button type="button" onClick={() => void handleCreateSet()} data-testid="dice-new-set">
-            New set
-          </Button>
-        </div>
-
-        {!ready && <p className="text-sm text-muted-foreground">Loading your sets…</p>}
-
-        {ready && (!sets || sets.length === 0) && (
-          <Card className="border-dashed">
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              No custom sets yet. Add a game set above or create your own formulas below.
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="space-y-4">
-          {sets?.map((set) => (
-            <DiceSetEditor
-              key={set.id}
-              set={set}
-              selected={selectedSet?.id === set.id}
-              onSelect={() => setSelectedSetId(set.id)}
-              onSaved={() => {}}
-              onDeleted={() => {
-                if (selectedSetId === set.id) setSelectedSetId(null);
-              }}
-            />
-          ))}
-        </div>
-      </section>
+      </details>
     </div>
   );
 }

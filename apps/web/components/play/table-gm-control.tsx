@@ -41,7 +41,7 @@ export function TableGmControl({
     <div className={cn('relative flex items-center gap-1.5', className)} data-testid="table-gm-control">
       <span
         className={cn(
-          'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide',
+          'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium uppercase tracking-wide',
           isGm
             ? 'border-primary/50 bg-primary/15 text-primary'
             : 'border-border/40 bg-background/40 text-muted-foreground',
@@ -58,7 +58,7 @@ export function TableGmControl({
             type="button"
             size="sm"
             variant="outline"
-            className="h-7 px-2 text-[10px]"
+            className="h-7 px-2 text-xs"
             onClick={() => setOpen((value) => !value)}
             data-testid="table-gm-transfer-toggle"
           >

@@ -2,7 +2,7 @@
 
 import type { LibraryEntry } from '@codex/game-systems';
 import type { LibraryTableRow, UserLibraryTable } from '@codex/schemas';
-import { Badge, Button, Input, Label, Textarea } from '@codex/ui';
+import { Badge, Button, ConfirmDialog, Input, Label, Textarea } from '@codex/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { shouldBlankProseOnClone } from '@/lib/clone-library-table';
 
@@ -40,7 +40,7 @@ function ReferenceDetail({
       <header className="mb-4 flex flex-wrap items-center gap-2 border-b border-border/40 pb-3">
         <h2 className="font-display text-lg font-medium text-foreground">{entry.title}</h2>
         <Badge variant="secondary">{entry.systemName}</Badge>
-        <Badge variant="outline" className="text-[10px] uppercase">
+        <Badge variant="outline" className="text-xs uppercase">
           Reference
         </Badge>
         {onClone ? (
@@ -67,7 +67,7 @@ function ReferenceDetail({
       ) : null}
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-border/40 text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+          <tr className="border-b border-border/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <th className="w-16 py-2 pr-3 font-medium">Roll</th>
             <th className="w-32 py-2 pr-3 font-medium">Label</th>
             <th className="py-2 font-medium">Result</th>
@@ -98,6 +98,8 @@ function UserTableEditor({
 }) {
   const [draft, setDraft] = useState(table);
   const [saving, setSaving] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setDraft(table);
@@ -135,7 +137,7 @@ function UserTableEditor({
               className="font-display text-lg"
             />
           </div>
-          <Badge variant="outline" className="text-[10px] uppercase">
+          <Badge variant="outline" className="text-xs uppercase">
             My table
           </Badge>
           {onDelete ? (
@@ -144,9 +146,7 @@ function UserTableEditor({
               size="sm"
               variant="outline"
               className="text-destructive"
-              onClick={() => {
-                if (window.confirm(`Delete "${draft.name}"?`)) void onDelete(table.id);
-              }}
+              onClick={() => setDeleteOpen(true)}
             >
               Delete
             </Button>
@@ -217,6 +217,26 @@ function UserTableEditor({
           Save table
         </Button>
       </div>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={`Delete "${draft.name}"?`}
+        description="This table will be removed from your library."
+        confirmLabel="Delete"
+        destructive
+        confirming={deleting}
+        onConfirm={async () => {
+          if (!onDelete) return;
+          setDeleting(true);
+          try {
+            await onDelete(table.id);
+            setDeleteOpen(false);
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      />
     </section>
   );
 }
@@ -428,7 +448,7 @@ export function LibraryBrowser({
                   }`}
                 >
                   <span className="block truncate font-medium">{entry.title}</span>
-                  <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-muted-foreground/80">
+                  <span className="mt-0.5 block text-xs uppercase tracking-wide text-muted-foreground/80">
                     {entry.systemName}
                   </span>
                 </button>

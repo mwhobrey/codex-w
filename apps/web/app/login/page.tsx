@@ -2,7 +2,7 @@ import { LoginPageContent } from '@/components/auth/login-page';
 import { SiteHeader } from '@/components/site-header';
 
 export const metadata = {
-  title: 'Sign in — Codex-W',
+  title: 'Sign in',
   description: 'Sign in for cloud character backup.',
 };
 

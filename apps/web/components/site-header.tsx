@@ -31,17 +31,17 @@ export function SiteHeader() {
   }, [menuOpen]);
 
   return (
-    <header className="fixed top-0 inset-x-0 z-40 border-b border-codex-border/50 bg-codex-void/90 backdrop-blur-md">
+    <header className="fixed top-0 inset-x-0 z-40 border-b border-border/50 bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
         <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-2">
           <span
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-codex-ember/30 bg-codex-elevated font-mono text-sm text-codex-ember"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/30 bg-secondary font-mono text-sm text-primary"
             aria-hidden
           >
             W
           </span>
-          <span className="hidden font-display text-lg font-medium tracking-tight text-codex-text sm:inline">
-            Codex<span className="text-codex-ember">-W</span>
+          <span className="hidden font-display text-lg font-medium tracking-tight text-foreground sm:inline">
+            Codex<span className="text-primary">-W</span>
           </span>
         </Link>
 
@@ -54,8 +54,8 @@ export function SiteHeader() {
                 href={link.href}
                 className={`text-sm transition-colors ${
                   active
-                    ? 'font-medium text-codex-ember'
-                    : 'text-codex-text-muted hover:text-codex-ember'
+                    ? 'font-medium text-primary'
+                    : 'text-muted-foreground hover:text-primary'
                 }`}
               >
                 {link.label}
@@ -66,13 +66,13 @@ export function SiteHeader() {
             <>
               <Link
                 href="/#features"
-                className="text-sm text-codex-text-faint transition-colors hover:text-codex-text-muted"
+                className="text-sm text-muted-foreground/70 transition-colors hover:text-muted-foreground"
               >
                 Features
               </Link>
               <Link
                 href="/#solo"
-                className="text-sm text-codex-text-faint transition-colors hover:text-codex-text-muted"
+                className="text-sm text-muted-foreground/70 transition-colors hover:text-muted-foreground"
               >
                 Solo systems
               </Link>
@@ -82,15 +82,9 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <AuthNav />
-          <Link
-            href="/dice"
-            className="hidden rounded-full bg-codex-ember px-3 py-1.5 text-sm font-medium text-codex-void sm:inline-flex sm:px-4 sm:py-2"
-          >
-            Roll
-          </Link>
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-codex-border text-codex-text-muted md:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -121,7 +115,7 @@ export function SiteHeader() {
       {menuOpen && (
         <nav
           id="mobile-nav"
-          className="border-t border-codex-border/50 bg-codex-void px-4 py-3 md:hidden"
+          className="border-t border-border/50 bg-background px-4 py-3 md:hidden"
           aria-label="Mobile"
         >
           <ul className="flex flex-col gap-1">
@@ -133,8 +127,8 @@ export function SiteHeader() {
                     href={link.href}
                     className={`block rounded-lg px-3 py-2.5 text-sm ${
                       active
-                        ? 'bg-codex-elevated font-medium text-codex-ember'
-                        : 'text-codex-text-muted hover:bg-codex-elevated/60'
+                        ? 'bg-secondary font-medium text-primary'
+                        : 'text-muted-foreground hover:bg-secondary/60'
                     }`}
                   >
                     {link.label}
@@ -147,7 +141,7 @@ export function SiteHeader() {
                 <li>
                   <Link
                     href="/#features"
-                    className="block rounded-lg px-3 py-2.5 text-sm text-codex-text-faint hover:bg-codex-elevated/60"
+                    className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground/70 hover:bg-secondary/60"
                   >
                     Features
                   </Link>
@@ -155,17 +149,20 @@ export function SiteHeader() {
                 <li>
                   <Link
                     href="/#solo"
-                    className="block rounded-lg px-3 py-2.5 text-sm text-codex-text-faint hover:bg-codex-elevated/60"
+                    className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground/70 hover:bg-secondary/60"
                   >
                     Solo systems
                   </Link>
                 </li>
               </>
             )}
-            <li className="pt-2">
+            <li className="border-t border-border/50 pt-2 mt-2">
+              <AuthNav variant="mobile" />
+            </li>
+            <li className="pt-2 md:hidden">
               <Link
                 href="/dice"
-                className="block rounded-full bg-codex-ember px-3 py-2.5 text-center text-sm font-medium text-codex-void"
+                className="block rounded-full bg-primary px-3 py-2.5 text-center text-sm font-medium text-primary-foreground"
               >
                 Roll dice
               </Link>

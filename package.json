@@ -20,7 +20,7 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "test": "turbo run test --filter=@codex/game-engine --filter=@codex/game-systems --filter=@codex/sync",
+    "test": "turbo run test --filter=@codex/game-engine --filter=@codex/game-systems --filter=@codex/sync --filter=@codex/web",
     "test:e2e": "npm run test:e2e --workspace=@codex/web",
     "ci": "npm run test && npm run build --workspace=@codex/web",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""

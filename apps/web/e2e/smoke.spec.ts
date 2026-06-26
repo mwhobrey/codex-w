@@ -6,6 +6,7 @@ test.describe('core play loop smoke', () => {
     await expect(page.getByTestId('landing-hero')).toBeVisible();
 
     await page.goto('/dice');
+    await expect(page).toHaveTitle('Dice — Codex-W');
     await expect(page.getByRole('heading', { name: 'Dice', exact: true })).toBeVisible();
 
     const rollButton = page.getByTestId('dice-roll-button');
@@ -33,6 +34,7 @@ test.describe('core play loop smoke', () => {
     await expect(page).toHaveURL(/\/play\/[^/?]+(\?.*)?$/);
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-system-panel')).toBeVisible({ timeout: 15_000 });
+    await page.getByRole('button', { name: 'Table info' }).click();
     await expect(page.getByTestId('table-presence')).toBeVisible();
     await expect(page.getByTestId('character-peek-button')).toBeVisible();
     await expect(page.getByText('Loner', { exact: true }).first()).toBeVisible();
@@ -71,6 +73,19 @@ test.describe('core play loop smoke', () => {
     await page.getByTestId('create-table-button').click();
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-muscadines-panel')).toBeVisible({ timeout: 15_000 });
+  });
+
+  test('play lobby paste invite link joins table', async ({ page }) => {
+    await page.goto('/play?system=loner');
+    await page.getByTestId('create-table-button').click();
+    await expect(page).toHaveURL(/\/play\/([^/?]+)/);
+    const inviteUrl = page.url();
+
+    await page.goto('/play');
+    await page.getByTestId('join-paste-link').fill(inviteUrl);
+    await page.getByTestId('join-table-button').click();
+    await expect(page).toHaveURL(/\/play\/[^/?]+/);
+    await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
   });
 
   test('library browser lists oracle tables', async ({ page }) => {
