@@ -9,7 +9,7 @@
 | Language | **TypeScript 5.x** | End-to-end type safety; shared schemas with backend |
 | Framework | **Next.js 16** (App Router, React 19) | SSR/SSG where useful, API routes, excellent DX, Vercel-ready |
 | Styling | **Tailwind CSS v4** + **shadcn/ui** (Radix) | Accessible primitives, fast iteration, consistent design tokens |
-| Motion | **Framer Motion** | Polished micro-interactions without jank |
+| Motion | **CSS transitions** (+ optional Framer Motion later) | Polished micro-interactions without jank |
 | Canvas / VTT | **Excalidraw** (`@excalidraw/excalidraw`) | MIT license; embed + custom stamps via `customData`; Yjs scene sync |
 | Local DB | **Dexie.js** (IndexedDB) | Structured offline storage for sheets, sessions, assets metadata |
 | CRDT sync | **Yjs** + **y-indexeddb** | Conflict-free merge for maps, shared notes, live cursors |

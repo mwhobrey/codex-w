@@ -37,7 +37,7 @@ npm run dev:partykit     # ws://127.0.0.1:1999 — optional for /play
 
 1. Open http://localhost:3000/login — create an account
 2. Create a character at `/characters`
-3. Check Postgres: `npm run stack:psql` → `SELECT id, name FROM character_sheets;`
+3. Check Postgres: `npm run stack:psql` → `SELECT id, name, portrait_url FROM character_sheets;`
 
 ### Verify Arc A locally
 

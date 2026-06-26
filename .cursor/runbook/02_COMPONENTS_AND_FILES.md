@@ -47,7 +47,7 @@ codex-w/
 | `/solo/[systemId]` | Solo play surface |
 | `/characters` | Character sheet manager |
 | `/characters/[id]` | Sheet editor |
-| `/library` | Oracles, generators, reference |
+| `/library` | Reference tables + user-owned clones (`My tables` tab) |
 
 ## App: `apps/sync-server`
 
@@ -59,7 +59,7 @@ codex-w/
 
 ## Package: `packages/ui`
 
-- shadcn/ui components (Button, Dialog, Sheet, etc.)
+- shadcn/ui components (Button, **Dialog**, **Sheet**, etc.)
 - Codex design tokens: colors, typography, spacing
 - Compound components: `DiceRoller`, `OracleDrawer`, `SessionHeader`
 - **Rule:** No business logic; presentation only

@@ -1,6 +1,6 @@
 # Current State
 
-> Last updated: 2025-06-24 — Story integration sprint + invite resume + token stability
+> Last updated: 2025-06-26 — UX polish sprint, user library tables, map stamp grouping
 
 ## What Is Working
 
@@ -34,12 +34,19 @@
 - [x] **Invite + import** — copy invite link with system seed; Dexie solo session → table import
 - [x] **Dice → play room** — in-room rolls + `/dice?room=` push to session log
 - [x] **Arc B (partial)** — Better Auth at `/login`, Drizzle + Docker Postgres (`npm run stack:up`)
-- [x] **`packages/ui`** — shadcn/Radix design system
+- [x] **Portrait upload** — local IndexedDB blobs; `portrait_url` in Postgres when signed in; S3 object via `/api/assets`
 - [x] **CI/CD** — GitHub Actions: unit tests, web build, Playwright smoke on PR/push to `main`
 - [x] **Invite tokens** — PartyKit `4403` gate; multi-source resume (URL, meta, storage, recent)
 - [x] **Story integration** — per-system table panels, TYOV tag engine, Ironforge heat, `/library`, table export
 - [x] **E2E tests** — smoke (all systems + library) + multiplayer invite (PartyKit in CI)
-- [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (21 tests)
+- [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (29 tests)
+- [x] **Design system polish** — shadcn `Dialog`/`Sheet` in `@codex/ui`; semantic Tailwind tokens (`primary`, `muted-foreground`, etc.); skip link, reduced-motion, mobile play header
+- [x] **Portrait cloud sync** — local IndexedDB blobs + optional S3 upload; `/api/assets/status`; sync on sign-in via `portrait-cloud-sync.ts`
+- [x] **Map / VTT hardening** — codex scene grouping (`codexSceneId`), river/road path stamps, **Break apart** toolbar; Excalidraw infinite-loop fix on room enter
+- [x] **Dice hub** — per-system starter sets (`system-dice-sets.ts`)
+- [x] **Library** — Reference + **My tables** tabs; clone reference table → editable local copy (Dexie v5 + Postgres `library_tables`); `/api/library-tables`
+- [x] **Sign-out cleanup** — strips invite tokens from recent play rooms only (keeps table names/metadata)
+- [x] **Play lobby** — recent tables show human-readable names; character peek hides duplicate Edit CTA
 
 ## What Is Explicitly Not Built Yet
 
@@ -48,7 +55,7 @@
 - [ ] Fog / GM server-side enforcement (currently UI-only)
 - [ ] Map snapshots to Postgres (Yjs state is local + PartyKit only)
 - [ ] Solo session / journal full cloud sync
-- [ ] R2/S3 / MinIO asset pipeline wired in UI (portrait upload needs storage)
+- [ ] User library table editing UI beyond clone + list (rename/delete polish)
 - [ ] Neon production deploy + PartyKit env on Vercel preview
 - [ ] `packages/sync` unit tests — expand excalidraw / play-room provider coverage
 - [ ] Dice hub live log push with invite auth
