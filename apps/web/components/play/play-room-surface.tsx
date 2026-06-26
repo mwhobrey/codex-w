@@ -327,7 +327,7 @@ export function PlayRoomSurface({
   );
 
   return (
-    <div className="flex h-dvh flex-col bg-codex-void" data-testid="play-room-surface">
+    <div className="flex h-dvh flex-col bg-background" data-testid="play-room-surface">
       <TableHeader
         tableName={tableNameDraft}
         onTableNameChange={setTableNameDraft}
@@ -359,17 +359,25 @@ export function PlayRoomSurface({
         }
       />
 
-      <div className="flex shrink-0 gap-1 border-b border-codex-border/40 p-1.5 lg:hidden">
+      <div
+        className="flex shrink-0 gap-1 border-b border-border/40 p-1.5 lg:hidden"
+        role="tablist"
+        aria-label="Table views"
+      >
         {(['map', 'play', 'dice', 'log'] as const).map((view) => (
           <button
             key={view}
             type="button"
+            role="tab"
+            id={`table-mobile-tab-${view}`}
+            aria-selected={mobileView === view}
+            aria-controls={view === 'map' ? 'table-map-panel' : 'table-sidebar-panel'}
             onClick={() => setMobileView(view)}
             className={cn(
               'min-h-10 flex-1 rounded-md px-2 py-2 text-sm font-medium capitalize transition-colors',
               mobileView === view
-                ? 'bg-codex-ember/20 text-codex-ember'
-                : 'text-codex-text-muted hover:bg-codex-void/50',
+                ? 'bg-primary/20 text-primary'
+                : 'text-muted-foreground hover:bg-background/50',
             )}
           >
             {view}
@@ -378,7 +386,7 @@ export function PlayRoomSurface({
       </div>
 
       {!ready ? (
-        <div className="flex flex-1 items-center justify-center text-sm text-codex-text-muted">
+        <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
           Syncing table…
         </div>
       ) : (
@@ -387,6 +395,9 @@ export function PlayRoomSurface({
           style={{ '--table-sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
         >
           <div
+            id="table-map-panel"
+            role="tabpanel"
+            aria-labelledby="table-mobile-tab-map"
             className={cn(
               'relative min-h-0 min-w-0 flex-1',
               !showMap && 'hidden lg:block',
@@ -412,7 +423,7 @@ export function PlayRoomSurface({
 
           <aside
             className={cn(
-              'flex min-h-0 w-full shrink-0 flex-col border-codex-border/40 lg:w-[var(--table-sidebar-width)] lg:border-l',
+              'flex min-h-0 w-full shrink-0 flex-col border-border/40 lg:w-[var(--table-sidebar-width)] lg:border-l',
               showMap ? 'hidden lg:flex' : 'flex',
             )}
           >
@@ -422,7 +433,12 @@ export function PlayRoomSurface({
               className="hidden lg:flex"
             />
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-3">
+            <div
+              id="table-sidebar-panel"
+              role="tabpanel"
+              aria-labelledby={`table-mobile-tab-${activeSidebarTab}`}
+              className="min-h-0 flex-1 overflow-y-auto p-3"
+            >
               {activeSidebarTab === 'play' ? playPanel : null}
               {activeSidebarTab === 'dice' ? (
                 <PlayDicePanel onRoll={handleDiceRoll} systemPresets={systemDicePresets} />

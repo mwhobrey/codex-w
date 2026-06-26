@@ -100,8 +100,8 @@ export function TableIronforgePanel({
   if (!engine || engine.kind !== 'vow-progress' || !vowConfig) return null;
 
   return (
-    <Card className="overflow-hidden border-codex-border/60 bg-codex-surface/80" data-testid="table-ironforge-panel">
-      <CardHeader className="border-b border-codex-border/40 py-2.5">
+    <Card className="overflow-hidden border-border/60 bg-card/80" data-testid="table-ironforge-panel">
+      <CardHeader className="border-b border-border/40 py-2.5">
         <CardTitle className="text-sm font-medium">{plugin.name} · Oath</CardTitle>
         <CardDescription className="text-xs">{oath || 'Link a character with an oath on their sheet.'}</CardDescription>
       </CardHeader>
@@ -125,22 +125,22 @@ export function TableIronforgePanel({
             <span
               key={i}
               className={`h-3 w-6 rounded-sm border ${
-                i < vowProgress ? 'border-codex-ember bg-codex-ember' : 'border-codex-border bg-codex-void/40'
+                i < vowProgress ? 'border-primary bg-primary' : 'border-border bg-background/40'
               }`}
               aria-hidden
             />
           ))}
         </div>
-        <p className="text-xs text-codex-text-muted">
+        <p className="text-xs text-muted-foreground">
           Progress {vowProgress}/{progressMax}
         </p>
         <div className="flex flex-wrap items-center gap-1" data-testid="ironforge-heat-track">
-          <span className="text-xs text-codex-text-muted">Heat</span>
+          <span className="text-xs text-muted-foreground">Heat</span>
           {Array.from({ length: IRONFORGE_HEAT_MAX }, (_, i) => (
             <span
               key={i}
               className={`h-2 w-4 rounded-sm border ${
-                i < heat ? 'border-amber-500 bg-amber-500/80' : 'border-codex-border bg-codex-void/40'
+                i < heat ? 'border-amber-500 bg-amber-500/80' : 'border-border bg-background/40'
               }`}
               aria-hidden
             />
@@ -170,8 +170,8 @@ export function TableIronforgePanel({
             Reset
           </Button>
         </div>
-        <div className="min-h-10 rounded-md border border-codex-border/40 bg-codex-void/40 px-3 py-2 text-xs" aria-live="polite">
-          {rollReveal ?? <span className="text-codex-text-muted">Forge results appear here.</span>}
+        <div className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs" aria-live="polite">
+          {rollReveal ?? <span className="text-muted-foreground">Forge results appear here.</span>}
         </div>
       </TableSection>
     </Card>

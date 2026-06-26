@@ -36,6 +36,9 @@ export function DieFace({
   const label = value === null ? '?' : value;
   const dim = size === 'sm' ? 'h-14 w-14 text-lg' : 'h-16 w-16 text-xl';
 
+  const sidesLabel = formatSides(sides);
+  const valueLabel = value === null ? 'unknown' : String(value);
+
   return (
     <div className="flex flex-col items-center gap-1">
       <div
@@ -44,13 +47,18 @@ export function DieFace({
             ? 'animate-dice-tumble border-codex-ember/60 bg-codex-elevated text-codex-ember'
             : dropped
               ? 'border-codex-border/40 bg-codex-surface/50 text-codex-text-faint line-through opacity-40'
-              : 'border-codex-ember/40 bg-codex-elevated text-codex-ember shadow-lg shadow-codex-glow'
+              : 'border-codex-ember/40 bg-codex-elevated text-codex-ember shadow-lg shadow-primary/10'
         }`}
-        aria-hidden={rolling}
+        aria-label={
+          rolling ? `Rolling ${sidesLabel}` : `${sidesLabel} result ${valueLabel}${dropped ? ', dropped' : ''}`
+        }
+        aria-busy={rolling}
       >
-        <span>{label}</span>
+        <span aria-hidden>{label}</span>
       </div>
-      <span className="text-[10px] font-normal text-codex-text-faint">{formatSides(sides)}</span>
+      <span className="text-[10px] font-normal text-codex-text-faint" aria-hidden>
+        {sidesLabel}
+      </span>
     </div>
   );
 }

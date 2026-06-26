@@ -53,7 +53,7 @@ export function ConnectionStatus({ status, compact }: ConnectionStatusProps) {
               ? 'bg-amber-400'
               : status === 'auth-failed'
                 ? 'bg-red-400'
-                : 'bg-codex-ember animate-pulse'
+                : 'bg-primary animate-pulse'
         }`}
         aria-hidden
       />

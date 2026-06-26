@@ -1,4 +1,5 @@
 import { DieFace } from '@/components/dice/die-face';
+import Link from 'next/link';
 
 export function Hero() {
   return (
@@ -32,18 +33,18 @@ export function Hero() {
           </p>
 
           <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <a
+            <Link
               href="/dice"
-              className="codex-glow rounded-full bg-codex-ember px-8 py-3.5 text-center text-base font-medium text-codex-void transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="codex-glow rounded-full bg-codex-ember px-8 py-3.5 text-center text-base font-medium text-codex-void transition-transform motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]"
             >
               Roll your first die
-            </a>
-            <a
+            </Link>
+            <Link
               href="/play"
               className="rounded-full border border-codex-border px-8 py-3.5 text-center text-base font-medium text-codex-text transition-colors hover:border-codex-ember/50 hover:text-codex-ember"
             >
               Open a table
-            </a>
+            </Link>
           </div>
         </div>
 

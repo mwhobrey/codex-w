@@ -113,17 +113,18 @@ function LoginForm() {
               {error}
             </p>
           )}
-          <Button type="submit" className="codex-glow w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Working…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
           </Button>
         </form>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-muted-foreground" role="group" aria-label="Account mode">
           {mode === 'sign-in' ? (
             <>
               New here?{' '}
               <button
                 type="button"
                 className="text-primary hover:underline"
+                aria-pressed={false}
                 onClick={() => setMode('sign-up')}
               >
                 Create an account
@@ -135,6 +136,7 @@ function LoginForm() {
               <button
                 type="button"
                 className="text-primary hover:underline"
+                aria-pressed={false}
                 onClick={() => setMode('sign-in')}
               >
                 Sign in

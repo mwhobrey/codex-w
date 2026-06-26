@@ -56,11 +56,11 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
   };
 
   return (
-    <Card className="flex h-full min-h-[280px] flex-col border-codex-border/60 bg-codex-surface/80 lg:min-h-0">
+    <Card className="flex h-full min-h-[280px] flex-col border-border/60 bg-card/80 lg:min-h-0">
       <CardHeader className="shrink-0 space-y-2 pb-2">
         <div>
           <CardTitle className="text-sm font-medium">Session log</CardTitle>
-          <p className="text-xs text-codex-text-muted">
+          <p className="text-xs text-muted-foreground">
             Rolls, oracles, and notes — shared with everyone at this table.
           </p>
         </div>
@@ -72,8 +72,8 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
             className={cn(
               'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
               activeFilters.size === 0
-                ? 'bg-codex-ember/20 text-codex-ember'
-                : 'bg-codex-void/60 text-codex-text-muted hover:text-codex-text',
+                ? 'bg-primary/20 text-primary'
+                : 'bg-background/60 text-muted-foreground hover:text-foreground',
             )}
           >
             All
@@ -88,8 +88,8 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
                 className={cn(
                   'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
                   active
-                    ? 'bg-codex-ember/20 text-codex-ember'
-                    : 'bg-codex-void/60 text-codex-text-muted hover:text-codex-text',
+                    ? 'bg-primary/20 text-primary'
+                    : 'bg-background/60 text-muted-foreground hover:text-foreground',
                 )}
               >
                 {option.label}
@@ -100,9 +100,9 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col gap-3 pt-0">
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-codex-border/40 bg-codex-void/40 p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border/40 bg-background/40 p-2">
           {filteredEntries.length === 0 ? (
-            <p className="px-2 py-8 text-center text-xs text-codex-text-muted">
+            <p className="px-2 py-8 text-center text-xs text-muted-foreground">
               {entries.length === 0
                 ? 'Nothing logged yet. Roll dice or ask the oracle — it all lands here.'
                 : 'No entries match these filters.'}
@@ -112,7 +112,7 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
               {[...filteredEntries].reverse().map((entry) => (
                 <li
                   key={entry.id}
-                  className="rounded-md border border-codex-border/30 bg-codex-elevated/40 px-3 py-2"
+                  className="rounded-md border border-border/30 bg-secondary/40 px-3 py-2"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span
@@ -123,13 +123,13 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
                     >
                       {LOG_TYPE_LABELS[entry.type]}
                     </span>
-                    <time className="text-[10px] text-codex-text-muted" dateTime={entry.createdAt}>
+                    <time className="text-[10px] text-muted-foreground" dateTime={entry.createdAt}>
                       {formatTime(entry.createdAt)}
                     </time>
                   </div>
-                  <p className="mt-1.5 text-sm leading-relaxed text-codex-text">{entry.content}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-foreground">{entry.content}</p>
                   {entry.type === 'roll' && entry.total !== undefined ? (
-                    <p className="mt-1 font-display text-2xl font-medium tabular-nums text-codex-ember">
+                    <p className="mt-1 font-display text-2xl font-medium tabular-nums text-primary">
                       {entry.total}
                     </p>
                   ) : null}
@@ -139,7 +139,7 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
           )}
         </div>
 
-        <div className="shrink-0 border-t border-codex-border/30 pt-3">
+        <div className="shrink-0 border-t border-border/30 pt-3">
           <Textarea
             id="room-journal"
             value={journal}
@@ -155,7 +155,7 @@ export function SessionLogPanel({ entries, onAppend, logAuthor = 'You' }: Sessio
             }}
           />
           <div className="mt-2 flex items-center justify-between gap-2">
-            <span className="text-[10px] text-codex-text-faint">⌘/Ctrl + Enter to post</span>
+            <span className="text-[10px] text-muted-foreground/60">⌘/Ctrl + Enter to post</span>
             <Button
               type="button"
               variant="outline"

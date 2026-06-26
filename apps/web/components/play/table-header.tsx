@@ -1,7 +1,7 @@
 'use client';
 
 import type { PlayRoomConnectionStatus } from '@codex/sync';
-import { Button } from '@codex/ui';
+import { Button, cn } from '@codex/ui';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
@@ -30,6 +30,7 @@ export function TableHeader({
 }: TableHeaderProps) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const copyLink = useCallback(async () => {
     try {
@@ -45,8 +46,8 @@ export function TableHeader({
     if (typeof navigator.share === 'function') {
       try {
         await navigator.share({
-          title: tableName.trim() || 'codex-w table',
-          text: 'Join my table on codex-w',
+          title: tableName.trim() || 'Codex-W table',
+          text: 'Join my table on Codex-W',
           url: roomUrl,
         });
         return;
@@ -67,11 +68,31 @@ export function TableHeader({
     }
   }, [roomId]);
 
+  const metadata = (
+    <>
+      {systemName ? <span>{systemName}</span> : null}
+      {systemName ? <span aria-hidden>·</span> : null}
+      <button
+        type="button"
+        onClick={copyId}
+        className="inline-flex items-center gap-1 rounded px-1 font-mono transition-colors hover:bg-secondary hover:text-foreground"
+        title="Copy table ID"
+      >
+        #{roomId}
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
+          {copiedId ? 'copied' : 'copy'}
+        </span>
+      </button>
+      <ConnectionStatus status={connectionStatus} compact />
+      {presence}
+    </>
+  );
+
   return (
-    <header className="flex shrink-0 items-center gap-3 border-b border-codex-border/50 bg-codex-surface/90 px-3 py-2.5 backdrop-blur-sm sm:px-4">
+    <header className="flex shrink-0 items-center gap-3 border-b border-border/50 bg-card/90 px-3 py-2.5 backdrop-blur-sm sm:px-4">
       <Link
         href="/play"
-        className="hidden shrink-0 rounded-md px-2 py-1.5 text-xs text-codex-text-muted transition-colors hover:bg-codex-elevated/60 hover:text-codex-ember sm:inline-flex"
+        className="hidden shrink-0 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-primary sm:inline-flex"
         aria-label="Back to tables"
       >
         ← Tables
@@ -86,32 +107,44 @@ export function TableHeader({
             if (e.key === 'Enter') e.currentTarget.blur();
           }}
           placeholder="Untitled table"
-          className="w-full truncate bg-transparent font-display text-base font-medium text-codex-text outline-none placeholder:text-codex-text-muted focus:ring-0 sm:text-lg"
+          className="w-full truncate bg-transparent font-display text-base font-medium text-foreground outline-none placeholder:text-muted-foreground focus:ring-0 sm:text-lg"
           aria-label="Table name"
         />
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-codex-text-muted">
-          {systemName ? <span>{systemName}</span> : null}
-          {systemName ? <span aria-hidden>·</span> : null}
+
+        {/* Desktop: inline metadata */}
+        <div className="mt-0.5 hidden flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground sm:flex">
+          {metadata}
+        </div>
+
+        {/* Mobile: collapsible metadata */}
+        <div className="mt-1 sm:hidden">
           <button
             type="button"
-            onClick={copyId}
-            className="inline-flex items-center gap-1 rounded px-1 font-mono transition-colors hover:bg-codex-elevated/60 hover:text-codex-text"
-            title="Copy table ID"
+            onClick={() => setInfoOpen((open) => !open)}
+            className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground"
+            aria-expanded={infoOpen}
+            aria-controls="table-header-info"
           >
-            #{roomId}
-            <span className="text-[10px] uppercase tracking-wide text-codex-text-faint">
-              {copiedId ? 'copied' : 'copy'}
+            Table info
+            <span aria-hidden className={cn('transition-transform', infoOpen && 'rotate-180')}>
+              ▾
             </span>
           </button>
-          <ConnectionStatus status={connectionStatus} compact />
-          {presence}
+          {infoOpen ? (
+            <div
+              id="table-header-info"
+              className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground"
+            >
+              {metadata}
+            </div>
+          ) : null}
         </div>
       </div>
 
       <Button
         type="button"
         size="sm"
-        className="codex-glow shrink-0"
+        className="shrink-0"
         onClick={shareInvite}
         title={roomUrl}
         data-testid="copy-invite-link"

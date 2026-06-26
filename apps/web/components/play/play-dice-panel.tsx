@@ -40,7 +40,7 @@ export function PlayDicePanel({ onRoll, className, systemPresets = [] }: PlayDic
     >
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">Dice</CardTitle>
-        <p className="text-xs text-codex-text-muted">Rolls post to the session log automatically.</p>
+        <p className="text-xs text-muted-foreground">Rolls post to the session log automatically.</p>
       </CardHeader>
       <CardContent className="space-y-3">
         <div>
@@ -96,7 +96,7 @@ export function PlayDicePanel({ onRoll, className, systemPresets = [] }: PlayDic
           </p>
         ) : null}
 
-        <div className="rounded-lg border border-codex-border/40 bg-codex-void/40 p-4" aria-live="polite">
+        <div className="rounded-lg border border-border/40 bg-background/40 p-4" aria-live="polite">
           {rolling ? (
             <div className="flex justify-center gap-2">
               <DieFace value={null} sides={20} rolling />
@@ -113,17 +113,17 @@ export function PlayDicePanel({ onRoll, className, systemPresets = [] }: PlayDic
                   />
                 ))}
               </div>
-              <p className="mt-2 font-display text-4xl font-medium tabular-nums text-codex-ember">
+              <p className="mt-2 font-display text-4xl font-medium tabular-nums text-primary">
                 {result.total}
               </p>
             </div>
           ) : (
-            <p className="text-center text-xs text-codex-text-muted">Your last roll shows here.</p>
+            <p className="text-center text-xs text-muted-foreground">Your last roll shows here.</p>
           )}
         </div>
 
-        <p className="text-center text-xs text-codex-text-muted">
-          <Link href="/dice" className="hover:text-codex-ember">
+        <p className="text-center text-xs text-muted-foreground">
+          <Link href="/dice" className="hover:text-primary">
             Manage dice sets →
           </Link>
         </p>

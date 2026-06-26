@@ -55,7 +55,7 @@ export function DiceRoller({ presets, activeSetName, onRoll }: DiceRollerProps) 
               type="button"
               onClick={() => roll()}
               disabled={rolling}
-              className="codex-glow shrink-0"
+              className="shrink-0"
               data-testid="dice-roll-button"
             >
               {rolling ? 'Rolling…' : 'Roll'}

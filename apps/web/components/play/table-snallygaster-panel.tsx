@@ -103,8 +103,8 @@ export function TableSnallygasterPanel({
   if (!engine || engine.kind !== 'lasers-feelings' || !lf) return null;
 
   return (
-    <Card className="overflow-hidden border-codex-border/60 bg-codex-surface/80" data-testid="table-snallygaster-panel">
-      <CardHeader className="border-b border-codex-border/40 py-2.5">
+    <Card className="overflow-hidden border-border/60 bg-card/80" data-testid="table-snallygaster-panel">
+      <CardHeader className="border-b border-border/40 py-2.5">
         <CardTitle className="text-sm font-medium">{plugin.name} · Camp</CardTitle>
       </CardHeader>
 
@@ -120,8 +120,8 @@ export function TableSnallygasterPanel({
           Draw a scene prompt →
         </Button>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-codex-text-muted">Summer week {campWeek}/8</span>
-          <span className="text-[10px] text-codex-text-faint">{campWeekArcLabel(campWeek)}</span>
+          <span className="text-xs text-muted-foreground">Summer week {campWeek}/8</span>
+          <span className="text-[10px] text-muted-foreground/60">{campWeekArcLabel(campWeek)}</span>
           <Button type="button" size="sm" variant="outline" onClick={() => setCampWeek(campWeek + 1)}>
             Next week
           </Button>
@@ -162,12 +162,12 @@ export function TableSnallygasterPanel({
           </Button>
         </div>
         {fear ? (
-          <p className="text-xs text-codex-text-muted">
-            Fear: <span className="text-codex-text">{fear}</span>
+          <p className="text-xs text-muted-foreground">
+            Fear: <span className="text-foreground">{fear}</span>
           </p>
         ) : null}
-        <div className="min-h-10 rounded-md border border-codex-border/40 bg-codex-void/40 px-3 py-2 text-xs" aria-live="polite">
-          {rollReveal ?? <span className="text-codex-text-muted">Roll results appear here.</span>}
+        <div className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs" aria-live="polite">
+          {rollReveal ?? <span className="text-muted-foreground">Roll results appear here.</span>}
         </div>
       </TableSection>
     </Card>

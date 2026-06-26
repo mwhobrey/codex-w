@@ -3,7 +3,7 @@ import { PlayRoomLoader } from '@/components/play/play-room-loader';
 export async function generateMetadata({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = await params;
   return {
-    title: `Table ${roomId} — codex-w`,
+    title: `Table ${roomId} — Codex-W`,
     description: 'Shared VTT map, session log, and system tools.',
   };
 }

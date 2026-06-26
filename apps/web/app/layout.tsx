@@ -4,7 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
-const APP_NAME = 'codex-w';
+const APP_NAME = 'Codex-W';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,8 +25,8 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   applicationName: APP_NAME,
   title: {
-    default: 'codex-w — Your table, anywhere',
-    template: '%s — codex-w',
+    default: 'Codex-W — Your table, anywhere',
+    template: '%s — Codex-W',
   },
   description:
     'A local-first TTRPG toolkit. Dice, oracles, character sheets, VTT maps — solo or multiplayer, online or offline.',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a0908',
+  themeColor: '#0c0c0f',
 };
 
 export default function RootLayout({
@@ -55,7 +55,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="codex-grain min-h-full flex flex-col bg-codex-void text-codex-text">
+      <body className="codex-grain min-h-full flex flex-col bg-background text-foreground">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"
+        >
+          Skip to content
+        </a>
         <DevServiceWorkerCleanup />
         <CloudSyncProvider>{children}</CloudSyncProvider>
       </body>

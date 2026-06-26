@@ -91,10 +91,10 @@ export function TableMuscadinesPanel({
 
   return (
     <Card
-      className="overflow-hidden border-codex-border/60 bg-codex-surface/80"
+      className="overflow-hidden border-border/60 bg-card/80"
       data-testid="table-muscadines-panel"
     >
-      <CardHeader className="border-b border-codex-border/40 py-2.5">
+      <CardHeader className="border-b border-border/40 py-2.5">
         <CardTitle className="text-sm font-medium">{plugin.name} · Grove</CardTitle>
       </CardHeader>
 
@@ -112,7 +112,7 @@ export function TableMuscadinesPanel({
       </TableSection>
 
       <TableSection title="Mentor" description={currentMentor?.label}>
-        <p className="text-sm leading-relaxed text-codex-text">{currentMentor?.text}</p>
+        <p className="text-sm leading-relaxed text-foreground">{currentMentor?.text}</p>
         <Button type="button" size="sm" variant="secondary" onClick={handleMentorPrompt}>
           Next mentor prompt
         </Button>
@@ -188,8 +188,8 @@ export function TableMuscadinesPanel({
         <Button type="button" size="sm" onClick={handleOracle} disabled={!question.trim()}>
           Ask oracle
         </Button>
-        <div className="min-h-8 rounded-md border border-codex-border/40 bg-codex-void/40 px-3 py-2 text-xs">
-          {oracleReveal ?? <span className="text-codex-text-muted">Oracle answers appear here.</span>}
+        <div className="min-h-8 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs">
+          {oracleReveal ?? <span className="text-muted-foreground">Oracle answers appear here.</span>}
         </div>
       </TableSection>
     </Card>

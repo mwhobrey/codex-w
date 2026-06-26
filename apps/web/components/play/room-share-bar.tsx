@@ -23,7 +23,7 @@ export function RoomShareBar({ roomUrl }: RoomShareBarProps) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
       <div className="min-w-0 flex-1">
-        <Label htmlFor="room-link" className="text-xs text-codex-text-muted">
+        <Label htmlFor="room-link" className="text-xs text-muted-foreground">
           Invite link
         </Label>
         <Input

@@ -3,7 +3,7 @@ import { SiteHeader } from '@/components/site-header';
 import { Suspense } from 'react';
 
 export const metadata = {
-  title: 'Tables — codex-w',
+  title: 'Tables — Codex-W',
   description: 'Create or join a table — solo or multiplayer, same link.',
 };
 
@@ -11,10 +11,10 @@ export default function PlayIndexPage() {
   return (
     <>
       <SiteHeader />
-      <main className="px-6 pt-28 pb-16">
+      <main id="main-content" className="px-6 pt-28 pb-16">
         <Suspense
           fallback={
-            <div className="mx-auto max-w-lg py-12 text-center text-sm text-codex-text-muted">
+            <div className="mx-auto max-w-lg py-12 text-center text-sm text-muted-foreground">
               Loading tables…
             </div>
           }

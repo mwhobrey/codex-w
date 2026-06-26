@@ -39,6 +39,11 @@ body {
   }
 }
 
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 4s linear infinite;
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -126,4 +131,21 @@ body {
 
 .die-shape-df {
   border-radius: 9999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer,
+  .animate-float,
+  .animate-dice-tumble,
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  .codex-grain::before {
+    display: none;
+  }
+
+  .codex-glow {
+    box-shadow: none;
+  }
 }

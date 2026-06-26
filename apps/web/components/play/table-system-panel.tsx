@@ -129,8 +129,8 @@ export function TableSystemPanel({
   const showRisk = engine.kind === 'oracle' || Boolean(riskDice && twistTable.length);
 
   return (
-    <Card className="overflow-hidden border-codex-border/60 bg-codex-surface/80" data-testid="table-system-panel">
-      <CardHeader className="border-b border-codex-border/40 py-2.5">
+    <Card className="overflow-hidden border-border/60 bg-card/80" data-testid="table-system-panel">
+      <CardHeader className="border-b border-border/40 py-2.5">
         <CardTitle className="text-sm font-medium">{plugin.name}</CardTitle>
       </CardHeader>
 
@@ -180,8 +180,8 @@ export function TableSystemPanel({
           >
             {rolling ? 'Consulting…' : `Ask oracle (${oracleDice})`}
           </Button>
-          <div className="min-h-10 rounded-md border border-codex-border/40 bg-codex-void/40 px-3 py-2 text-xs" aria-live="polite">
-            {oracleReveal ?? <span className="text-codex-text-muted">Answer appears here and in the log.</span>}
+          <div className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs" aria-live="polite">
+            {oracleReveal ?? <span className="text-muted-foreground">Answer appears here and in the log.</span>}
           </div>
         </TableSection>
       )}
@@ -196,8 +196,8 @@ export function TableSystemPanel({
               Twist (d6)
             </Button>
           </div>
-          <div className="min-h-10 rounded-md border border-codex-border/40 bg-codex-void/40 px-3 py-2 text-xs" aria-live="polite">
-            {riskReveal ?? <span className="text-codex-text-muted">Results appear here and in the log.</span>}
+          <div className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs" aria-live="polite">
+            {riskReveal ?? <span className="text-muted-foreground">Results appear here and in the log.</span>}
           </div>
         </TableSection>
       )}

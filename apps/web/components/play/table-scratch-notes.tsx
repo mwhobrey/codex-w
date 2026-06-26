@@ -27,14 +27,14 @@ export function TableScratchNotes({ meta, onSave }: TableScratchNotesProps) {
   }, [notes, meta.scratchNotes, onSave]);
 
   return (
-    <details className="rounded-lg border border-codex-border/50 bg-codex-surface/60">
-      <summary className="cursor-pointer list-none px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-codex-text-muted marker:content-none">
+    <details className="rounded-lg border border-border/50 bg-card/60">
+      <summary className="cursor-pointer list-none px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-muted-foreground marker:content-none">
         Scratch pad
-        <span className="ml-2 font-normal normal-case tracking-normal text-codex-text-faint">
+        <span className="ml-2 font-normal normal-case tracking-normal text-muted-foreground/60">
           — private, auto-saves
         </span>
       </summary>
-      <div className="border-t border-codex-border/40 px-3 pb-3 pt-2">
+      <div className="border-t border-border/40 px-3 pb-3 pt-2">
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}

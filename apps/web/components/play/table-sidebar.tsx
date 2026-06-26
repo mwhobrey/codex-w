@@ -19,7 +19,7 @@ interface TableSidebarTabsProps {
 export function TableSidebarTabs({ activeTab, onTabChange, className }: TableSidebarTabsProps) {
   return (
     <div
-      className={cn('flex shrink-0 gap-1 border-b border-codex-border/40 p-1.5', className)}
+      className={cn('flex shrink-0 gap-1 border-b border-border/40 p-1.5', className)}
       role="tablist"
       aria-label="Table panels"
     >
@@ -28,13 +28,15 @@ export function TableSidebarTabs({ activeTab, onTabChange, className }: TableSid
           key={tab}
           type="button"
           role="tab"
+          id={`table-sidebar-tab-${tab}`}
           aria-selected={activeTab === tab}
+          aria-controls="table-sidebar-panel"
           onClick={() => onTabChange(tab)}
           className={cn(
             'min-h-9 flex-1 rounded-md px-2 py-1.5 text-sm font-medium transition-colors',
             activeTab === tab
-              ? 'bg-codex-ember/20 text-codex-ember'
-              : 'text-codex-text-muted hover:bg-codex-void/50 hover:text-codex-text',
+              ? 'bg-primary/20 text-primary'
+              : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
           )}
         >
           {TAB_LABELS[tab]}

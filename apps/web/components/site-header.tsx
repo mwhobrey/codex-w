@@ -41,7 +41,7 @@ export function SiteHeader() {
             W
           </span>
           <span className="hidden font-display text-lg font-medium tracking-tight text-codex-text sm:inline">
-            codex<span className="text-codex-ember">-w</span>
+            Codex<span className="text-codex-ember">-W</span>
           </span>
         </Link>
 

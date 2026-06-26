@@ -13,6 +13,7 @@ import { characterSheetRepo } from '@codex/sync';
 import type { CharacterSheet } from '@codex/schemas';
 import { Badge, Button, Card, CardContent } from '@codex/ui';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback, useState } from 'react';
 import { useOwnerId } from '@/hooks/use-owner-id';
@@ -47,6 +48,7 @@ function systemLabel(sheet: CharacterSheet): string {
 }
 
 export function CharactersPage() {
+  const router = useRouter();
   const [creating, setCreating] = useState(false);
   const { ownerId, ready } = useOwnerId();
 
@@ -63,12 +65,12 @@ export function CharactersPage() {
         const sheet = plugin.createEmptySheet(name, ownerId);
         await characterSheetRepo.save(sheet);
         void queueSheetSync(sheet);
-        window.location.href = `/characters/${sheet.id}`;
+        router.push(`/characters/${sheet.id}`);
       } finally {
         setCreating(false);
       }
     },
-    [ownerId, sheets],
+    [ownerId, router],
   );
 
   return (
@@ -87,14 +89,15 @@ export function CharactersPage() {
             type="button"
             onClick={() => handleCreate(genericPlugin)}
             disabled={creating}
-            className="codex-glow w-full sm:w-auto"
+            className="w-full sm:w-auto"
             data-testid="characters-new-generic"
           >
             {creating ? 'Creating…' : 'New character'}
           </Button>
           <details className="w-full sm:w-auto">
-            <summary className="cursor-pointer list-none rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-secondary [&::-webkit-details-marker]:hidden">
-              System-specific sheet →
+            <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-secondary [&::-webkit-details-marker]:hidden">
+              System-specific sheet
+              <span aria-hidden className="text-muted-foreground/60">▾</span>
             </summary>
             <div className="mt-2 flex flex-wrap gap-2">
               {systemPlugins.map((plugin) => (

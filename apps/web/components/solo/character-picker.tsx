@@ -37,12 +37,12 @@ export function CharacterPicker({
   });
 
   return (
-    <div className="rounded-lg border border-codex-border/50 bg-codex-surface/60 px-3 py-2.5">
+    <div className="rounded-lg border border-border/50 bg-card/60 px-3 py-2.5">
       <Label
         htmlFor="active-character"
         className={
           variant === 'compact'
-            ? 'mb-1.5 block text-xs font-medium text-codex-text-muted'
+            ? 'mb-1.5 block text-xs font-medium text-muted-foreground'
             : 'mb-2 block text-xs uppercase tracking-wide'
         }
       >
@@ -76,8 +76,8 @@ export function CharacterPicker({
           </Link>
         </p>
       ) : (
-        <p className="mt-1.5 text-[10px] text-codex-text-faint">
-          <Link href="/characters" className="hover:text-codex-ember">
+        <p className="mt-1.5 text-[10px] text-muted-foreground/60">
+          <Link href="/characters" className="hover:text-primary">
             Manage characters
           </Link>
         </p>

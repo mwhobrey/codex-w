@@ -21,7 +21,7 @@ export function SoloImportPanel({ onImport }: SoloImportPanelProps) {
   if (!sessions?.length) return null;
 
   return (
-    <Card className="border-codex-border/60 bg-codex-surface/80" data-testid="solo-import-panel">
+    <Card className="border-border/60 bg-card/80" data-testid="solo-import-panel">
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Import solo archive</CardTitle>
         <CardDescription>
@@ -35,13 +35,13 @@ export function SoloImportPanel({ onImport }: SoloImportPanelProps) {
             return (
               <li
                 key={session.id}
-                className="flex items-center gap-2 rounded-lg border border-codex-border/40 bg-codex-void/40 p-2"
+                className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/40 p-2"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-codex-text">
+                  <p className="truncate text-sm text-foreground">
                     {session.name ?? 'Untitled session'}
                   </p>
-                  <p className="text-xs text-codex-text-muted">
+                  <p className="text-xs text-muted-foreground">
                     {systemName} · {new Date(session.updatedAt).toLocaleDateString()}
                   </p>
                 </div>

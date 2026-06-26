@@ -143,8 +143,8 @@ export function TableTotvPanel({
   if (!engine || engine.kind !== 'prompt-journal') return null;
 
   return (
-    <Card className="overflow-hidden border-codex-border/60 bg-codex-surface/80" data-testid="table-totv-panel">
-      <CardHeader className="border-b border-codex-border/40 py-2.5">
+    <Card className="overflow-hidden border-border/60 bg-card/80" data-testid="table-totv-panel">
+      <CardHeader className="border-b border-border/40 py-2.5">
         <CardTitle className="text-sm font-medium">{plugin.name} · Journal</CardTitle>
       </CardHeader>
 
@@ -171,19 +171,19 @@ export function TableTotvPanel({
             ))}
           </div>
         ) : null}
-        <p className="text-sm leading-relaxed text-codex-text">{currentPrompt?.text}</p>
+        <p className="text-sm leading-relaxed text-foreground">{currentPrompt?.text}</p>
         {currentPrompt?.hint ? (
-          <p className="text-xs text-codex-text-muted">Sheet hint: {currentPrompt.hint}</p>
+          <p className="text-xs text-muted-foreground">Sheet hint: {currentPrompt.hint}</p>
         ) : null}
         {capacity ? (
-          <p className="text-xs text-codex-text-muted">
+          <p className="text-xs text-muted-foreground">
             Slots — memories {capacity.memories.filled}/{capacity.memories.max} · skills{' '}
             {capacity.skills.filled}/{capacity.skills.max}
           </p>
         ) : null}
         {guidance ? (
           <p
-            className={`text-xs ${guidance.blocked ? 'text-amber-400' : 'text-codex-ember'}`}
+            className={`text-xs ${guidance.blocked ? 'text-amber-400' : 'text-primary'}`}
             data-testid="totv-prompt-guidance"
           >
             {guidance.summary}
@@ -220,8 +220,8 @@ export function TableTotvPanel({
             Go
           </Button>
         </div>
-        <div className="min-h-10 rounded-md border border-codex-border/40 bg-codex-void/40 px-3 py-2 text-xs" aria-live="polite">
-          {rollReveal ?? <span className="text-codex-text-muted">Navigation roll appears here.</span>}
+        <div className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs" aria-live="polite">
+          {rollReveal ?? <span className="text-muted-foreground">Navigation roll appears here.</span>}
         </div>
       </TableSection>
     </Card>

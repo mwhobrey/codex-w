@@ -30,7 +30,7 @@ export function TablePresence({
     <div className={cn('flex flex-wrap items-center gap-2', className)} data-testid="table-presence">
       {usesAccountName ? (
         <span
-          className="inline-flex h-7 max-w-[14rem] items-center truncate rounded-md border border-codex-border/50 bg-codex-void/40 px-2 text-xs text-codex-text"
+          className="inline-flex h-7 max-w-[14rem] items-center truncate rounded-md border border-border/50 bg-background/40 px-2 text-xs text-foreground"
           title={localTag}
           data-testid="table-presence-account-name"
         >
@@ -43,13 +43,13 @@ export function TablePresence({
             onChange={(e) => onLocalNameChange(e.target.value)}
             onBlur={(e) => onLocalNameChange(e.target.value)}
             placeholder="Your name"
-            className="h-7 min-w-0 flex-1 rounded-md border border-codex-border/50 bg-codex-void/40 px-2 text-xs text-codex-text"
+            className="h-7 min-w-0 flex-1 rounded-md border border-border/50 bg-background/40 px-2 text-xs text-foreground"
             aria-label="Display name at this table"
             data-testid="table-presence-name-input"
           />
           {localCharacterName ? (
             <span
-              className="shrink-0 truncate text-[10px] text-codex-text-muted"
+              className="shrink-0 truncate text-[10px] text-muted-foreground"
               title={localTag}
             >
               /{localCharacterName}
@@ -66,7 +66,7 @@ export function TablePresence({
             <li
               key={peer.clientId}
               data-testid="table-presence-peer"
-              className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full border border-codex-border/40 bg-codex-void/40 px-2 py-0.5 text-[10px] text-codex-text-muted"
+              className="inline-flex max-w-[14rem] items-center gap-1 truncate rounded-full border border-border/40 bg-background/40 px-2 py-0.5 text-[10px] text-muted-foreground"
               title={isPeerGm ? `GM · ${tag}` : tag}
             >
               <span
@@ -75,7 +75,7 @@ export function TablePresence({
                 aria-hidden
               />
               <span className="truncate">
-                {isPeerGm ? <span className="font-medium text-codex-ember">GM · </span> : null}
+                {isPeerGm ? <span className="font-medium text-primary">GM · </span> : null}
                 {tag}
               </span>
             </li>
@@ -83,7 +83,7 @@ export function TablePresence({
           })}
         </ul>
       ) : (
-        <span className="text-[10px] text-codex-text-faint">Solo at table</span>
+        <span className="text-[10px] text-muted-foreground/60">Solo at table</span>
       )}
     </div>
   );

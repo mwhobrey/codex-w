@@ -2,14 +2,14 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'codex-w',
-    short_name: 'codex-w',
+    name: 'Codex-W',
+    short_name: 'Codex-W',
     description:
       'Local-first TTRPG toolkit — dice, oracles, character sheets, solo and multiplayer play.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#0a0908',
-    theme_color: '#0a0908',
+    background_color: '#0c0c0f',
+    theme_color: '#0c0c0f',
     orientation: 'any',
     icons: [
       {
