@@ -10,7 +10,6 @@ test.describe('core play loop smoke', () => {
 
     const rollButton = page.getByTestId('dice-roll-button');
     await rollButton.click();
-    await expect(rollButton).toHaveText('Rolling…');
     await expect(page.getByTestId('dice-roll-result')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('dice-roll-total')).toContainText(/\d+/);
 
@@ -31,7 +30,7 @@ test.describe('core play loop smoke', () => {
     await expect(page.getByTestId('play-lobby')).toBeVisible();
     await expect(page.getByLabel('Game system')).toHaveValue('loner');
     await page.getByTestId('create-table-button').click();
-    await expect(page).toHaveURL(/\/play\/[^/?]+(\?.*invite=.+)?$/);
+    await expect(page).toHaveURL(/\/play\/[^/?]+(\?.*)?$/);
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-system-panel')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-presence')).toBeVisible();

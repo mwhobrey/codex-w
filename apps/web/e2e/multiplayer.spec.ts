@@ -7,6 +7,10 @@ function parseTableUrl(url: string) {
   return { roomId, invite, pathWithQuery: `${parsed.pathname}${parsed.search}` };
 }
 
+async function readStoredInvite(page: import('@playwright/test').Page, roomId: string) {
+  return page.evaluate((id) => localStorage.getItem(`codex-table-invite-${id}`), roomId);
+}
+
 test.describe('multiplayer table', () => {
   test('host and guest see each other with invite token', async ({ browser }) => {
     const hostContext = await browser.newContext();
@@ -20,14 +24,17 @@ test.describe('multiplayer table', () => {
       await expect(host).toHaveURL(/\/play\/[^/?]+(\?.*)?$/);
       await expect(host.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
 
-      const { invite, pathWithQuery } = parseTableUrl(host.url());
+      const { roomId } = parseTableUrl(host.url());
+      expect(roomId.length).toBeGreaterThanOrEqual(8);
+
+      const invite = await readStoredInvite(host, roomId);
       expect(invite).toBeTruthy();
       expect(invite!.length).toBeGreaterThanOrEqual(16);
 
       await host.getByTestId('table-presence-name-input').fill('Host');
       await host.getByTestId('table-presence-name-input').blur();
 
-      await guest.goto(pathWithQuery);
+      await guest.goto(`/play/${roomId}?system=loner&invite=${invite}`);
       await expect(guest.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
       await guest.getByTestId('table-presence-name-input').fill('Guest');
       await guest.getByTestId('table-presence-name-input').blur();
