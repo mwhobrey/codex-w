@@ -12,7 +12,7 @@
     "dev:web": "node scripts/ensure-local-stack.mjs && npm run dev --workspace=@codex/web",
     "dev:sync": "npm run dev --workspace=@codex/sync-server",
     "dev:partykit": "npm run dev:sync",
-    "docker:sync": "docker compose -f docker-compose.sync-server.yml up -d --build",
+    "docker:sync": "docker compose -f docker-compose.sync-server.yml --env-file .env.sync-server up -d --build",
     "stack:up": "node scripts/ensure-local-stack.mjs",
     "stack:down": "docker compose down",
     "stack:reset": "docker compose down -v && node scripts/ensure-local-stack.mjs",

@@ -1,9 +1,10 @@
 # Production sync relay — no npm on the host required.
 #
-#   docker compose -f docker-compose.sync-server.yml up -d --build
+#   cp .env.sync-server.example .env.sync-server   # first time
+#   docker compose -f docker-compose.sync-server.yml --env-file .env.sync-server up -d --build
 #
-# Attach to your existing Caddy network (rename if yours differs):
-#   docker network ls | grep caddy
+# CODEX_SYNC_DOCKER_NETWORK must match the network your Caddy container uses:
+#   docker inspect caddy --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}'
 
 services:
   codex-sync:
@@ -17,11 +18,12 @@ services:
       HOST: 0.0.0.0
       NODE_ENV: production
     networks:
-      - caddy
+      - proxy
     # Optional: expose on host for debugging only
     # ports:
     #   - '1999:1999'
 
 networks:
-  caddy:
+  proxy:
     external: true
+    name: ${CODEX_SYNC_DOCKER_NETWORK:?Set CODEX_SYNC_DOCKER_NETWORK to your Caddy docker network}

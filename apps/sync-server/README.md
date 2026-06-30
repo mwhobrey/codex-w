@@ -43,21 +43,20 @@ No Node/npm on the host — build and run the container only.
 
 ### 2. Docker network
 
-Your Caddy container must share a network with `codex-sync`. List networks:
+`codex-sync` must join the **same network as Caddy**. On the droplet:
 
 ```bash
-docker network ls
+docker inspect caddy --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}'
 ```
 
-Edit `docker-compose.sync-server.yml` if your proxy network is not named `caddy` (common alternatives: `web`, `proxy`, `caddy-net`).
+Copy `.env.sync-server.example` → `.env.sync-server` and set `CODEX_SYNC_DOCKER_NETWORK` to that name (e.g. `headscale_default`).
 
 ### 3. Start the relay
 
-On the droplet (clone repo or pull latest):
-
 ```bash
 cd /path/to/codex-w
-docker compose -f docker-compose.sync-server.yml up -d --build
+cp .env.sync-server.example .env.sync-server   # edit if needed
+docker compose -f docker-compose.sync-server.yml --env-file .env.sync-server up -d --build
 ```
 
 Verify from the host:
@@ -77,7 +76,7 @@ pk.whobrey.me {
 }
 ```
 
-Reload/restart Caddy. External check:
+Caddy must be on the same Docker network as `codex-sync` (e.g. `headscale_default`).
 
 ```bash
 curl https://pk.whobrey.me/health
