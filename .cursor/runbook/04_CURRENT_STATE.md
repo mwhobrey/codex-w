@@ -70,7 +70,7 @@
 ### Dogfood & harden multiplayer
 
 1. [x] **Two-browser dogfood** — same `roomId` with sync relay locally; validate tokens, fog split, GM transfer, log merge
-2. [ ] **Relay deploy** — `apps/sync-server` on DO droplet; `NEXT_PUBLIC_SYNC_HOST=pk.whobrey.me` on Vercel + redeploy
+2. [ ] **Relay deploy** — `docker compose -f docker-compose.sync-server.yml` on DO droplet; Caddy `reverse_proxy codex-sync:1999`; `NEXT_PUBLIC_SYNC_HOST=pk.whobrey.me`
 3. [x] **`@codex/sync` unit tests** — 44 tests (import, providers, fog, invite, export)
 
 ### Security & ship

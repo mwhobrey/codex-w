@@ -25,74 +25,83 @@ Legacy `NEXT_PUBLIC_PARTYKIT_*` names still work.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/parties/main/:roomId` | Health probe |
+| `GET` / `HEAD` | `/parties/main/:roomId` | Health probe |
 | `POST` | `/parties/main/:roomId?action=seed` | Seed invite token before websocket join |
 | `GET` | `/health` | Simple liveness |
 
 WebSocket: standard Hocuspocus on `/` with document name = `roomId`.
 
-## Deploy on a DigitalOcean droplet
+## Deploy with Docker (recommended for droplets)
 
-### 1. DNS (Cloudflare — free, no Workers)
+No Node/npm on the host — build and run the container only.
+
+### 1. DNS (Cloudflare)
 
 | Type | Name | Value | Proxy |
 |------|------|-------|-------|
 | A | `pk` | `<droplet-ip>` | DNS only (grey) |
 
-`codex-w.whobrey.me` stays on Vercel. Only `pk.whobrey.me` points at the droplet.
+### 2. Docker network
 
-### 2. Run the server
+Your Caddy container must share a network with `codex-sync`. List networks:
 
 ```bash
-# on droplet
-git clone ... && cd codex-w
-npm install
-PORT=1999 HOST=127.0.0.1 npm run start --workspace=@codex/sync-server
+docker network ls
 ```
 
-Use systemd or Docker in production (see below).
+Edit `docker-compose.sync-server.yml` if your proxy network is not named `caddy` (common alternatives: `web`, `proxy`, `caddy-net`).
 
-### 3. Caddy TLS (on droplet)
+### 3. Start the relay
+
+On the droplet (clone repo or pull latest):
+
+```bash
+cd /path/to/codex-w
+docker compose -f docker-compose.sync-server.yml up -d --build
+```
+
+Verify from the host:
+
+```bash
+docker exec codex-sync wget -qO- http://127.0.0.1:1999/health
+# → ok
+```
+
+### 4. Caddy (Docker)
+
+Point at the **container name** on the shared network (not `127.0.0.1`):
 
 ```caddy
 pk.whobrey.me {
-  reverse_proxy 127.0.0.1:1999
+  reverse_proxy codex-sync:1999
 }
 ```
 
-Reload Caddy. Verify:
+Reload/restart Caddy. External check:
 
 ```bash
-curl -sI "https://pk.whobrey.me/health"
-curl -sI "https://pk.whobrey.me/parties/main/test-room"
+curl https://pk.whobrey.me/health
 ```
 
-### 4. Vercel env + redeploy
+### 5. Vercel env + redeploy
 
 ```
 NEXT_PUBLIC_SYNC_HOST=pk.whobrey.me
 NEXT_PUBLIC_SYNC_CONNECT=true
 ```
 
-## systemd unit (example)
+### Updating
 
-```ini
-[Unit]
-Description=Codex Yjs sync relay
-After=network.target
+```bash
+git pull
+docker compose -f docker-compose.sync-server.yml up -d --build
+```
 
-[Service]
-Type=simple
-User=codex
-WorkingDirectory=/opt/codex-w
-Environment=PORT=1999
-Environment=HOST=127.0.0.1
-Environment=NODE_ENV=production
-ExecStart=/usr/bin/npm run start --workspace=@codex/sync-server
-Restart=on-failure
+## Deploy without Docker (dev / bare metal)
 
-[Install]
-WantedBy=multi-user.target
+```bash
+npm install
+PORT=1999 HOST=0.0.0.0 npm run start --workspace=@codex/sync-server
 ```
 
 ## Security
@@ -102,5 +111,5 @@ WantedBy=multi-user.target
 
 ## Limitations (MVP)
 
-- Invite tokens are in-memory (lost on restart; rooms must re-seed via first joiner).
+- Invite tokens are in-memory (lost on container restart; rooms re-seed on first join).
 - No Postgres backup of Yjs state (local y-indexeddb + relay only).

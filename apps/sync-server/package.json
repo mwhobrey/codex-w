@@ -11,12 +11,12 @@
   "dependencies": {
     "@codex/sync": "*",
     "@hocuspocus/server": "^4.3.0",
+    "tsx": "^4.20.3",
     "yjs": "^13.6.31"
   },
   "devDependencies": {
     "@codex/config": "*",
     "@types/node": "^20.19.43",
-    "tsx": "^4.20.3",
     "typescript": "^5.9.3"
   }
 }
