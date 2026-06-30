@@ -39,7 +39,7 @@
 - [x] **Invite tokens** — PartyKit `4403` gate; multi-source resume (URL, meta, storage, recent)
 - [x] **Story integration** — per-system table panels, TYOV tag engine, Ironforge heat, `/library`, table export
 - [x] **E2E tests** — smoke (all systems + library) + multiplayer invite (PartyKit in CI)
-- [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (29 tests)
+- [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (44 tests)
 - [x] **Design system polish** — shadcn `Dialog`/`Sheet` in `@codex/ui`; semantic Tailwind tokens (`primary`, `muted-foreground`, etc.); skip link, reduced-motion, mobile play header
 - [x] **Portrait cloud sync** — local IndexedDB blobs + optional S3 upload; `/api/assets/status`; sync on sign-in via `portrait-cloud-sync.ts`
 - [x] **Character delete** — local tombstone + cloud `DELETE /api/sheets/:id`; blocks auto-save race and cloud re-merge
@@ -50,11 +50,13 @@
 - [x] **Play lobby** — recent tables show human-readable names; character peek hides duplicate Edit CTA
 - [x] **Professional UX polish sprint** — Excalidraw play-mode chrome suppression (`.codex-excalidraw-play` CSS, dark zen); unified `TableViewTablist` ARIA; paste-invite join flow (`parseTableInviteInput`); mobile sign-in in nav drawer; `ConfirmDialog` primitive; Radix `Dialog`/`Sheet` for adapt + table info; semantic `--success`/`--warning` tokens; marketing interactivity (feature links, hero dice); dice hub IA reorder; `text-xs` typography floor; page title dedup; `@codex/web` unit tests (`play-room.test.ts`, `excalidraw-viewport.test.ts`)
 - [x] **VTT overlay projection** — `useExcalidrawViewport` + `sceneCoordsToViewportCoords` for fog (per-cell viewport rects), tokens, and cursors; rAF sync during zoom; fixes fog drift/resize at non-1× zoom
+- [x] **Post-Audit Optimizations** — Fixed logical bypass in `fogSnapshotsDiffer` Map comparison; optimized database deletion queries into atomic `.returning()` statements; consolidated 3 parallel `requestAnimationFrame` loops into 1 shared viewport hook in `vtt-canvas.tsx`; cached boundaries on drag startup to prevent layout thrashing; removed static Excalidraw helper imports in overlay components to restore split bundle lazy loading.
+- [x] **A11y, Confirm Errors & RNG Buffers** — Added keyboard navigation (arrow keys + Shift modifiers) and custom focus rings to VTT player tokens; wrapped `ConfirmDialog`'s `onConfirm()` handler in try-catch to prevent unhandled promise rejection warnings; optimized `defaultRng` with a 512-value pre-allocated Uint32Array pool to eliminate continuous system calls and garbage collection overhead.
 
 ## What Is Explicitly Not Built Yet
 
 - [ ] `apps/sync-server` — deferred; PartyKit handles MVP multiplayer relay
-- [ ] Room squatting hardening (atomic invite seed on PartyKit)
+- [x] Room squatting hardening (atomic invite seed on PartyKit)
 - [ ] Fog / GM server-side enforcement (currently UI-only)
 - [ ] Map snapshots to Postgres (Yjs state is local + PartyKit only)
 - [ ] Solo session / journal full cloud sync
@@ -66,15 +68,15 @@
 
 ### Dogfood & harden multiplayer
 
-1. **Two-browser dogfood** — same `roomId` with PartyKit locally; validate tokens, fog split, GM transfer, log merge
-2. **PartyKit deploy + env** — `NEXT_PUBLIC_PARTYKIT_HOST` on Vercel preview for internet dogfood
-3. **`@codex/sync` unit tests** — expand excalidraw / play-room provider coverage; add package to `npm run test`
+1. [x] **Two-browser dogfood** — same `roomId` with PartyKit locally; validate tokens, fog split, GM transfer, log merge (Fully verified and E2E tests passing)
+2. [ ] **PartyKit deploy + env** — `NEXT_PUBLIC_PARTYKIT_HOST` on Vercel preview for internet dogfood
+3. [x] **`@codex/sync` unit tests** — expanded unit test coverage to 44 tests (covering importSoloSessionToTable, hydratePlayRoomIndexedDb, local awareness cleanup, and WebSocket fallback behaviors)
 
 ### Security & ship
 
-4. **Room security** — server-issued invite tokens before external tables
+4. [x] **Room security** — atomic HTTP invite seeding to prevent room squatting before external tables
 5. **Neon + Vercel** — production Postgres, auth secrets, PartyKit deploy
-6. **Mobile pass** — touch targets, map toolbar on small screens (partially addressed in polish sprint)
+6. [x] **Mobile pass** — touch targets, map toolbar scrollable tabs on small screens
 
 ### Deferred
 

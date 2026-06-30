@@ -1,7 +1,9 @@
 'use client';
 
-import type { ExcalidrawViewport } from '@/lib/excalidraw-viewport-math';
-import { sceneCoordsToViewportCoords } from '@excalidraw/excalidraw';
+import {
+  type ExcalidrawViewport,
+  sceneToOverlayPoint as mathSceneToOverlayPoint,
+} from '@/lib/excalidraw-viewport-math';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useEffect, useState, type RefObject } from 'react';
 
@@ -31,7 +33,7 @@ function readViewport(
   };
 }
 
-/** Scene point → overlay-local pixels (uses Excalidraw's own projection). */
+/** Scene point → overlay-local pixels (uses local math projection, no static excalidraw import). */
 export function sceneToOverlayPoint(
   sceneX: number,
   sceneY: number,
@@ -40,13 +42,14 @@ export function sceneToOverlayPoint(
 ): { x: number; y: number } {
   const state = api.getAppState();
   const anchorRect = anchorEl?.getBoundingClientRect();
-  const anchorLeft = anchorRect?.left ?? state.offsetLeft;
-  const anchorTop = anchorRect?.top ?? state.offsetTop;
-  const { x, y } = sceneCoordsToViewportCoords({ sceneX, sceneY }, state);
-  return {
-    x: x - anchorLeft,
-    y: y - anchorTop,
+  const viewport = {
+    scrollX: state.scrollX,
+    scrollY: state.scrollY,
+    zoom: state.zoom.value,
+    anchorX: anchorRect ? state.offsetLeft - anchorRect.left : 0,
+    anchorY: anchorRect ? state.offsetTop - anchorRect.top : 0,
   };
+  return mathSceneToOverlayPoint(sceneX, sceneY, viewport);
 }
 
 export function useExcalidrawViewport(
@@ -61,25 +64,50 @@ export function useExcalidrawViewport(
     let frame = 0;
     let running = true;
 
+    // Cache anchor offsets to avoid layout thrashing in the rAF loop
+    const cachedAnchor = { x: 0, y: 0 };
+
+    const updateAnchor = () => {
+      const anchorEl = anchorRef?.current ?? null;
+      const state = api.getAppState();
+      const anchorRect = anchorEl?.getBoundingClientRect();
+      cachedAnchor.x = anchorRect ? state.offsetLeft - anchorRect.left : 0;
+      cachedAnchor.y = anchorRect ? state.offsetTop - anchorRect.top : 0;
+    };
+
     const sync = () => {
-      const next = readViewport(api, anchorRef?.current ?? null);
-      setViewport((prev) => {
-        if (
-          prev.scrollX === next.scrollX &&
-          prev.scrollY === next.scrollY &&
-          prev.zoom === next.zoom &&
-          prev.anchorX === next.anchorX &&
-          prev.anchorY === next.anchorY
-        ) {
-          return prev;
-        }
-        return next;
+      updateAnchor();
+      const state = api.getAppState();
+      setViewport({
+        scrollX: state.scrollX,
+        scrollY: state.scrollY,
+        zoom: state.zoom.value,
+        anchorX: cachedAnchor.x,
+        anchorY: cachedAnchor.y,
       });
     };
 
     const tick = () => {
       if (!running) return;
-      sync();
+      const state = api.getAppState();
+      setViewport((prev) => {
+        if (
+          prev.scrollX === state.scrollX &&
+          prev.scrollY === state.scrollY &&
+          prev.zoom === state.zoom.value &&
+          prev.anchorX === cachedAnchor.x &&
+          prev.anchorY === cachedAnchor.y
+        ) {
+          return prev;
+        }
+        return {
+          scrollX: state.scrollX,
+          scrollY: state.scrollY,
+          zoom: state.zoom.value,
+          anchorX: cachedAnchor.x,
+          anchorY: cachedAnchor.y,
+        };
+      });
       frame = requestAnimationFrame(tick);
     };
 
@@ -109,3 +137,4 @@ export function useExcalidrawViewport(
 
   return viewport;
 }
+

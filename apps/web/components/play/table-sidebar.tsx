@@ -52,7 +52,7 @@ export function TableViewTablist<T extends TableMobileTab>({
           aria-controls={getPanelId(tab)}
           onClick={() => onTabChange(tab)}
           className={cn(
-            'min-h-9 flex-1 rounded-md px-2 py-1.5 text-sm font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'min-h-11 flex-1 rounded-md px-2 py-1.5 text-sm font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             activeTab === tab
               ? 'bg-primary/20 text-primary'
               : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',

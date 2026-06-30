@@ -15,44 +15,53 @@ export function partyKitWsProtocol(host: string): 'ws' | 'wss' {
   return 'wss';
 }
 
-/** Quick websocket probe — avoids y-partykit reconnect spam when PartyKit isn't running. */
-export function probePartyKitReachable(
+/** Quick HTTP probe — avoids y-partykit reconnect spam when PartyKit isn't running. */
+export async function probePartyKitReachable(
   host: string,
   party: string,
   roomId: string,
   inviteToken?: string,
   timeoutMs = 2000,
 ): Promise<boolean> {
-  if (typeof WebSocket === 'undefined') return Promise.resolve(false);
+  if (typeof window === 'undefined') return false;
 
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (ok: boolean) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      try {
-        ws.close();
-      } catch {
-        // ignore
-      }
-      resolve(ok);
-    };
+  const wsProtocol = partyKitWsProtocol(host);
+  const httpProtocol = wsProtocol === 'ws' ? 'http' : 'https';
+  const cleanHost = host.replace(/^(https?|wss?):\/\//, '').replace(/\/$/, '');
+  const url = `${httpProtocol}://${cleanHost}/parties/${party}/${roomId}`;
 
-    const inviteQs = inviteToken?.trim()
-      ? `?invite=${encodeURIComponent(inviteToken.trim())}`
-      : '';
-    const protocol = partyKitWsProtocol(host);
-    const ws = new WebSocket(`${protocol}://${host}/parties/${party}/${roomId}${inviteQs}`);
-    const timer = window.setTimeout(() => finish(false), timeoutMs);
-    ws.onopen = () => {
-      window.setTimeout(() => {
-        if (!settled && ws.readyState === WebSocket.OPEN) finish(true);
-      }, 50);
-    };
-    ws.onclose = (event) => {
-      if (event.code === 4403) finish(false);
-    };
-    ws.onerror = () => finish(false);
-  });
+  try {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(url, { method: 'GET', signal: controller.signal });
+    window.clearTimeout(timer);
+    return res.ok || res.status === 404 || res.status === 204;
+  } catch (err) {
+    console.error('probePartyKitReachable failed for url:', url, err);
+    return false;
+  }
+}
+
+/** Atomically seed invite token on PartyKit via HTTP before connecting via WebSocket. */
+export async function seedPartyRoomInvite(
+  host: string,
+  party: string,
+  roomId: string,
+  inviteToken: string,
+): Promise<boolean> {
+  const wsProtocol = partyKitWsProtocol(host);
+  const httpProtocol = wsProtocol === 'ws' ? 'http' : 'https';
+  const cleanHost = host.replace(/^(https?|wss?):\/\//, '').replace(/\/$/, '');
+  const url = `${httpProtocol}://${cleanHost}/parties/${party}/${roomId}?action=seed`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inviteToken }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Failed to seed PartyKit room invite:', err);
+    return false;
+  }
 }

@@ -1,37 +1,29 @@
 'use client';
 
-import { sceneToOverlayPoint, useExcalidrawViewport } from '@/hooks/use-excalidraw-viewport';
+import { sceneToOverlayPoint, type ExcalidrawViewport } from '@/lib/excalidraw-viewport-math';
 import { FOG_CELL_SIZE, parseFogCellKey } from '@codex/sync';
 import type { MapViewRole } from '@/lib/table-systems';
-import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 
 interface FogOverlayProps {
-  api: ExcalidrawImperativeAPI | null;
+  viewport: ExcalidrawViewport;
   hiddenCells: Set<string>;
   mapRole?: MapViewRole;
 }
 
-export function FogOverlay({ api, hiddenCells, mapRole = 'gm' }: FogOverlayProps) {
-  const anchorRef = useRef<SVGSVGElement>(null);
-  const viewport = useExcalidrawViewport(api, anchorRef);
-
+export function FogOverlay({ viewport, hiddenCells, mapRole = 'gm' }: FogOverlayProps) {
   const rects = useMemo(() => {
-    if (!api) return [];
-    const anchor = anchorRef.current;
-
     return [...hiddenCells].flatMap((key) => {
       const parsed = parseFogCellKey(key);
       if (!parsed) return [];
 
       const sceneX = parsed.gx * FOG_CELL_SIZE;
       const sceneY = parsed.gy * FOG_CELL_SIZE;
-      const topLeft = sceneToOverlayPoint(sceneX, sceneY, api, anchor);
+      const topLeft = sceneToOverlayPoint(sceneX, sceneY, viewport);
       const bottomRight = sceneToOverlayPoint(
         sceneX + FOG_CELL_SIZE,
         sceneY + FOG_CELL_SIZE,
-        api,
-        anchor,
+        viewport,
       );
 
       return [
@@ -44,13 +36,12 @@ export function FogOverlay({ api, hiddenCells, mapRole = 'gm' }: FogOverlayProps
         },
       ];
     });
-  }, [api, hiddenCells, viewport]);
+  }, [hiddenCells, viewport]);
 
   if (rects.length === 0) return null;
 
   return (
     <svg
-      ref={anchorRef}
       className="pointer-events-none absolute inset-0 z-[2] h-full w-full overflow-hidden"
       aria-hidden
     >
@@ -69,3 +60,4 @@ export function FogOverlay({ api, hiddenCells, mapRole = 'gm' }: FogOverlayProps
     </svg>
   );
 }
+

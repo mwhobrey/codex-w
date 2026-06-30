@@ -11,7 +11,7 @@ import {
   type PlayRoomProviders,
 } from '@codex/sync';
 import type * as Y from 'yjs';
-import { probePartyKitReachable } from '@/lib/partykit-reachable';
+import { probePartyKitReachable, seedPartyRoomInvite } from '@/lib/partykit-reachable';
 import {
   getPartyKitHost,
   getPartyKitParty,
@@ -62,7 +62,20 @@ async function bootSession(
       roomId,
       invite,
     );
-    if (!reachable) connectParty = false;
+    if (!reachable) {
+      connectParty = false;
+    } else if (invite) {
+      // Atomically seed the invite token via HTTP before connecting via WebSocket.
+      const seeded = await seedPartyRoomInvite(
+        getPartyKitHost(),
+        getPartyKitParty(),
+        roomId,
+        invite,
+      );
+      if (!seeded) {
+        console.warn('HTTP invite seeding failed; connection might be rejected.');
+      }
+    }
   }
 
   const providers = createPlayRoomProviders({

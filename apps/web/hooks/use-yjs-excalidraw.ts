@@ -27,27 +27,32 @@ function patchExcalidrawElements(
 
   doc.transact(() => {
     const localIds = new Set(elements.map((element) => element.id));
+    const current = [...remote];
 
     for (let index = remote.length - 1; index >= 0; index -= 1) {
       if (!localIds.has(remote[index]!.id)) {
         yElements.delete(index, 1);
+        current.splice(index, 1);
       }
     }
-
-    let current = yElements.toArray() as ExcalidrawElement[];
 
     elements.forEach((element, targetIndex) => {
       const existingIndex = current.findIndex((item) => item.id === element.id);
       if (existingIndex === -1) {
-        yElements.insert(Math.min(targetIndex, yElements.length), [element]);
+        const insertIndex = Math.min(targetIndex, current.length);
+        yElements.insert(insertIndex, [element]);
+        current.splice(insertIndex, 0, element);
       } else {
         const existing = current[existingIndex]!;
         if (existing.version !== element.version || existingIndex !== targetIndex) {
           yElements.delete(existingIndex, 1);
-          yElements.insert(Math.min(targetIndex, yElements.length), [element]);
+          current.splice(existingIndex, 1);
+
+          const insertIndex = Math.min(targetIndex, current.length);
+          yElements.insert(insertIndex, [element]);
+          current.splice(insertIndex, 0, element);
         }
       }
-      current = yElements.toArray() as ExcalidrawElement[];
     });
   }, PLAY_ROOM_KEYS.EXCALIDRAW);
 }

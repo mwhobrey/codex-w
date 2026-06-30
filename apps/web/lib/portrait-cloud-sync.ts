@@ -20,9 +20,9 @@ async function fetchAssetUploadStatus(): Promise<AssetUploadStatus> {
 }
 
 /** Upload a portrait file to object storage when cloud auth + S3 are available. */
-export async function uploadPortraitFile(file: File): Promise<string | undefined> {
-  const status = await fetchAssetUploadStatus();
-  if (!status.canUpload) return undefined;
+export async function uploadPortraitFile(file: File, canUploadOverride?: boolean): Promise<string | undefined> {
+  const canUpload = canUploadOverride ?? (await fetchAssetUploadStatus()).canUpload;
+  if (!canUpload) return undefined;
 
   const formData = new FormData();
   formData.set('file', file);
@@ -42,13 +42,16 @@ export async function uploadPortraitFile(file: File): Promise<string | undefined
  * If the sheet has a local-only portrait, upload it and return an updated sheet with portraitUrl.
  * No-op when cloud upload is unavailable or portraitUrl is already set.
  */
-export async function ensureSheetPortraitSynced(sheet: CharacterSheet): Promise<CharacterSheet> {
+export async function ensureSheetPortraitSynced(
+  sheet: CharacterSheet,
+  canUploadOverride?: boolean,
+): Promise<CharacterSheet> {
   if (sheet.portraitUrl?.trim()) return sheet;
 
   const file = await characterPortraitRepo.getFile(sheet.id);
   if (!file) return sheet;
 
-  const url = await uploadPortraitFile(file);
+  const url = await uploadPortraitFile(file, canUploadOverride);
   if (!url) return sheet;
 
   return {
@@ -60,11 +63,14 @@ export async function ensureSheetPortraitSynced(sheet: CharacterSheet): Promise<
 
 /** Push any local-only portraits to object storage, persist portraitUrl, and sync sheets. */
 export async function syncPendingPortraitUploads(ownerId: string): Promise<void> {
+  const status = await fetchAssetUploadStatus();
+  if (!status.canUpload) return;
+
   const sheets = await characterSheetRepo.listByOwner(ownerId);
   const { queueSheetSync } = await import('./sheet-sync');
 
   for (const sheet of sheets) {
-    const next = await ensureSheetPortraitSynced(sheet);
+    const next = await ensureSheetPortraitSynced(sheet, true);
     if (!next.portraitUrl || next.portraitUrl === sheet.portraitUrl) continue;
     await characterSheetRepo.save(next);
     void queueSheetSync(next);

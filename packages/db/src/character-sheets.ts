@@ -71,12 +71,10 @@ export async function upsertCharacterSheet(db: CodexDb, sheet: CharacterSheet): 
 }
 
 export async function deleteCharacterSheet(db: CodexDb, id: string, ownerId: string): Promise<boolean> {
-  const existing = await getCharacterSheetById(db, id);
-  if (!existing || existing.ownerId !== ownerId) return false;
-
-  await db
+  const rows = await db
     .delete(characterSheets)
-    .where(and(eq(characterSheets.id, id), eq(characterSheets.ownerId, ownerId)));
+    .where(and(eq(characterSheets.id, id), eq(characterSheets.ownerId, ownerId)))
+    .returning();
 
-  return true;
+  return rows.length > 0;
 }

@@ -127,7 +127,7 @@ export function CodexMapToolbar({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="shrink-0 rounded-md px-2 py-2 text-xs text-muted-foreground hover:text-foreground min-h-10"
+            className="shrink-0 rounded-md px-2 py-2 text-xs text-muted-foreground hover:text-foreground min-h-11 min-w-11"
             aria-label="Collapse map tools"
           >
             ✕
@@ -141,7 +141,7 @@ export function CodexMapToolbar({
             onStampSelect(null);
           }}
           className={cn(
-            'shrink-0 rounded-md px-3 py-2 text-xs font-medium transition-colors min-h-10',
+            'shrink-0 rounded-md px-3 py-2 text-xs font-medium transition-colors min-h-11',
             activeTool === 'select' && !activeStamp
               ? 'bg-primary/20 text-primary'
               : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
@@ -152,14 +152,14 @@ export function CodexMapToolbar({
 
         <span className="h-6 w-px shrink-0 bg-border/60" aria-hidden />
 
-        <div className="flex flex-wrap gap-1 rounded-md border border-border/50 p-0.5">
+        <div className="flex flex-1 min-w-0 overflow-x-auto flex-nowrap gap-1 rounded-md border border-border/50 p-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {(['terrain', 'structure', 'token', 'fog', 'scenes'] as const).map((kind) => (
             <button
               key={kind}
               type="button"
               onClick={() => handleTabChange(kind)}
               className={cn(
-                'rounded px-2.5 py-1.5 text-xs transition-colors min-h-9 whitespace-nowrap',
+                'rounded px-2.5 py-1.5 text-xs transition-colors min-h-11 whitespace-nowrap',
                 tab === kind
                   ? 'bg-background text-foreground'
                   : 'text-muted-foreground hover:text-foreground',
@@ -174,7 +174,7 @@ export function CodexMapToolbar({
           <button
             type="button"
             onClick={onBreakApart}
-            className="rounded-md border border-border/40 px-3 py-2 text-xs text-muted-foreground min-h-10 hover:border-primary/40 hover:text-foreground"
+            className="rounded-md border border-border/40 px-3 py-2 text-xs text-muted-foreground min-h-11 hover:border-primary/40 hover:text-foreground"
             data-testid="map-break-apart"
           >
             Break apart
@@ -192,7 +192,7 @@ export function CodexMapToolbar({
                 type="button"
                 onClick={() => onMapRoleChange('gm')}
                 className={cn(
-                  'rounded-md border px-2 py-1 text-xs min-h-8',
+                  'rounded-md border px-3 py-1.5 text-xs min-h-11',
                   mapRole === 'gm'
                     ? 'border-primary/60 bg-primary/15 text-primary'
                     : 'border-border/40 text-muted-foreground',
@@ -204,7 +204,7 @@ export function CodexMapToolbar({
                 type="button"
                 onClick={() => onMapRoleChange('player')}
                 className={cn(
-                  'rounded-md border px-2 py-1 text-xs min-h-8',
+                  'rounded-md border px-3 py-1.5 text-xs min-h-11',
                   mapRole === 'player'
                     ? 'border-primary/60 bg-primary/15 text-primary'
                     : 'border-border/40 text-muted-foreground',
@@ -220,7 +220,7 @@ export function CodexMapToolbar({
                 type="button"
                 onClick={() => onSelectTool('fog-hide')}
                 className={cn(
-                  'rounded-md border px-3 py-2 text-xs min-h-10',
+                  'rounded-md border px-3 py-2 text-xs min-h-11',
                   activeTool === 'fog-hide'
                     ? 'border-primary/60 bg-primary/15 text-primary'
                     : 'border-border/40 text-muted-foreground',
@@ -232,7 +232,7 @@ export function CodexMapToolbar({
                 type="button"
                 onClick={() => onSelectTool('fog-reveal')}
                 className={cn(
-                  'rounded-md border px-3 py-2 text-xs min-h-10',
+                  'rounded-md border px-3 py-2 text-xs min-h-11',
                   activeTool === 'fog-reveal'
                     ? 'border-primary/60 bg-primary/15 text-primary'
                     : 'border-border/40 text-muted-foreground',
@@ -244,7 +244,7 @@ export function CodexMapToolbar({
                 <button
                   type="button"
                   onClick={onClearFog}
-                  className="rounded-md border border-border/40 px-3 py-2 text-xs text-muted-foreground min-h-10 hover:text-foreground"
+                  className="rounded-md border border-border/40 px-3 py-2 text-xs text-muted-foreground min-h-11 hover:text-foreground"
                 >
                   Clear all
                 </button>
@@ -285,7 +285,7 @@ export function CodexMapToolbar({
                 if (activeStamp === symbol.id) onSelectTool('select');
               }}
               className={cn(
-                'shrink-0 rounded-md border px-3 py-2 text-xs transition-colors min-h-10 whitespace-nowrap',
+                'shrink-0 rounded-md border px-3 py-2 text-xs transition-colors min-h-11 whitespace-nowrap',
                 activeStamp === symbol.id
                   ? 'border-primary/60 bg-primary/15 text-primary'
                   : 'border-border/40 text-muted-foreground hover:border-border hover:text-foreground',

@@ -53,7 +53,13 @@ export function ConfirmDialog({
             type="button"
             variant={destructive ? 'destructive' : 'default'}
             disabled={confirming}
-            onClick={() => void onConfirm()}
+            onClick={async () => {
+              try {
+                await onConfirm();
+              } catch (error) {
+                console.error('Error during confirm action:', error);
+              }
+            }}
           >
             {confirming ? 'Working…' : confirmLabel}
           </Button>

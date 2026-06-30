@@ -33,13 +33,14 @@ export function restoreFogSnapshot(
 export function fogSnapshotsDiffer(before: FogSnapshot, after: FogSnapshot): boolean {
   if (before.size !== after.size) return true;
   for (const [key, value] of before) {
-    if (after.get(key) !== value) return false;
+    if (after.get(key) !== value) return true;
   }
   for (const key of after.keys()) {
     if (!before.has(key)) return true;
   }
   return false;
 }
+
 
 /** Apply a Yjs update; revert fog-map mutations when the connection is not GM. */
 export function applyUpdateRespectingFog(
@@ -73,17 +74,17 @@ export interface AwarenessConnectionDoc {
 
 /** True when a websocket connection controls awareness owned by the table GM. */
 export function connectionIsTableGm(
-  doc: Y.Doc & AwarenessConnectionDoc,
+  doc: Y.Doc & Partial<AwarenessConnectionDoc>,
   conn: unknown,
 ): boolean {
   const gmUserId = readTableGmUserId(doc);
   if (!gmUserId) return false;
 
-  const controlled = doc.conns.get(conn);
+  const controlled = doc.conns?.get(conn);
   if (!controlled) return false;
 
   for (const clientId of controlled) {
-    const user = doc.awareness.getStates().get(clientId)?.user as
+    const user = doc.awareness?.getStates().get(clientId)?.user as
       | { ownerId?: string }
       | undefined;
     if (user?.ownerId === gmUserId) return true;

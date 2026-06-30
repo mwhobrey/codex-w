@@ -16,6 +16,8 @@ describe('fog guard', () => {
     const after = new Map([['0,0', true], ['1,0', true]]);
     expect(fogSnapshotsDiffer(before, after)).toBe(true);
     expect(fogSnapshotsDiffer(before, new Map([['0,0', true]]))).toBe(false);
+    expect(fogSnapshotsDiffer(before, new Map([['0,0', false]]))).toBe(true);
+    expect(fogSnapshotsDiffer(before, new Map([['1,0', true]]))).toBe(true);
   });
 
   it('allows fog writes when permitted', () => {

@@ -70,9 +70,10 @@ export async function deleteLibraryTable(
   id: string,
   ownerId: string,
 ): Promise<boolean> {
-  const existing = await getLibraryTableById(db, id);
-  if (!existing || existing.ownerId !== ownerId) return false;
+  const rows = await db
+    .delete(libraryTables)
+    .where(and(eq(libraryTables.id, id), eq(libraryTables.ownerId, ownerId)))
+    .returning();
 
-  await db.delete(libraryTables).where(and(eq(libraryTables.id, id), eq(libraryTables.ownerId, ownerId)));
-  return true;
+  return rows.length > 0;
 }

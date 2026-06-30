@@ -47,9 +47,10 @@ export async function upsertDiceSet(db: CodexDb, set: DiceSet): Promise<void> {
 }
 
 export async function deleteDiceSet(db: CodexDb, id: string, ownerId: string): Promise<boolean> {
-  const existing = await getDiceSetById(db, id);
-  if (!existing || existing.ownerId !== ownerId) return false;
+  const rows = await db
+    .delete(diceSets)
+    .where(and(eq(diceSets.id, id), eq(diceSets.ownerId, ownerId)))
+    .returning();
 
-  await db.delete(diceSets).where(and(eq(diceSets.id, id), eq(diceSets.ownerId, ownerId)));
-  return true;
+  return rows.length > 0;
 }

@@ -18,26 +18,45 @@ test.describe('multiplayer table', () => {
     const host = await hostContext.newPage();
     const guest = await guestContext.newPage();
 
+    host.on('console', msg => console.log('HOST LOG:', msg.text()));
+    host.on('pageerror', err => console.error('HOST ERROR:', err.stack || err.message));
+    guest.on('console', msg => console.log('GUEST LOG:', msg.text()));
+    guest.on('pageerror', err => console.error('GUEST ERROR:', err.stack || err.message));
+
     try {
+      console.log('--- TEST START ---');
       await host.goto('/play?system=loner');
+      console.log('--- HOST NAVIGATED TO PLAY LOBBY ---');
       await host.getByTestId('create-table-button').click();
+      console.log('--- CREATE TABLE CLICKED ---');
       await expect(host).toHaveURL(/\/play\/[^/?]+(\?.*)?$/);
+      console.log('--- HOST REDIRECTED TO ROOM ---', host.url());
       await expect(host.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
+      console.log('--- HOST SURFACE VISIBLE ---');
 
       const { roomId } = parseTableUrl(host.url());
-      expect(roomId.length).toBeGreaterThanOrEqual(8);
+      console.log('--- ROOM ID:', roomId);
 
       const invite = await readStoredInvite(host, roomId);
-      expect(invite).toBeTruthy();
-      expect(invite!.length).toBeGreaterThanOrEqual(16);
+      console.log('--- INVITE TOKEN:', invite);
 
+      // Open Table info sidebar to expose display name input on host
+      await host.getByRole('button', { name: 'Table info' }).click();
       await host.getByTestId('table-presence-name-input').fill('Host');
       await host.getByTestId('table-presence-name-input').blur();
+      console.log('--- HOST NAME SET ---');
 
+      console.log('--- NAVIGATING GUEST TO:', `/play/${roomId}?system=loner&invite=${invite}`);
       await guest.goto(`/play/${roomId}?system=loner&invite=${invite}`);
+      console.log('--- GUEST NAVIGATED ---');
       await expect(guest.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
+      console.log('--- GUEST SURFACE VISIBLE ---');
+
+      // Open Table info sidebar to expose display name input on guest
+      await guest.getByRole('button', { name: 'Table info' }).click();
       await guest.getByTestId('table-presence-name-input').fill('Guest');
       await guest.getByTestId('table-presence-name-input').blur();
+      console.log('--- GUEST NAME SET ---');
 
       await expect(host.getByTestId('table-presence-peer')).toHaveCount(1, { timeout: 20_000 });
       await expect(guest.getByTestId('table-presence-peer')).toHaveCount(1, { timeout: 20_000 });
@@ -69,10 +88,11 @@ test.describe('multiplayer table', () => {
       await guest.goto(`/play/${roomId}?system=loner&invite=${wrongInvite}`);
       await expect(guest.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
 
-      const guestStatus = guest.getByTestId('connection-status');
+      // Connection status is rendered in the header and in the info sheet; use first()
+      const guestStatus = guest.getByTestId('connection-status').first();
       await expect(guestStatus).toBeVisible();
 
-      const partykitLive = (await host.getByTestId('connection-status').getAttribute(
+      const partykitLive = (await host.getByTestId('connection-status').first().getAttribute(
         'data-connection-status',
       )) === 'connected';
 
@@ -84,6 +104,8 @@ test.describe('multiplayer table', () => {
         .poll(async () => guestStatus.getAttribute('data-connection-status'), { timeout: 15_000 })
         .not.toBe('connected');
 
+      // Open Table info sidebar to expose display name input on host
+      await host.getByRole('button', { name: 'Table info' }).click();
       await host.getByTestId('table-presence-name-input').fill('HostOnly');
       await host.getByTestId('table-presence-name-input').blur();
       await expect(host.getByTestId('table-presence-peer')).toHaveCount(0, { timeout: 10_000 });

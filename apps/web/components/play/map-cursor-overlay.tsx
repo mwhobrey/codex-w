@@ -1,19 +1,15 @@
 'use client';
 
-import { excalidrawSceneTransform, useExcalidrawViewport } from '@/hooks/use-excalidraw-viewport';
+import { excalidrawSceneTransform, type ExcalidrawViewport } from '@/lib/excalidraw-viewport-math';
 import type { TablePeer } from '@/hooks/use-table-awareness';
 import { formatPlayerTag } from '@/lib/player-tag';
-import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
-import { useRef } from 'react';
 
 interface MapCursorOverlayProps {
-  api: ExcalidrawImperativeAPI | null;
+  viewport: ExcalidrawViewport;
   peers: TablePeer[];
 }
 
-export function MapCursorOverlay({ api, peers }: MapCursorOverlayProps) {
-  const anchorRef = useRef<SVGSVGElement>(null);
-  const viewport = useExcalidrawViewport(api, anchorRef);
+export function MapCursorOverlay({ viewport, peers }: MapCursorOverlayProps) {
   const sceneTransform = excalidrawSceneTransform(viewport);
 
   const remote = peers.filter((peer) => !peer.isSelf && peer.cursor);
@@ -22,7 +18,6 @@ export function MapCursorOverlay({ api, peers }: MapCursorOverlayProps) {
 
   return (
     <svg
-      ref={anchorRef}
       className="pointer-events-none absolute inset-0 z-[3] h-full w-full overflow-hidden"
       aria-hidden
     >
@@ -44,3 +39,4 @@ export function MapCursorOverlay({ api, peers }: MapCursorOverlayProps) {
     </svg>
   );
 }
+

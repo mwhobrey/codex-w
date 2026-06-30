@@ -12,15 +12,13 @@ import {
   updatePlayerToken,
   type PlayerTokenView,
 } from '@codex/sync';
-import { excalidrawSceneTransform, useExcalidrawViewport } from '@/hooks/use-excalidraw-viewport';
-import { viewportCoordsToSceneCoords } from '@excalidraw/excalidraw';
-import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import { type ExcalidrawViewport, excalidrawSceneTransform, viewportToScenePoint } from '@/lib/excalidraw-viewport-math';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
 import type * as Y from 'yjs';
 
 interface PlayerTokenOverlayProps {
   doc: Y.Doc | null;
-  api: ExcalidrawImperativeAPI | null;
+  viewport: ExcalidrawViewport;
   tokens: PlayerTokenView[];
   localClientId: number | null;
   mapRole?: MapViewRole;
@@ -35,6 +33,8 @@ interface InteractionState {
   mode: InteractionMode;
   offsetX: number;
   offsetY: number;
+  offsetLeft: number;
+  offsetTop: number;
 }
 
 function tokenInitials(token: PlayerTokenView): string {
@@ -54,48 +54,55 @@ function canManipulateToken(
 
 export function PlayerTokenOverlay({
   doc,
-  api,
+  viewport,
   tokens,
   localClientId,
   mapRole = 'gm',
   isTableGm = false,
   hiddenCells,
 }: PlayerTokenOverlayProps) {
-  const anchorRef = useRef<SVGSVGElement>(null);
   const interactionRef = useRef<InteractionState | null>(null);
   const dragPositionRef = useRef<{ key: string; x: number; y: number } | null>(null);
   const syncThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [, bumpDragFrame] = useState(0);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<SVGGElement>, token: PlayerTokenView) => {
+      if (!doc) return;
+      const step = event.shiftKey ? 6 : 24;
+      let nextX = token.x;
+      let nextY = token.y;
+      switch (event.key) {
+        case 'ArrowLeft':
+          nextX -= step;
+          break;
+        case 'ArrowRight':
+          nextX += step;
+          break;
+        case 'ArrowUp':
+          nextY -= step;
+          break;
+        case 'ArrowDown':
+          nextY += step;
+          break;
+        default:
+          return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const snapped = snapTokenPosition(nextX, nextY);
+      updatePlayerToken(doc, token.key, { x: snapped.x, y: snapped.y });
+    },
+    [doc],
+  );
   const characterIds = useMemo(() => tokens.map((token) => token.characterId), [tokens]);
   const portraits = useCharacterPortraits(characterIds);
-  const viewport = useExcalidrawViewport(api, anchorRef);
   const sceneTransform = excalidrawSceneTransform(viewport);
 
   const visibleTokens = useMemo(() => {
     if (mapRole === 'gm') return tokens;
     return tokens.filter((token) => !isScenePointFogged(token.x, token.y, hiddenCells));
   }, [hiddenCells, mapRole, tokens]);
-
-  const scenePointFromEvent = useCallback(
-    (clientX: number, clientY: number) => {
-      if (!api) return null;
-      const root = document.querySelector('.excalidraw');
-      if (!(root instanceof HTMLElement)) return null;
-      const bounds = root.getBoundingClientRect();
-      const appState = api.getAppState();
-      return viewportCoordsToSceneCoords(
-        { clientX, clientY },
-        {
-          zoom: appState.zoom,
-          offsetLeft: bounds.left,
-          offsetTop: bounds.top,
-          scrollX: appState.scrollX,
-          scrollY: appState.scrollY,
-        },
-      );
-    },
-    [api],
-  );
 
   const finishInteraction = useCallback(
     (key: string, x: number, y: number) => {
@@ -143,7 +150,13 @@ export function PlayerTokenOverlay({
       event.stopPropagation();
       (event.currentTarget as SVGElement).setPointerCapture(event.pointerId);
 
-      const point = scenePointFromEvent(event.clientX, event.clientY);
+      const root = document.querySelector('.excalidraw');
+      if (!(root instanceof HTMLElement)) return;
+      const bounds = root.getBoundingClientRect();
+      const offsetLeft = bounds.left;
+      const offsetTop = bounds.top;
+
+      const point = viewportToScenePoint(event.clientX, event.clientY, viewport, offsetLeft, offsetTop);
       if (!point) return;
 
       interactionRef.current = {
@@ -151,9 +164,11 @@ export function PlayerTokenOverlay({
         mode: 'move',
         offsetX: point.x - token.x,
         offsetY: point.y - token.y,
+        offsetLeft,
+        offsetTop,
       };
     },
-    [doc, isTableGm, localClientId, scenePointFromEvent],
+    [doc, isTableGm, localClientId, viewport],
   );
 
   const onResizePointerDown = useCallback(
@@ -163,11 +178,17 @@ export function PlayerTokenOverlay({
       event.stopPropagation();
       (event.currentTarget as SVGElement).setPointerCapture(event.pointerId);
 
+      const root = document.querySelector('.excalidraw');
+      if (!(root instanceof HTMLElement)) return;
+      const bounds = root.getBoundingClientRect();
+
       interactionRef.current = {
         key: token.key,
         mode: 'resize',
         offsetX: 0,
         offsetY: 0,
+        offsetLeft: bounds.left,
+        offsetTop: bounds.top,
       };
     },
     [doc, isTableGm, localClientId],
@@ -178,7 +199,13 @@ export function PlayerTokenOverlay({
       const interaction = interactionRef.current;
       if (!interaction || !doc) return;
 
-      const point = scenePointFromEvent(event.clientX, event.clientY);
+      const point = viewportToScenePoint(
+        event.clientX,
+        event.clientY,
+        viewport,
+        interaction.offsetLeft,
+        interaction.offsetTop,
+      );
       if (!point) return;
 
       if (interaction.mode === 'move') {
@@ -199,7 +226,7 @@ export function PlayerTokenOverlay({
       );
       updatePlayerToken(doc, interaction.key, { radius });
     },
-    [doc, scenePointFromEvent, tokens],
+    [doc, tokens, viewport],
   );
 
   const onPointerUp = useCallback(
@@ -239,7 +266,6 @@ export function PlayerTokenOverlay({
 
   return (
     <svg
-      ref={anchorRef}
       className="pointer-events-none absolute inset-0 z-[4] h-full w-full overflow-hidden"
       data-testid="player-token-overlay"
       aria-label="Player tokens"
@@ -273,7 +299,26 @@ export function PlayerTokenOverlay({
               key={token.key}
               transform={`translate(${position.x} ${position.y})`}
               opacity={opacity}
+              tabIndex={manipulable ? 0 : undefined}
+              role={manipulable ? 'button' : undefined}
+              aria-label={
+                manipulable
+                  ? `Player token for ${label}. Use arrow keys to move, hold Shift for smaller steps.`
+                  : `Player token for ${label}.`
+              }
+              onKeyDown={manipulable ? (event) => handleKeyDown(event, token) : undefined}
+              className={manipulable ? 'group outline-none' : ''}
             >
+              {manipulable && (
+                <circle
+                  r={r + 4}
+                  fill="none"
+                  stroke={token.color}
+                  strokeWidth={2}
+                  strokeDasharray="4 2"
+                  className="opacity-0 transition-opacity group-focus-visible:opacity-100 pointer-events-none"
+                />
+              )}
               {portrait ? (
                 <image
                   href={portrait}

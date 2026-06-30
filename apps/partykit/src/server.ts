@@ -5,30 +5,29 @@ import {
   checkRoomInviteAdmission,
   isValidInviteToken,
   parseInviteFromUri,
-} from '@codex/sync';
+} from '@codex/sync/room-invite';
 import { guardedOnConnect } from './guarded-connect';
 
 const ROOM_INVITE_STORAGE_KEY = 'inviteToken';
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
 
 async function admitWithInviteGate(
   room: Party.Room,
   provided: string | null,
 ): Promise<{ allowed: true } | { allowed: false; reason: string }> {
-  let stored = (await room.storage.get<string>(ROOM_INVITE_STORAGE_KEY)) ?? null;
-  let admission = checkRoomInviteAdmission(stored, provided);
-
-  if (!admission.allowed) {
-    return { allowed: false, reason: admission.reason };
+  const stored = (await room.storage.get<string>(ROOM_INVITE_STORAGE_KEY)) ?? null;
+  if (!stored) {
+    return { allowed: false, reason: 'invite_required' };
   }
 
-  if (admission.seeded && provided && isValidInviteToken(provided)) {
-    const token = provided.trim();
-    await room.storage.put(ROOM_INVITE_STORAGE_KEY, token);
-    stored = (await room.storage.get<string>(ROOM_INVITE_STORAGE_KEY)) ?? null;
-    admission = admissionAfterInviteSeed(stored, token);
-    if (!admission.allowed) {
-      return { allowed: false, reason: admission.reason };
-    }
+  const admission = checkRoomInviteAdmission(stored, provided);
+  if (!admission.allowed) {
+    return { allowed: false, reason: admission.reason };
   }
 
   return { allowed: true };
@@ -36,6 +35,58 @@ async function admitWithInviteGate(
 
 export default class PlayRoomServer implements Party.Server {
   constructor(readonly room: Party.Room) {}
+
+  async onRequest(req: Party.Request): Promise<Response> {
+    if (req.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    if (req.method === 'POST') {
+      const url = new URL(req.url);
+      const action = url.searchParams.get('action');
+
+      if (action === 'seed') {
+        try {
+          const body = (await req.json()) as { inviteToken?: string };
+          const inviteToken = body.inviteToken?.trim();
+
+          if (!isValidInviteToken(inviteToken)) {
+            return new Response(JSON.stringify({ error: 'invalid_invite' }), {
+              status: 400,
+              headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+            });
+          }
+
+          const stored = await this.room.storage.get<string>(ROOM_INVITE_STORAGE_KEY);
+          if (stored) {
+            if (stored === inviteToken) {
+              return new Response(JSON.stringify({ success: true, alreadySeeded: true }), {
+                status: 200,
+                headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+              });
+            }
+            return new Response(JSON.stringify({ error: 'room_already_seeded' }), {
+              status: 409,
+              headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+            });
+          }
+
+          await this.room.storage.put(ROOM_INVITE_STORAGE_KEY, inviteToken);
+          return new Response(JSON.stringify({ success: true, seeded: true }), {
+            status: 200,
+            headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+          });
+        } catch (err) {
+          return new Response(JSON.stringify({ error: 'bad_request' }), {
+            status: 400,
+            headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+    }
+
+    return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
+  }
 
   async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
     const provided =

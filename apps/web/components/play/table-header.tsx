@@ -116,7 +116,7 @@ export function TableHeader({
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                className="inline-flex min-h-11 items-center px-2 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
               >
                 Table info
               </button>
@@ -140,7 +140,7 @@ export function TableHeader({
                   <button
                     type="button"
                     onClick={copyId}
-                    className="mt-1 inline-flex items-center gap-1 rounded font-mono text-foreground hover:text-primary"
+                    className="mt-1 inline-flex min-h-11 items-center gap-1 rounded px-2 -ml-2 font-mono text-foreground hover:text-primary"
                   >
                     #{roomId}
                     <span className="text-xs uppercase text-muted-foreground/60">

@@ -56,11 +56,16 @@ export const characterPortraitRepo = {
     await getDatabase().characterPortraits.delete(characterId);
   },
 
-  /** Test helper — clears in-memory object URL cache */
-  clearObjectUrlCacheForTests(): void {
+  clearObjectUrlCache(): void {
+    if (typeof URL === 'undefined' || typeof URL.revokeObjectURL !== 'function') return;
     for (const url of objectUrlCache.values()) {
       URL.revokeObjectURL(url);
     }
     objectUrlCache.clear();
+  },
+
+  /** Test helper — clears in-memory object URL cache */
+  clearObjectUrlCacheForTests(): void {
+    this.clearObjectUrlCache();
   },
 };

@@ -9,7 +9,7 @@
 - **Table meta writes** — incremental Y.Map patch instead of clear-and-rewrite
 - **Room IDs** — 16 hex chars (was 8) to reduce squatting surface
 - **Token drag** — local drag preview, throttled Yjs sync, debounced prune, no-op upserts
-- **Atomic invite seeding** — PartyKit re-reads storage after seed; concurrent first-connect losers get `4403 invite_invalid`
+- **Atomic invite seeding** — PartyKit forces HTTP POST seeding before WebSocket connection is allowed. Any unseeded WebSocket connections are rejected with 4403, preventing room squatting.
 - **Shared play-room session** — refcounted singleton per `roomId` (`play-room-session.ts`); dice hub log push shares doc + invite
 - **Excalidraw sync** — incremental element patch (id/version aware) instead of full-array replace; microtask remote-echo guard
 - **Invite in URL** — stripped via `replaceState` after hydrate; token lives in storage + Yjs meta only

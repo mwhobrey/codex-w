@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test';
 
 test.describe('core play loop smoke', () => {
   test('landing → roll → characters → loner table', async ({ page }) => {
+    page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+    page.on('pageerror', err => console.error('BROWSER ERROR:', err.stack || err.message));
+
     await page.goto('/');
     await expect(page.getByTestId('landing-hero')).toBeVisible();
 

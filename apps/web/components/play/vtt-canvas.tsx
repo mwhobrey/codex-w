@@ -23,7 +23,8 @@ import type { MapViewRole } from '@/lib/table-systems';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import dynamic from 'next/dynamic';
-import { viewportCoordsToSceneCoords } from '@excalidraw/excalidraw';
+import { viewportToScenePoint } from '@/lib/excalidraw-viewport-math';
+import { useExcalidrawViewport } from '@/hooks/use-excalidraw-viewport';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type * as Y from 'yjs';
 import '@excalidraw/excalidraw/index.css';
@@ -84,6 +85,8 @@ export function VttCanvas({
   const activeToolRef = useRef(activeTool);
   const activeStampRef = useRef<string | null>(null);
   const tokenOptionsRef = useRef(tokenOptions);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const viewport = useExcalidrawViewport(apiRef.current, canvasContainerRef);
   const initialDataRef = useRef<{
     elements: readonly ExcalidrawElement[];
     scrollToContent: boolean;
@@ -289,16 +292,14 @@ export function VttCanvas({
       }
 
       const appState = api.getAppState();
-      const scene = viewportCoordsToSceneCoords(
-        { clientX: event.clientX, clientY: event.clientY },
-        {
-          zoom: appState.zoom,
-          offsetLeft: bounds.left,
-          offsetTop: bounds.top,
-          scrollX: appState.scrollX,
-          scrollY: appState.scrollY,
-        },
-      );
+      const tempViewport = {
+        scrollX: appState.scrollX,
+        scrollY: appState.scrollY,
+        zoom: appState.zoom.value,
+        anchorX: 0,
+        anchorY: 0,
+      };
+      const scene = viewportToScenePoint(event.clientX, event.clientY, tempViewport, bounds.left, bounds.top);
       lastPoint = scene;
 
       if (frame) return;
@@ -349,6 +350,7 @@ export function VttCanvas({
         />
       ) : null}
       <div
+        ref={canvasContainerRef}
         className={[
           'relative min-h-0 flex-1',
           mapCursor,
@@ -379,17 +381,17 @@ export function VttCanvas({
             tools: { image: false },
           }}
         />
-        <FogOverlay api={apiRef.current} hiddenCells={hiddenCells} mapRole={mapRole} />
+        <FogOverlay viewport={viewport} hiddenCells={hiddenCells} mapRole={mapRole} />
         <PlayerTokenOverlay
           doc={doc}
-          api={apiRef.current}
+          viewport={viewport}
           tokens={playerTokens}
           localClientId={localClientId}
           mapRole={mapRole}
           isTableGm={isTableGm}
           hiddenCells={hiddenCells}
         />
-        <MapCursorOverlay api={apiRef.current} peers={peers} />
+        <MapCursorOverlay viewport={viewport} peers={peers} />
         {showToolbar && floatingToolbar ? (
           <CodexMapToolbar
             variant="floating"

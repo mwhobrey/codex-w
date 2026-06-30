@@ -7,6 +7,14 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./room-invite": {
+      "types": "./src/room-invite.ts",
+      "default": "./src/room-invite.ts"
+    },
+    "./yjs/fog-guard": {
+      "types": "./src/yjs/fog-guard.ts",
+      "default": "./src/yjs/fog-guard.ts"
     }
   },
   "scripts": {

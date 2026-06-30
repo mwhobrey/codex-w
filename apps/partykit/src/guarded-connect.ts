@@ -6,7 +6,7 @@ import {
   fogSnapshotsDiffer,
   restoreFogSnapshot,
   type FogSnapshot,
-} from '@codex/sync';
+} from '@codex/sync/yjs/fog-guard';
 
 type GuardedDoc = Awaited<ReturnType<typeof unstable_getYDoc>>;
 
@@ -18,22 +18,30 @@ function installFogWriteGuard(doc: GuardedDoc): void {
   fogGuardInstalled.add(doc);
 
   doc.on('beforeTransaction', (transaction) => {
-    const origin = transaction.origin;
-    if (origin && doc.conns.has(origin) && !connectionIsTableGm(doc, origin)) {
-      pendingFogSnapshot.set(doc, captureFogSnapshot(doc));
+    try {
+      const origin = transaction.origin;
+      if (origin && doc.conns?.has(origin) && !connectionIsTableGm(doc, origin)) {
+        pendingFogSnapshot.set(doc, captureFogSnapshot(doc));
+      }
+    } catch (err) {
+      console.error('Error in beforeTransaction fog guard:', err);
     }
   });
 
   doc.on('afterTransaction', (transaction) => {
-    const origin = transaction.origin;
-    const before = pendingFogSnapshot.get(doc);
-    pendingFogSnapshot.delete(doc);
-    if (!before || !origin || !doc.conns.has(origin)) return;
-    if (connectionIsTableGm(doc, origin)) return;
+    try {
+      const origin = transaction.origin;
+      const before = pendingFogSnapshot.get(doc);
+      pendingFogSnapshot.delete(doc);
+      if (!before || !origin || !doc.conns?.has(origin)) return;
+      if (connectionIsTableGm(doc, origin)) return;
 
-    const after = captureFogSnapshot(doc);
-    if (fogSnapshotsDiffer(before, after)) {
-      restoreFogSnapshot(doc, before);
+      const after = captureFogSnapshot(doc);
+      if (fogSnapshotsDiffer(before, after)) {
+        restoreFogSnapshot(doc, before);
+      }
+    } catch (err) {
+      console.error('Error in afterTransaction fog guard:', err);
     }
   });
 }
