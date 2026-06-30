@@ -1,22 +1,44 @@
 import { INVITE_QUERY_PARAM, parseInviteFromUri } from '@codex/sync';
 
-export function getPartyKitHost(): string {
-  return process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? '127.0.0.1:1999';
+export function getSyncRelayHost(): string {
+  return (
+    process.env.NEXT_PUBLIC_SYNC_HOST?.trim() ||
+    process.env.NEXT_PUBLIC_PARTYKIT_HOST?.trim() ||
+    '127.0.0.1:1999'
+  );
 }
 
-export function getPartyKitParty(): string {
-  return process.env.NEXT_PUBLIC_PARTYKIT_PARTY ?? 'main';
+/** @deprecated use getSyncRelayHost */
+export const getPartyKitHost = getSyncRelayHost;
+
+export function getSyncRelayParty(): string {
+  return (
+    process.env.NEXT_PUBLIC_SYNC_PARTY?.trim() ||
+    process.env.NEXT_PUBLIC_PARTYKIT_PARTY?.trim() ||
+    'main'
+  );
 }
 
-export function shouldConnectPartyKit(): boolean {
-  return process.env.NEXT_PUBLIC_PARTYKIT_CONNECT !== 'false';
+/** @deprecated use getSyncRelayParty */
+export const getPartyKitParty = getSyncRelayParty;
+
+export function shouldConnectSyncRelay(): boolean {
+  const raw =
+    process.env.NEXT_PUBLIC_SYNC_CONNECT ?? process.env.NEXT_PUBLIC_PARTYKIT_CONNECT ?? 'true';
+  return raw !== 'false';
 }
 
-export function partyKitWsParams(inviteToken?: string): Record<string, string> | undefined {
+/** @deprecated use shouldConnectSyncRelay */
+export const shouldConnectPartyKit = shouldConnectSyncRelay;
+
+export function syncRelayWsParams(inviteToken?: string): Record<string, string> | undefined {
   const invite = inviteToken?.trim();
   if (!invite) return undefined;
   return { [INVITE_QUERY_PARAM]: invite };
 }
+
+/** @deprecated use syncRelayWsParams */
+export const partyKitWsParams = syncRelayWsParams;
 
 export interface PlayRoomPathOptions {
   gameSystemId?: string;

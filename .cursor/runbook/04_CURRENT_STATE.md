@@ -1,6 +1,6 @@
 # Current State
 
-> Last updated: 2025-06-26 — UX polish sprint + VTT overlay fixes
+> Last updated: 2025-06-30 — self-hosted sync relay (Hocuspocus)
 
 ## What Is Working
 
@@ -14,7 +14,7 @@
 - [x] **`packages/config`** — shared TSConfig bases + Codex Tailwind design tokens
 - [x] **`packages/schemas`** — Zod types (`CharacterSheet`, `TableMeta`, `GameSystemId`, etc.)
 - [x] **`apps/web`** — Next.js 16, dark-first landing, PWA shell (Serwist)
-- [x] Locked decisions: PartyKit (MVP sync), Loner (first solo), Better Auth + Neon, Vercel hosting
+- [x] Locked decisions: self-hosted Hocuspocus sync, Loner (first solo), Better Auth + Neon, Vercel hosting
 
 - [x] **`packages/game-engine`** — dice parser, roller, oracles (unit tests)
 - [x] **Dice hub** at `/dice` — formula builder, saved sets, roll log (`/roll` redirects)
@@ -25,7 +25,7 @@
 - [x] **Unified play table** at `/play` + `/play/[roomId]` — solo + multiplayer share one surface
 - [x] **Legacy `/solo/*` routes** — redirect to `/play?system=…` for bookmarks
 - [x] **VTT** — Excalidraw canvas, codex stamps, scene templates, floating map toolbar
-- [x] **Yjs sync** — y-indexeddb offline + PartyKit relay (`apps/partykit`)
+- [x] **Yjs sync** — y-indexeddb offline + Hocuspocus relay (`apps/sync-server`; `apps/partykit` legacy local-only)
 - [x] **Awareness** — presence, remote cursors, per-player character binding, account display names
 - [x] **Player tokens** — Yjs-synced circles, GM move-any, resize/snap, portraits, fog visibility
 - [x] **Fog of war** — GM paint/reveal/clear; player vision; GM local “preview as player”
@@ -36,9 +36,10 @@
 - [x] **Arc B (partial)** — Better Auth at `/login`, Drizzle + Docker Postgres (`npm run stack:up`)
 - [x] **Portrait upload** — local IndexedDB blobs; `portrait_url` in Postgres when signed in; S3 object via `/api/assets`
 - [x] **CI/CD** — GitHub Actions: unit tests, web build, Playwright smoke on PR/push to `main`
-- [x] **Invite tokens** — PartyKit `4403` gate; multi-source resume (URL, meta, storage, recent)
+- [x] **Invite tokens** — relay auth gate; HTTP seed before websocket; multi-source resume (URL, meta, storage, recent)
 - [x] **Story integration** — per-system table panels, TYOV tag engine, Ironforge heat, `/library`, table export
-- [x] **E2E tests** — smoke (all systems + library) + multiplayer invite (PartyKit in CI)
+- [x] **E2E tests** — smoke (all systems + library) + multiplayer invite (sync-server in CI)
+- [x] **`apps/sync-server`** — Hocuspocus on Node; invite seed + fog guard; deploy docs for DO droplet
 - [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (44 tests)
 - [x] **Design system polish** — shadcn `Dialog`/`Sheet` in `@codex/ui`; semantic Tailwind tokens (`primary`, `muted-foreground`, etc.); skip link, reduced-motion, mobile play header
 - [x] **Portrait cloud sync** — local IndexedDB blobs + optional S3 upload; `/api/assets/status`; sync on sign-in via `portrait-cloud-sync.ts`
@@ -55,12 +56,12 @@
 
 ## What Is Explicitly Not Built Yet
 
-- [ ] `apps/sync-server` — deferred; PartyKit handles MVP multiplayer relay
-- [x] Room squatting hardening (atomic invite seed on PartyKit)
-- [ ] Fog / GM server-side enforcement (currently UI-only)
-- [ ] Map snapshots to Postgres (Yjs state is local + PartyKit only)
+- [ ] `apps/partykit` — legacy; superseded by `apps/sync-server` (PartyKit cloud-prem blocked on CF free tier)
+- [x] Room squatting hardening (atomic HTTP invite seed before websocket)
+- [x] Fog server-side enforcement on relay (non-GM fog writes reverted in `apps/sync-server`)
+- [ ] Map snapshots to Postgres (Yjs state is local + relay only)
 - [ ] Solo session / journal full cloud sync
-- [ ] Neon production deploy + PartyKit env on Vercel preview
+- [ ] Neon + Vercel dogfood env fully wired (`codex-w.whobrey.me` + `pk.whobrey.me` relay)
 - [ ] `packages/sync` unit tests — expand excalidraw / play-room provider coverage (`@codex/web` has `play-room` + viewport math tests; root `npm run test` includes `@codex/web`)
 - [ ] Dice hub live log push with invite auth
 
@@ -68,21 +69,21 @@
 
 ### Dogfood & harden multiplayer
 
-1. [x] **Two-browser dogfood** — same `roomId` with PartyKit locally; validate tokens, fog split, GM transfer, log merge (Fully verified and E2E tests passing)
-2. [ ] **PartyKit deploy + env** — `NEXT_PUBLIC_PARTYKIT_HOST` on Vercel preview for internet dogfood
-3. [x] **`@codex/sync` unit tests** — expanded unit test coverage to 44 tests (covering importSoloSessionToTable, hydratePlayRoomIndexedDb, local awareness cleanup, and WebSocket fallback behaviors)
+1. [x] **Two-browser dogfood** — same `roomId` with sync relay locally; validate tokens, fog split, GM transfer, log merge
+2. [ ] **Relay deploy** — `apps/sync-server` on DO droplet; `NEXT_PUBLIC_SYNC_HOST=pk.whobrey.me` on Vercel + redeploy
+3. [x] **`@codex/sync` unit tests** — 44 tests (import, providers, fog, invite, export)
 
 ### Security & ship
 
 4. [x] **Room security** — atomic HTTP invite seeding to prevent room squatting before external tables
-5. **Neon + Vercel** — production Postgres, auth secrets, PartyKit deploy
+5. **Neon + Vercel** — production Postgres, auth secrets, relay env on dogfood domain
 6. [x] **Mobile pass** — touch targets, map toolbar scrollable tabs on small screens
 
 ### Deferred
 
 - Postgres map snapshots
 - `paintFogBrush` UI (exported in sync, unwired)
-- `apps/sync-server` / Hocuspocus if PartyKit limits bite
+- Persisted invite tokens on relay (in-memory today; survives until process restart)
 
 ## CI / E2E (local)
 
@@ -95,11 +96,11 @@ npm run ci   # includes @codex/web vitest (play-room, viewport math)
 npm run test:e2e --workspace=@codex/web
 
 # Multiplayer dogfood (two terminals)
-npm run dev:partykit
+npm run dev:sync
 npm run dev:web
 ```
 
-Workflow: `.github/workflows/ci.yml` — `npm install` → `npm run test` (game-engine + game-systems) → `npm run build --workspace=@codex/web` → Playwright (Chromium). **PartyKit is not started in CI** — rooms fall back to y-indexeddb only.
+Workflow: `.github/workflows/ci.yml` — `npm install` → `npm run test` → `npm run build --workspace=@codex/web` → Playwright (Chromium). E2E starts `apps/sync-server` on port 1999.
 
 ## PWA notes
 
@@ -114,7 +115,7 @@ Workflow: `.github/workflows/ci.yml` — `npm install` → `npm run test` (game-
 |----------|--------|-------|
 | Repo / package name | **codex-w** | Product display name TBD (see `00_INDEX.md`) |
 | First solo system | **Loner** | MVP oracle plugin |
-| Sync host (MVP) | **PartyKit** | Managed Yjs relay |
+| Sync host | **Hocuspocus** (`apps/sync-server`) | Self-hosted on VPS; `NEXT_PUBLIC_SYNC_HOST` |
 | VTT canvas | **Excalidraw** | MIT; replaced tldraw (commercial license risk) |
 | Auth provider | **Better Auth** + Neon | Self-hosted; local Docker Postgres for dev |
 | Primary DB | **Neon Postgres** | Drizzle; sheet/dice/session backup when signed in |
@@ -123,4 +124,4 @@ Workflow: `.github/workflows/ci.yml` — `npm install` → `npm run test` (game-
 
 ## Blockers
 
-None for local dogfood. Internet multiplayer dogfood blocked on PartyKit deploy + env wiring.
+Internet multiplayer dogfood blocked on relay deploy (`pk` subdomain) + `NEXT_PUBLIC_SYNC_HOST` on Vercel.

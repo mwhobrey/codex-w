@@ -11,14 +11,14 @@ import {
   type PlayRoomProviders,
 } from '@codex/sync';
 import type * as Y from 'yjs';
-import { probePartyKitReachable, seedPartyRoomInvite } from '@/lib/partykit-reachable';
 import {
-  getPartyKitHost,
-  getPartyKitParty,
-  partyKitWsParams,
-  shouldConnectPartyKit,
+  getSyncRelayHost,
+  getSyncRelayParty,
+  shouldConnectSyncRelay,
+  syncRelayWsParams,
 } from '@/lib/play-room';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
+import { probeSyncRelayReachable, seedSyncRelayInvite } from '@/lib/sync-relay';
 import { writeStoredTableInvite } from '@/lib/table-invite-storage';
 
 export interface PlayRoomSessionHandle {
@@ -53,22 +53,21 @@ async function bootSession(
     ensureTableInviteToken(doc, invite);
   }
 
-  let connectParty = shouldConnectPartyKit() && isValidInviteToken(invite);
+  let connectRelay = shouldConnectSyncRelay() && isValidInviteToken(invite);
 
-  if (connectParty) {
-    const reachable = await probePartyKitReachable(
-      getPartyKitHost(),
-      getPartyKitParty(),
+  if (connectRelay) {
+    const reachable = await probeSyncRelayReachable(
+      getSyncRelayHost(),
+      getSyncRelayParty(),
       roomId,
       invite,
     );
     if (!reachable) {
-      connectParty = false;
+      connectRelay = false;
     } else if (invite) {
-      // Atomically seed the invite token via HTTP before connecting via WebSocket.
-      const seeded = await seedPartyRoomInvite(
-        getPartyKitHost(),
-        getPartyKitParty(),
+      const seeded = await seedSyncRelayInvite(
+        getSyncRelayHost(),
+        getSyncRelayParty(),
         roomId,
         invite,
       );
@@ -81,11 +80,10 @@ async function bootSession(
   const providers = createPlayRoomProviders({
     doc,
     roomId,
-    host: getPartyKitHost(),
-    party: getPartyKitParty(),
-    connect: connectParty,
-    attemptLiveSync: shouldConnectPartyKit(),
-    params: partyKitWsParams(invite),
+    host: getSyncRelayHost(),
+    connect: connectRelay,
+    attemptLiveSync: shouldConnectSyncRelay(),
+    params: syncRelayWsParams(invite),
     indexedDb,
   });
 

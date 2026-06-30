@@ -7,7 +7,7 @@ const STATUS_LABEL: Record<PlayRoomConnectionStatus, string> = {
   connected: 'Connected',
   connecting: 'Connecting…',
   disconnected: 'Reconnecting…',
-  'local-only': 'Offline (start PartyKit for sync)',
+  'local-only': 'Offline (start sync relay for live play)',
   'invite-required': 'Invite code required for live sync',
   'auth-failed': 'Invite rejected — check your link',
 };

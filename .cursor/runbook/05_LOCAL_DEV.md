@@ -7,7 +7,7 @@
 | Run on host | Run in Docker |
 |-------------|---------------|
 | Next.js (`npm run dev:web`) | Postgres |
-| PartyKit (`npm run dev:partykit`) | *(optional: bundled MinIO via `docker-compose.minio.yml`)* |
+| Sync relay (`npm run dev:sync`) | *(optional: bundled MinIO via `docker-compose.minio.yml`)* |
 | **Your existing MinIO** (`:9000`) | — |
 
 Do **not** containerize Next.js for day-to-day dev — Turbopack is faster on the host. Docker is for **dependencies** (Postgres), not the app.
@@ -30,7 +30,7 @@ cp apps/web/.env.example apps/web/.env.local
 
 # 4. Three terminals (or two if skipping multiplayer)
 npm run dev:web          # http://localhost:3000
-npm run dev:partykit     # ws://127.0.0.1:1999 — optional for /play
+npm run dev:sync          # ws://127.0.0.1:1999 — optional for /play
 ```
 
 ### Verify Arc B locally
@@ -41,7 +41,7 @@ npm run dev:partykit     # ws://127.0.0.1:1999 — optional for /play
 
 ### Verify Arc A locally
 
-1. PartyKit running (`npm run dev:partykit`)
+1. Sync relay running (`npm run dev:sync`)
 2. Open `/play` → create room → open invite link in second tab
 3. Draw on map; entries appear in session log
 
@@ -55,7 +55,8 @@ npm run dev:partykit     # ws://127.0.0.1:1999 — optional for /play
 | `npm run stack:reset` | Wipe volume + re-init schema |
 | `npm run stack:psql` | psql shell into local DB |
 | `npm run dev:web` | Next.js dev server (**webpack** — matches production; avoids Turbopack HMR flicker) |
-| `npm run dev:partykit` | Yjs relay |
+| `npm run dev:sync` | Yjs relay (Hocuspocus) |
+| `npm run dev:partykit` | Alias for `dev:sync` |
 
 ## When to use Neon vs Docker
 
@@ -97,4 +98,4 @@ Dogfooding on a domain is **deploy + Neon env vars** — same code, different `D
 - **Port 5432 already has Postgres** — codex uses **5433** by default to avoid clashing with a host install
 - **Schema drift** — `npm run stack:reset` or apply `packages/db/drizzle/0001_solo.sql` via `npm run stack:psql`
 - **MinIO port conflict** — compose no longer binds :9000; use your existing MinIO or optional `docker-compose.minio.yml` on :19000
-- **PartyKit offline badge** — start `npm run dev:partykit`; map still works via y-indexeddb
+- **Relay offline badge** — start `npm run dev:sync`; map still works via y-indexeddb

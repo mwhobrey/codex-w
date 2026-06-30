@@ -34,8 +34,8 @@ jobs:
       - name: Build web app
         run: npm run build --workspace=@codex/web
         env:
-          NEXT_PUBLIC_PARTYKIT_HOST: 127.0.0.1:1999
-          NEXT_PUBLIC_PARTYKIT_CONNECT: 'true'
+          NEXT_PUBLIC_SYNC_HOST: 127.0.0.1:1999
+          NEXT_PUBLIC_SYNC_CONNECT: 'true'
 
   e2e:
     runs-on: ubuntu-latest
@@ -62,22 +62,22 @@ jobs:
       - name: Build web app
         run: npm run build --workspace=@codex/web
         env:
-          NEXT_PUBLIC_PARTYKIT_HOST: 127.0.0.1:1999
-          NEXT_PUBLIC_PARTYKIT_CONNECT: 'true'
+          NEXT_PUBLIC_SYNC_HOST: 127.0.0.1:1999
+          NEXT_PUBLIC_SYNC_CONNECT: 'true'
 
-      - name: Start PartyKit relay
-        run: npm run dev --workspace=@codex/partykit &
+      - name: Start sync relay
+        run: npm run dev:sync &
 
-      - name: Wait for PartyKit
+      - name: Wait for sync relay
         run: |
           for i in $(seq 1 45); do
             if nc -z 127.0.0.1 1999; then
-              echo "PartyKit is up"
+              echo "Sync relay is up"
               exit 0
             fi
             sleep 1
           done
-          echo "PartyKit failed to start"
+          echo "Sync relay failed to start"
           exit 1
 
       - name: E2E tests

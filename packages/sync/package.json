@@ -15,6 +15,10 @@
     "./yjs/fog-guard": {
       "types": "./src/yjs/fog-guard.ts",
       "default": "./src/yjs/fog-guard.ts"
+    },
+    "./sync-relay-url": {
+      "types": "./src/sync-relay-url.ts",
+      "default": "./src/sync-relay-url.ts"
     }
   },
   "scripts": {
@@ -26,7 +30,7 @@
     "@codex/schemas": "*",
     "dexie": "^4.0.11",
     "y-indexeddb": "^9.0.12",
-    "y-partykit": "^0.0.33",
+    "@hocuspocus/provider": "^4.3.0",
     "yjs": "^13.6.31"
   },
   "devDependencies": {

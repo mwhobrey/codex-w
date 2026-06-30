@@ -28,7 +28,6 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "serwist": "^9.5.5",
-    "y-partykit": "^0.0.33",
     "yjs": "^13.6.31"
   },
   "devDependencies": {

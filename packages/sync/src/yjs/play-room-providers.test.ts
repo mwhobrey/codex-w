@@ -1,8 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import * as Y from 'yjs';
-import { createPlayRoomProviders, hydratePlayRoomIndexedDb } from './play-room-providers';
+import { HocuspocusProvider, WebSocketStatus } from '@hocuspocus/provider';
 import { IndexeddbPersistence } from 'y-indexeddb';
-import YPartyKitProvider from 'y-partykit/provider';
+import { createPlayRoomProviders, hydratePlayRoomIndexedDb } from './play-room-providers';
 
 vi.mock('y-indexeddb', () => {
   return {
@@ -16,18 +16,25 @@ vi.mock('y-indexeddb', () => {
   };
 });
 
-vi.mock('y-partykit/provider', () => {
+vi.mock('@hocuspocus/provider', () => {
   return {
-    default: vi.fn().mockImplementation(() => {
+    WebSocketStatus: {
+      Connecting: 'connecting',
+      Connected: 'connected',
+      Disconnected: 'disconnected',
+    },
+    HocuspocusProvider: vi.fn().mockImplementation(() => {
       return {
         destroy: vi.fn(),
         disconnect: vi.fn(),
-        on: vi.fn(),
-        wsconnected: false,
-        wsconnecting: false,
         synced: false,
         awareness: {
           destroy: vi.fn(),
+        },
+        configuration: {
+          websocketProvider: {
+            status: 'disconnected',
+          },
         },
       };
     }),
@@ -50,7 +57,7 @@ describe('play-room-providers', () => {
       connect: false,
     });
 
-    expect(providers.party).toBeUndefined();
+    expect(providers.relay).toBeUndefined();
     expect(providers.getStatus()).toBe('local-only');
     expect(IndexeddbPersistence).toHaveBeenCalled();
   });
@@ -60,10 +67,10 @@ describe('play-room-providers', () => {
       doc,
       roomId: 'test-room',
       host: 'localhost:1999',
-      params: { invite: 'short' }, // invalid token
+      params: { invite: 'short' },
     });
 
-    expect(providers.party).toBeUndefined();
+    expect(providers.relay).toBeUndefined();
     expect(providers.getStatus()).toBe('local-only');
   });
 
@@ -76,11 +83,11 @@ describe('play-room-providers', () => {
       params: {},
     });
 
-    expect(providers.party).toBeUndefined();
+    expect(providers.relay).toBeUndefined();
     expect(providers.getStatus()).toBe('invite-required');
   });
 
-  it('creates partykit provider when connect is true and valid invite is provided', () => {
+  it('creates relay provider when connect is true and valid invite is provided', () => {
     const providers = createPlayRoomProviders({
       doc,
       roomId: 'test-room',
@@ -88,11 +95,11 @@ describe('play-room-providers', () => {
       params: { invite: 'valid-token-abcdefghij' },
     });
 
-    expect(providers.party).toBeDefined();
-    expect(YPartyKitProvider).toHaveBeenCalled();
+    expect(providers.relay).toBeDefined();
+    expect(HocuspocusProvider).toHaveBeenCalled();
   });
 
-  it('reports correct connection status based on partykit state', () => {
+  it('reports correct connection status based on relay state', () => {
     const providers = createPlayRoomProviders({
       doc,
       roomId: 'test-room',
@@ -100,42 +107,34 @@ describe('play-room-providers', () => {
       params: { invite: 'valid-token-abcdefghij' },
     });
 
-    const party = providers.party as any;
+    const relay = providers.relay as {
+      synced: boolean;
+      configuration: { websocketProvider: { status: string } };
+    };
 
-    // Default disconnected
     expect(providers.getStatus()).toBe('disconnected');
 
-    // Connecting
-    party.wsconnecting = true;
+    relay.configuration.websocketProvider.status = WebSocketStatus.Connecting;
     expect(providers.getStatus()).toBe('connecting');
 
-    // Connected but not synced
-    party.wsconnecting = false;
-    party.wsconnected = true;
-    expect(providers.getStatus()).toBe('disconnected');
-
-    // Connected and synced
-    party.synced = true;
+    relay.configuration.websocketProvider.status = WebSocketStatus.Connected;
+    relay.synced = true;
     expect(providers.getStatus()).toBe('connected');
   });
 
-  it('handles invite close code 4403 as auth-failed', () => {
-    let closeHandler: any;
-    vi.mocked(YPartyKitProvider).mockImplementationOnce((host, room, doc, opts) => {
-      const mockParty = {
+  it('handles onAuthenticationFailed as auth-failed', () => {
+    let authFailedHandler: (() => void) | undefined;
+    vi.mocked(HocuspocusProvider).mockImplementationOnce((config) => {
+      authFailedHandler = config.onAuthenticationFailed;
+      return {
         destroy: vi.fn(),
         disconnect: vi.fn(),
-        on: vi.fn((event, cb) => {
-          if (event === 'connection-close') {
-            closeHandler = cb;
-          }
-        }),
-        wsconnected: false,
-        wsconnecting: false,
         synced: false,
         awareness: {},
-      };
-      return mockParty as any;
+        configuration: {
+          websocketProvider: { status: WebSocketStatus.Disconnected },
+        },
+      } as unknown as HocuspocusProvider;
     });
 
     const providers = createPlayRoomProviders({
@@ -145,17 +144,9 @@ describe('play-room-providers', () => {
       params: { invite: 'valid-token-abcdefghij' },
     });
 
-    expect(closeHandler).toBeDefined();
-    expect(providers.getStatus()).toBe('disconnected');
-
-    // Trigger normal close
-    closeHandler({ code: 1000 });
-    expect(providers.getStatus()).toBe('disconnected');
-
-    // Trigger 4403 close
-    closeHandler({ code: 4403 });
+    expect(authFailedHandler).toBeDefined();
+    authFailedHandler!();
     expect(providers.getStatus()).toBe('auth-failed');
-    expect(providers.party?.disconnect).toHaveBeenCalled();
   });
 
   it('cleans up resources on cleanup()', () => {
@@ -168,7 +159,7 @@ describe('play-room-providers', () => {
 
     providers.cleanup();
 
-    expect(providers.party?.destroy).toHaveBeenCalled();
+    expect(providers.relay?.destroy).toHaveBeenCalled();
     expect(providers.indexedDb.destroy).toHaveBeenCalled();
   });
 
@@ -184,22 +175,20 @@ describe('play-room-providers', () => {
           }
         }),
         destroy: vi.fn(),
-      } as any;
+      } as unknown as IndexeddbPersistence;
     });
 
     const mockDoc = new Y.Doc();
     const hydrationPromise = hydratePlayRoomIndexedDb('test-room', mockDoc);
 
     expect(onSyncedCallback).toBeDefined();
-
-    // Resolve it
     onSyncedCallback!();
 
     const db = await hydrationPromise;
     expect(db.synced).toBe(false);
   });
 
-  it('does not create partykit provider if WebSocket is undefined', () => {
+  it('does not create relay provider if WebSocket is undefined', () => {
     const originalWebSocket = globalThis.WebSocket;
     // @ts-expect-error - overriding global
     delete globalThis.WebSocket;
@@ -212,14 +201,14 @@ describe('play-room-providers', () => {
         params: { invite: 'valid-token-abcdefghij' },
       });
 
-      expect(providers.party).toBeUndefined();
+      expect(providers.relay).toBeUndefined();
       expect(providers.getStatus()).toBe('local-only');
     } finally {
       globalThis.WebSocket = originalWebSocket;
     }
   });
 
-  it('cleans up local awareness when partykit provider is not created', () => {
+  it('cleans up local awareness when relay provider is not created', () => {
     const providers = createPlayRoomProviders({
       doc,
       roomId: 'test-room',

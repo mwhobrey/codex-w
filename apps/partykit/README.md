@@ -1,4 +1,6 @@
-# @codex/partykit — Yjs relay for Play Together rooms
+# @codex/partykit — legacy (superseded)
+
+> **Use `apps/sync-server` instead.** PartyKit managed + cloud-prem deploy blocked on Cloudflare free-tier Durable Object limits. Kept for reference only.
 
 PartyKit WebSocket server that relays Yjs CRDT updates for multiplayer VTT maps and shared session logs.
 

@@ -24,7 +24,7 @@
 | Primary DB | **PostgreSQL** (Neon prod / Docker local) | Relational truth for users, sheets, sessions, asset refs |
 | Auth | **Better Auth** + Drizzle adapter | Self-hosted; httpOnly cookies; no per-MAU tax |
 | Object storage | **S3-compatible** (MinIO local, R2/S3 prod) | Map exports, character portraits, custom assets |
-| Realtime | **PartyKit** (MVP) → Hocuspocus (optional later) | Managed Yjs WebSocket relay; scales per-room |
+| Realtime | **Hocuspocus** (`apps/sync-server`) | Self-hosted Yjs WebSocket relay on VPS |
 | Edge / API | Next.js Route Handlers | Thin server; heavy logic stays client-side |
 | Monorepo | **Turborepo** + **npm workspaces** | Shared packages, fast CI caches |
 

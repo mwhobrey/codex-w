@@ -42,3 +42,4 @@ public/swe-worker*
 # Supabase
 supabase/.branches
 supabase/.temp
+.vercel
