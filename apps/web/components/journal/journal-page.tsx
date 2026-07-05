@@ -35,16 +35,12 @@ export function JournalPage() {
     [ownerId, ready],
   );
 
-  const entries = useLiveQuery(
-    () =>
-      ready && ownerId
-        ? journalRepo.searchByOwner(ownerId, {
-            text: text.trim() || undefined,
-            tag: activeTag ?? undefined,
-            type: activeType ?? undefined,
-          })
-        : Promise.resolve(undefined),
-    [ownerId, ready, text, activeTag, activeType],
+  // One unfiltered full-history query, live-updating; text/tag/type filters
+  // and the tag picker's option list both derive from it in-memory instead
+  // of each re-querying Dexie's full journal-entries scan.
+  const allEntries = useLiveQuery(
+    () => (ready && ownerId ? journalRepo.searchByOwner(ownerId, {}) : Promise.resolve(undefined)),
+    [ownerId, ready],
   );
 
   const sessionsById = useMemo(() => {
@@ -53,18 +49,24 @@ export function JournalPage() {
     return map;
   }, [sessions]);
 
-  const knownTags = useLiveQuery(
-    () => (ready && ownerId ? journalRepo.searchByOwner(ownerId, {}) : Promise.resolve(undefined)),
-    [ownerId, ready],
-  );
+  const entries = useMemo(() => {
+    if (!allEntries) return allEntries;
+    const query = text.trim().toLowerCase();
+    return allEntries.filter((entry) => {
+      if (activeType && entry.type !== activeType) return false;
+      if (activeTag && !entry.tags?.includes(activeTag)) return false;
+      if (query && !entry.content.toLowerCase().includes(query)) return false;
+      return true;
+    });
+  }, [allEntries, text, activeTag, activeType]);
 
   const tagOptions = useMemo(() => {
     const tags = new Set<string>();
-    for (const entry of knownTags ?? []) {
+    for (const entry of allEntries ?? []) {
       for (const tag of entry.tags ?? []) tags.add(tag);
     }
     return [...tags].sort();
-  }, [knownTags]);
+  }, [allEntries]);
 
   const grouped = useMemo(() => {
     const groups = new Map<string, JournalEntry[]>();

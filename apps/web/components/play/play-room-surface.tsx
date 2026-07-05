@@ -342,7 +342,11 @@ export function PlayRoomSurface({
         />
       ) : null}
 
-      <TableGlossaryPanel entries={logEntries} />
+      <TableGlossaryPanel
+        entries={logEntries}
+        ownerId={ownerReady ? ownerId : undefined}
+        roomId={roomId}
+      />
     </div>
   );
 
