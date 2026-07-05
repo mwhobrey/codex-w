@@ -61,7 +61,7 @@
 - [x] Fog server-side enforcement on relay (non-GM fog writes reverted in `apps/sync-server`)
 - [ ] Map snapshots to Postgres (Yjs state is local + relay only)
 - [ ] Solo session / journal full cloud sync
-- [ ] Neon + Vercel dogfood env fully wired (`codex-w.whobrey.me` + `pk.whobrey.me` relay)
+- [x] Neon + Vercel dogfood env wired (`codex-w.whobrey.me` live; `pk.whobrey.me` relay confirmed healthy)
 - [ ] `packages/sync` unit tests — expand excalidraw / play-room provider coverage (`@codex/web` has `play-room` + viewport math tests; root `npm run test` includes `@codex/web`)
 - [ ] Dice hub live log push with invite auth
 
@@ -70,13 +70,13 @@
 ### Dogfood & harden multiplayer
 
 1. [x] **Two-browser dogfood** — same `roomId` with sync relay locally; validate tokens, fog split, GM transfer, log merge
-2. [ ] **Relay deploy** — `docker compose -f docker-compose.sync-server.yml` on DO droplet; Caddy `reverse_proxy codex-sync:1999`; `NEXT_PUBLIC_SYNC_HOST=pk.whobrey.me`
+2. [x] **Relay deploy** — live on DO droplet; `https://pk.whobrey.me/health` → `ok`; `codex-w.whobrey.me` serving production build
 3. [x] **`@codex/sync` unit tests** — 44 tests (import, providers, fog, invite, export)
 
 ### Security & ship
 
 4. [x] **Room security** — atomic HTTP invite seeding to prevent room squatting before external tables
-5. **Neon + Vercel** — production Postgres, auth secrets, relay env on dogfood domain
+5. [x] **Neon + Vercel** — production env live on dogfood domain
 6. [x] **Mobile pass** — touch targets, map toolbar scrollable tabs on small screens
 
 ### Deferred
@@ -124,4 +124,4 @@ Workflow: `.github/workflows/ci.yml` — `npm install` → `npm run test` → `n
 
 ## Blockers
 
-Internet multiplayer dogfood blocked on relay deploy (`pk` subdomain) + `NEXT_PUBLIC_SYNC_HOST` on Vercel.
+None currently — relay + dogfood domain confirmed live (2026-07-04).
