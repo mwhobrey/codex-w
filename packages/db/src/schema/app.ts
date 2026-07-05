@@ -1,5 +1,5 @@
 import type { CharacterSheetField, DiceFormula, LibraryTableRow } from '@codex/schemas';
-import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth';
 
 export const characterSheets = pgTable('character_sheets', {
@@ -18,7 +18,7 @@ export const characterSheets = pgTable('character_sheets', {
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
 
-export const soloSessions = pgTable('solo_sessions', {
+export const playSessions = pgTable('play_sessions', {
   id: uuid('id').primaryKey(),
   ownerId: text('owner_id')
     .notNull()
@@ -28,6 +28,9 @@ export const soloSessions = pgTable('solo_sessions', {
   characterId: uuid('character_id'),
   sceneFocus: text('scene_focus'),
   gameState: jsonb('game_state').$type<Record<string, unknown>>(),
+  roomId: text('room_id'),
+  chapterNumber: integer('chapter_number'),
+  status: text('status'),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
@@ -36,14 +39,27 @@ export const journalEntries = pgTable('journal_entries', {
   id: uuid('id').primaryKey(),
   sessionId: uuid('session_id')
     .notNull()
-    .references(() => soloSessions.id, { onDelete: 'cascade' }),
+    .references(() => playSessions.id, { onDelete: 'cascade' }),
   ownerId: text('owner_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
   type: text('type').notNull(),
   content: text('content').notNull(),
   metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+  tags: jsonb('tags').$type<string[]>(),
+  pinned: boolean('pinned').default(false),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+});
+
+export const savedTags = pgTable('saved_tags', {
+  id: uuid('id').primaryKey(),
+  ownerId: text('owner_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  label: text('label').notNull(),
+  color: text('color'),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
 
 export const diceSets = pgTable('dice_sets', {
@@ -55,6 +71,16 @@ export const diceSets = pgTable('dice_sets', {
   formulas: jsonb('formulas').notNull().$type<DiceFormula[]>(),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+});
+
+export const playerNotes = pgTable('player_notes', {
+  id: uuid('id').primaryKey(),
+  ownerId: text('owner_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  roomId: text('room_id').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
 
 export const libraryTables = pgTable('library_tables', {

@@ -1,6 +1,6 @@
-import type { JournalEntry, SoloSession } from '@codex/schemas';
+import type { JournalEntry, PlaySession } from '@codex/schemas';
 
-export async function queueSessionSync(session: SoloSession): Promise<{ synced: boolean }> {
+export async function queueSessionSync(session: PlaySession): Promise<{ synced: boolean }> {
   try {
     const res = await fetch(`/api/sessions/${session.id}`, {
       method: 'PUT',

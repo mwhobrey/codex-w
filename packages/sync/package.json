@@ -16,6 +16,10 @@
       "types": "./src/yjs/fog-guard.ts",
       "default": "./src/yjs/fog-guard.ts"
     },
+    "./yjs/log-guard": {
+      "types": "./src/yjs/log-guard.ts",
+      "default": "./src/yjs/log-guard.ts"
+    },
     "./sync-relay-url": {
       "types": "./src/sync-relay-url.ts",
       "default": "./src/sync-relay-url.ts"

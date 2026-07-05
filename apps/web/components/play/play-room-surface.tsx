@@ -2,7 +2,7 @@
 
 import type { RollResult } from '@codex/game-engine';
 import { getGameSystem } from '@codex/game-systems';
-import { claimTableGmIfVacant, ensureTableInviteToken, importSoloSessionToTable, journalRepo, soloSessionRepo, transferTableGm } from '@codex/sync';
+import { claimTableGmIfVacant, ensureTableInviteToken, importPlaySessionToTable, journalRepo, playSessionRepo, transferTableGm } from '@codex/sync';
 import { Button, cn } from '@codex/ui';
 import { CharacterPicker, useCharacter } from '@/components/solo/character-picker';
 import { useOwnerId } from '@/hooks/use-owner-id';
@@ -21,17 +21,17 @@ import { parseGameSystemId, type MapViewRole } from '@/lib/table-systems';
 import { isTableGm, resolveFogViewRole } from '@/lib/table-gm';
 import { userDisplayName } from '@/lib/user-display-name';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ChapterListPanel } from './chapter-list-panel';
 import { CharacterPeekDrawer } from './character-peek-drawer';
 import { FloatingDiceWidget } from './floating-dice-widget';
-import { PlayDicePanel } from './play-dice-panel';
 import { SessionLogPanel } from './session-log-panel';
 import { TableExportPanel } from './table-export-panel';
+import { TableGlossaryPanel } from './table-glossary-panel';
 import { TableGmControl } from './table-gm-control';
 import { TableHeader } from './table-header';
 import { TablePlayPanel } from './table-play-panel';
 import { TablePresence } from './table-presence';
 import { TableResizeHandle } from './table-resize-handle';
-import { TableScratchNotes } from './table-scratch-notes';
 import { type TableSidebarTab, TableViewTablist, MOBILE_TAB_IDS, SIDEBAR_TAB_IDS, tableTabId } from './table-sidebar';
 import { VttCanvas } from './vtt-canvas';
 
@@ -66,7 +66,7 @@ export function PlayRoomSurface({
 }: PlayRoomSurfaceProps) {
   const systemSeed = parseGameSystemId(initialSystem);
   const [partyInvite, setPartyInvite] = useState(() => resolvePlayRoomInvite(roomId, inviteToken));
-  const { doc, awareness, logEntries, connectionStatus, appendLog, ready, resolvedInvite } =
+  const { doc, awareness, logEntries, connectionStatus, appendLog, patchLog, ready, resolvedInvite } =
     usePlayRoom(roomId, partyInvite);
   const { meta, updateMeta } = useTableMeta(doc, {
     initialSystem: systemSeed,
@@ -221,10 +221,10 @@ export function PlayRoomSurface({
     importStartedRef.current = true;
 
     void (async () => {
-      const session = await soloSessionRepo.get(importSessionId);
+      const session = await playSessionRepo.get(importSessionId);
       if (!session) return;
       const entries = await journalRepo.listBySession(importSessionId);
-      const nextMeta = importSoloSessionToTable(doc, roomId, session, entries);
+      const nextMeta = importPlaySessionToTable(doc, roomId, session, entries);
       if (session.characterId) {
         awarenessState.setCharacterId(session.characterId);
         writeStoredCharacterId(roomId, session.characterId);
@@ -316,13 +316,33 @@ export function PlayRoomSurface({
         />
       ) : null}
 
-      {ownerReady && meta ? (
-        <TableExportPanel meta={meta} logEntries={logEntries} ownerId={ownerId} />
+      {ownerReady && meta && doc ? (
+        <TableExportPanel
+          doc={doc}
+          roomId={roomId}
+          meta={meta}
+          logEntries={logEntries}
+          ownerId={ownerId}
+          isGm={tableGm}
+          gmName={awarenessState.localName}
+        />
       ) : null}
 
-      {meta ? (
-        <TableScratchNotes meta={meta} onSave={(scratchNotes) => updateMeta({ scratchNotes })} />
+      {ownerReady && meta && doc ? (
+        <ChapterListPanel
+          doc={doc}
+          roomId={roomId}
+          ownerId={ownerId}
+          onReopen={(nextMeta) => {
+            if (nextMeta.characterId) {
+              awarenessState.setCharacterId(nextMeta.characterId);
+              writeStoredCharacterId(roomId, nextMeta.characterId);
+            }
+          }}
+        />
       ) : null}
+
+      <TableGlossaryPanel entries={logEntries} />
     </div>
   );
 
@@ -424,15 +444,17 @@ export function PlayRoomSurface({
               className="min-h-0 flex-1 overflow-y-auto p-3"
             >
               {activeSidebarTab === 'play' ? playPanel : null}
-              {activeSidebarTab === 'dice' ? (
-                <PlayDicePanel
+              {activeSidebarTab === 'log' ? (
+                <SessionLogPanel
+                  entries={logEntries}
+                  onAppend={appendLog}
+                  onPatch={patchLog}
                   onRoll={handleDiceRoll}
-                  systemPresets={systemDicePresets}
+                  systemDicePresets={systemDicePresets}
+                  logAuthor={logAuthor}
+                  ownerId={ownerReady ? ownerId : undefined}
                   roomId={roomId}
                 />
-              ) : null}
-              {activeSidebarTab === 'log' ? (
-                <SessionLogPanel entries={logEntries} onAppend={appendLog} logAuthor={logAuthor} />
               ) : null}
             </div>
           </aside>

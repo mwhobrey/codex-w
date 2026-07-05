@@ -3,9 +3,10 @@
 import { lookupTable, resolveLasersFeelings, rollDiceNotation, tableMaxRoll } from '@codex/game-engine';
 import type { LasersFeelingsMode } from '@codex/game-engine';
 import { getGameSystem, campWeekArcLabel, getSheetFieldValue, lookupCampTable } from '@codex/game-systems';
-import { Button, Card, CardDescription, CardHeader, CardTitle, Input } from '@codex/ui';
-import { useCallback, useEffect, useState } from 'react';
-import { patchGameState, readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
+import { Button, Card, CardDescription, CardHeader, CardTitle } from '@codex/ui';
+import { useCallback, useState } from 'react';
+import { SceneFocusSection } from './scene-focus-section';
+import { patchGameState, readGameStateNumber, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
 export function TableSnallygasterPanel({
@@ -21,24 +22,14 @@ export function TableSnallygasterPanel({
   const lf = engine?.lasersFeelings;
 
   const [mode, setMode] = useState<LasersFeelingsMode>('counselor');
-  const [sceneFocus, setSceneFocus] = useState(meta.sceneFocus ?? '');
   const [rollReveal, setRollReveal] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
-  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
 
   const campWeek = readGameStateNumber(meta, 'campWeek', 1);
   const counselorStat = Number(activeCharacter?.fields.find((f) => f.key === 'counselor_stat')?.value ?? 3);
   const monsterStat = Number(activeCharacter?.fields.find((f) => f.key === 'monster_stat')?.value ?? 3);
   const stat = mode === 'counselor' ? counselorStat : monsterStat;
   const fear = activeCharacter ? getSheetFieldValue(activeCharacter, 'fear') : '';
-
-  useEffect(() => {
-    setSceneFocus(meta.sceneFocus ?? '');
-  }, [meta.sceneFocus]);
-
-  const handleSceneBlur = useCallback(() => {
-    if (sceneFocus !== (meta.sceneFocus ?? '')) onUpdateMeta({ sceneFocus });
-  }, [meta.sceneFocus, onUpdateMeta, sceneFocus]);
 
   const setCampWeek = useCallback(
     (week: number) => {
@@ -93,13 +84,6 @@ export function TableSnallygasterPanel({
     onAppendLog({ type: 'twist', content: text, author: logAuthor });
   }, [engine?.twistTable, onAppendLog]);
 
-  const handleScenePrompt = useCallback(() => {
-    if (!engine) return;
-    const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
-    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', scenePromptIndex + 1);
-    onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
-  }, [engine, logAuthor, meta, onAppendLog, onUpdateMeta, scenePromptIndex]);
-
   if (!engine || engine.kind !== 'lasers-feelings' || !lf) return null;
 
   return (
@@ -108,17 +92,14 @@ export function TableSnallygasterPanel({
         <CardTitle className="text-sm font-medium">{plugin.name} · Camp</CardTitle>
       </CardHeader>
 
-      <TableSection title="Scene">
-        <Input
-          value={sceneFocus}
-          onChange={(e) => setSceneFocus(e.target.value)}
-          onBlur={handleSceneBlur}
-          placeholder="What's happening at camp?"
-          className="text-sm"
-        />
-        <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={handleScenePrompt}>
-          Draw a scene prompt →
-        </Button>
+      <SceneFocusSection
+        placeholder="What's happening at camp?"
+        meta={meta}
+        onUpdateMeta={onUpdateMeta}
+        onAppendLog={onAppendLog}
+        logAuthor={logAuthor}
+        scenePrompts={engine.scenePrompts}
+      >
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted-foreground">Summer week {campWeek}/8</span>
           <span className="text-xs text-muted-foreground/60">{campWeekArcLabel(campWeek)}</span>
@@ -126,7 +107,7 @@ export function TableSnallygasterPanel({
             Next week
           </Button>
         </div>
-      </TableSection>
+      </SceneFocusSection>
 
       <TableSection title="Lasers & Feelings" description="Counselor: any die > stat. Monster: any die < stat.">
         <div className="flex flex-wrap gap-1.5">

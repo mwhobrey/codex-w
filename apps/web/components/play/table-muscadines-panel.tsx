@@ -4,12 +4,8 @@ import { lookupTable, resolveYesNoOracle, rollDiceNotation, tableMaxRoll } from 
 import { getGameSystem, getSheetFieldValue } from '@codex/game-systems';
 import { Button, Card, CardHeader, CardTitle, Input, Textarea } from '@codex/ui';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  patchGameState,
-  readGameStateNumber,
-  saveGameStateIndex,
-  type TablePanelProps,
-} from './table-panel-types';
+import { SceneFocusSection } from './scene-focus-section';
+import { readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
 export function TableMuscadinesPanel({
@@ -26,7 +22,6 @@ export function TableMuscadinesPanel({
   const folklore = engine?.folkloreTables;
   const mentorPrompts = engine?.mentorPrompts ?? [];
 
-  const [sceneFocus, setSceneFocus] = useState(meta.sceneFocus ?? '');
   const [question, setQuestion] = useState('');
   const [oracleReveal, setOracleReveal] = useState<string | null>(null);
   const [recipeNotes, setRecipeNotes] = useState(
@@ -34,20 +29,11 @@ export function TableMuscadinesPanel({
   );
 
   const mentorIndex = readGameStateNumber(meta, 'mentorIndex', 0);
-  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
   const currentMentor = mentorPrompts[mentorIndex % (mentorPrompts.length || 1)];
-
-  useEffect(() => {
-    setSceneFocus(meta.sceneFocus ?? '');
-  }, [meta.sceneFocus]);
 
   useEffect(() => {
     setRecipeNotes(activeCharacter ? getSheetFieldValue(activeCharacter, 'recipe_notes') : '');
   }, [activeCharacter]);
-
-  const handleSceneBlur = useCallback(() => {
-    if (sceneFocus !== (meta.sceneFocus ?? '')) onUpdateMeta({ sceneFocus });
-  }, [meta.sceneFocus, onUpdateMeta, sceneFocus]);
 
   const saveRecipeNotes = useCallback(async () => {
     if (!onPatchCharacter || !activeCharacter) return;
@@ -68,14 +54,6 @@ export function TableMuscadinesPanel({
     saveGameStateIndex(meta, onUpdateMeta, 'mentorIndex', next);
     onAppendLog({ type: 'scene', content: `${prompt.label}: ${prompt.text}`, author: logAuthor });
   }, [logAuthor, mentorIndex, mentorPrompts, meta, onAppendLog, onUpdateMeta]);
-
-  const handleScenePrompt = useCallback(() => {
-    if (!engine?.scenePrompts.length) return;
-    const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
-    const next = scenePromptIndex + 1;
-    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', next);
-    onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
-  }, [engine?.scenePrompts, logAuthor, meta, onAppendLog, onUpdateMeta, scenePromptIndex]);
 
   const handleOracle = useCallback(() => {
     if (!question.trim() || !engine?.oracleLikelihoods || !engine.oracleDice) return;
@@ -98,18 +76,15 @@ export function TableMuscadinesPanel({
         <CardTitle className="text-sm font-medium">{plugin.name} · Grove</CardTitle>
       </CardHeader>
 
-      <TableSection title="Season">
-        <Input
-          value={sceneFocus}
-          onChange={(e) => setSceneFocus(e.target.value)}
-          onBlur={handleSceneBlur}
-          placeholder="Late harvest, thunder week, first frost…"
-          className="text-sm"
-        />
-        <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={handleScenePrompt}>
-          Draw a scene prompt →
-        </Button>
-      </TableSection>
+      <SceneFocusSection
+        title="Season"
+        placeholder="Late harvest, thunder week, first frost…"
+        meta={meta}
+        onUpdateMeta={onUpdateMeta}
+        onAppendLog={onAppendLog}
+        logAuthor={logAuthor}
+        scenePrompts={engine?.scenePrompts}
+      />
 
       <TableSection title="Mentor" description={currentMentor?.label}>
         <p className="text-sm leading-relaxed text-foreground">{currentMentor?.text}</p>

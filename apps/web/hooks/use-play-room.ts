@@ -1,6 +1,6 @@
 'use client';
 
-import { appendPlayRoomLogEntry, getPlayRoomLogArray } from '@codex/sync';
+import { appendPlayRoomLogEntry, getPlayRoomLogArray, patchPlayRoomLogEntry } from '@codex/sync';
 import type { PlaySessionLogEntry } from '@codex/schemas';
 import type { Awareness } from 'y-protocols/awareness';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,6 +18,7 @@ export interface UsePlayRoomResult {
   appendLog: (
     entry: Omit<PlaySessionLogEntry, 'id' | 'roomId' | 'createdAt'>,
   ) => PlaySessionLogEntry | null;
+  patchLog: (id: string, patch: Partial<Pick<PlaySessionLogEntry, 'tags' | 'pinned'>>) => void;
   ready: boolean;
 }
 
@@ -93,6 +94,14 @@ export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomRe
     [doc, roomId],
   );
 
+  const patchLog = useCallback(
+    (id: string, patch: Partial<Pick<PlaySessionLogEntry, 'tags' | 'pinned'>>) => {
+      if (!doc) return;
+      patchPlayRoomLogEntry(doc, id, patch);
+    },
+    [doc],
+  );
+
   return {
     doc,
     awareness,
@@ -101,6 +110,7 @@ export function usePlayRoom(roomId: string, inviteToken?: string): UsePlayRoomRe
     roomUrl: createPlayRoomUrl(roomId, undefined, resolvedInvite ?? inviteToken),
     resolvedInvite,
     appendLog,
+    patchLog,
     ready,
   };
 }

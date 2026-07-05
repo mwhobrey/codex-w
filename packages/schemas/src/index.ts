@@ -75,18 +75,25 @@ export type CharacterSheetField = z.infer<typeof CharacterSheetFieldSchema>;
 export const JournalEntryTypeSchema = z.enum(['scene', 'oracle', 'twist', 'risk', 'note']);
 export type JournalEntryType = z.infer<typeof JournalEntryTypeSchema>;
 
+const TagSchema = z.string().min(1).max(32);
+
 export const JournalEntrySchema = z.object({
   id: z.string().uuid(),
   sessionId: z.string().uuid(),
   type: JournalEntryTypeSchema,
   content: z.string().min(1).max(4096),
   metadata: z.record(z.unknown()).optional(),
+  tags: z.array(TagSchema).max(16).optional(),
+  pinned: z.boolean().optional(),
   createdAt: z.string().datetime(),
 });
 
 export type JournalEntry = z.infer<typeof JournalEntrySchema>;
 
-export const SoloSessionSchema = z.object({
+export const PlaySessionStatusSchema = z.enum(['open', 'closed']);
+export type PlaySessionStatus = z.infer<typeof PlaySessionStatusSchema>;
+
+export const PlaySessionSchema = z.object({
   id: z.string().uuid(),
   gameSystemId: GameSystemIdSchema,
   ownerId: z.string().min(1),
@@ -95,11 +102,16 @@ export const SoloSessionSchema = z.object({
   sceneFocus: z.string().max(512).optional(),
   /** System-specific session state (vow progress, camp week, etc.) */
   gameState: z.record(z.string(), z.unknown()).optional(),
+  /** Live table this chapter was closed from — enables chapter listing + reopen */
+  roomId: z.string().optional(),
+  chapterNumber: z.number().int().min(1).optional(),
+  /** Informational only — a table's live log is always the "open" chapter */
+  status: PlaySessionStatusSchema.optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
 
-export type SoloSession = z.infer<typeof SoloSessionSchema>;
+export type PlaySession = z.infer<typeof PlaySessionSchema>;
 
 export const PlaySessionLogEntryTypeSchema = z.enum([
   'roll',
@@ -121,6 +133,8 @@ export const PlaySessionLogEntrySchema = z.object({
   author: z.string().min(1).max(64).optional(),
   notation: z.string().max(64).optional(),
   total: z.number().optional(),
+  tags: z.array(TagSchema).max(16).optional(),
+  pinned: z.boolean().optional(),
   createdAt: z.string().datetime(),
 });
 
@@ -132,12 +146,13 @@ export const TableMetaSchema = z.object({
   name: z.string().max(128).optional(),
   characterId: z.string().uuid().optional(),
   sceneFocus: z.string().max(512).optional(),
-  scratchNotes: z.string().max(8192).optional(),
   /** Owner id (account or local) of the table GM — first claim wins, transferable */
   gmUserId: z.string().min(1).optional(),
   /** Secret invite token required to join via PartyKit relay */
   inviteToken: z.string().min(16).max(128).optional(),
   gameState: z.record(z.string(), z.unknown()).optional(),
+  /** Chapter counter for this table's live log — bumped each time a chapter is closed */
+  chapterNumber: z.number().int().min(1).optional(),
 });
 
 export type TableMeta = z.infer<typeof TableMetaSchema>;
@@ -159,6 +174,34 @@ export const DiceSetSchema = z.object({
 });
 
 export type DiceSet = z.infer<typeof DiceSetSchema>;
+
+export const SavedTagSchema = z.object({
+  id: z.string().uuid(),
+  ownerId: z.string().min(1),
+  label: TagSchema,
+  color: z.string().max(32).optional(),
+  createdAt: z.string().datetime(),
+  lastUsedAt: z.string().datetime(),
+});
+
+export type SavedTag = z.infer<typeof SavedTagSchema>;
+
+/**
+ * A player's private note about a table. Deliberately kept out of the shared
+ * Yjs table doc — Yjs replicates full document state to every connected
+ * peer, so anything written there is visible to everyone at the table
+ * regardless of UI labeling. Real privacy means it never leaves the owning
+ * player's own sync path (local Dexie + their own authenticated cloud sync).
+ */
+export const PlayerNoteSchema = z.object({
+  id: z.string().uuid(),
+  ownerId: z.string().min(1),
+  roomId: z.string().min(1).max(128),
+  content: z.string().min(1).max(4096),
+  createdAt: z.string().datetime(),
+});
+
+export type PlayerNote = z.infer<typeof PlayerNoteSchema>;
 
 export const LibraryTableRowSchema = z.object({
   roll: z.number().int().optional(),

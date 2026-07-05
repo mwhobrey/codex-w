@@ -1,9 +1,9 @@
 import type {
   JournalEntry,
   JournalEntryType,
+  PlaySession,
   PlaySessionLogEntry,
   PlaySessionLogEntryType,
-  SoloSession,
   TableMeta,
 } from '@codex/schemas';
 
@@ -25,16 +25,24 @@ export function mapPlayLogTypeToJournalType(type: PlaySessionLogEntryType): Jour
   }
 }
 
-export function exportTableToSoloSession(
+export interface ExportTableToPlaySessionOptions {
+  name?: string;
+  roomId?: string;
+  chapterNumber?: number;
+  /** Reuse an existing chapter's id (re-closing a reopened chapter) instead of minting a new one. */
+  existingSessionId?: string;
+}
+
+export function exportTableToPlaySession(
   meta: TableMeta,
   logEntries: PlaySessionLogEntry[],
   ownerId: string,
-  options?: { name?: string },
-): { session: SoloSession; journalEntries: JournalEntry[] } {
+  options?: ExportTableToPlaySessionOptions,
+): { session: PlaySession; journalEntries: JournalEntry[] } {
   const now = new Date().toISOString();
-  const sessionId = createId();
+  const sessionId = options?.existingSessionId ?? createId();
 
-  const session: SoloSession = {
+  const session: PlaySession = {
     id: sessionId,
     ownerId,
     name: options?.name?.trim() || meta.name || 'Exported table',
@@ -42,6 +50,9 @@ export function exportTableToSoloSession(
     characterId: meta.characterId,
     sceneFocus: meta.sceneFocus,
     gameState: meta.gameState,
+    roomId: options?.roomId,
+    chapterNumber: options?.chapterNumber,
+    status: 'closed',
     createdAt: now,
     updatedAt: now,
   };
@@ -51,6 +62,8 @@ export function exportTableToSoloSession(
     sessionId,
     type: mapPlayLogTypeToJournalType(entry.type),
     content: entry.author ? `${entry.author}: ${entry.content}` : entry.content,
+    tags: entry.tags,
+    pinned: entry.pinned,
     createdAt: entry.createdAt,
   }));
 

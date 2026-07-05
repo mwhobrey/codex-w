@@ -1,23 +1,24 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import * as Y from 'yjs';
 import {
-  tableMetaFromSoloSession,
-  isSoloSessionImported,
-  importSoloSessionToTable,
-} from './import-solo-session';
+  tableMetaFromPlaySession,
+  isPlaySessionImported,
+  importPlaySessionToTable,
+} from './import-play-session';
 import { readTableMeta } from './table-meta';
 import { getPlayRoomLogArray } from './play-room-doc';
-import type { SoloSession, JournalEntry } from '@codex/schemas';
+import type { PlaySession, JournalEntry } from '@codex/schemas';
 
-describe('import-solo-session', () => {
+describe('import-play-session', () => {
   let doc: Y.Doc;
 
   beforeEach(() => {
     doc = new Y.Doc();
   });
 
-  const mockSession: SoloSession = {
+  const mockSession: PlaySession = {
     id: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
+    ownerId: 'owner-1',
     gameSystemId: 'loner',
     name: 'My Solo Adventure',
     characterId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
@@ -46,9 +47,9 @@ describe('import-solo-session', () => {
     },
   ];
 
-  describe('tableMetaFromSoloSession', () => {
-    it('correctly builds a TableMeta partial from SoloSession', () => {
-      const partial = tableMetaFromSoloSession(mockSession);
+  describe('tableMetaFromPlaySession', () => {
+    it('correctly builds a TableMeta partial from PlaySession', () => {
+      const partial = tableMetaFromPlaySession(mockSession);
       expect(partial.gameSystemId).toBe('loner');
       expect(partial.name).toBe('My Solo Adventure');
       expect(partial.characterId).toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
@@ -56,24 +57,25 @@ describe('import-solo-session', () => {
       expect(partial.gameState).toEqual({
         customValue: 'arbitrary-state',
         importedSoloSessionId: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
+        currentChapterSessionId: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
       });
     });
   });
 
-  describe('isSoloSessionImported', () => {
+  describe('isPlaySessionImported', () => {
     it('returns false if meta is empty or has a different importedSoloSessionId', () => {
-      expect(isSoloSessionImported(doc, 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6')).toBe(false);
+      expect(isPlaySessionImported(doc, 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6')).toBe(false);
     });
 
     it('returns true if meta has matching importedSoloSessionId', () => {
-      importSoloSessionToTable(doc, 'room-1', mockSession, []);
-      expect(isSoloSessionImported(doc, 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6')).toBe(true);
+      importPlaySessionToTable(doc, 'room-1', mockSession, []);
+      expect(isPlaySessionImported(doc, 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6')).toBe(true);
     });
   });
 
-  describe('importSoloSessionToTable', () => {
+  describe('importPlaySessionToTable', () => {
     it('applies metadata updates and appends all log entries when importing', () => {
-      const meta = importSoloSessionToTable(doc, 'room-1', mockSession, mockJournalEntries);
+      const meta = importPlaySessionToTable(doc, 'room-1', mockSession, mockJournalEntries);
 
       // Verify meta
       expect(meta.gameSystemId).toBe('loner');
@@ -101,21 +103,20 @@ describe('import-solo-session', () => {
       });
     });
 
-    it('skips import if the session was already imported', () => {
+    it('replays the chapter again on a second import (resumable, not one-shot)', () => {
       // First import
-      importSoloSessionToTable(doc, 'room-1', mockSession, mockJournalEntries);
+      importPlaySessionToTable(doc, 'room-1', mockSession, mockJournalEntries);
 
-      // Mutate the doc log to verify second import doesn't run
+      // Mutate the doc log to verify second import actually re-runs
       const logArray = getPlayRoomLogArray(doc);
       doc.transact(() => {
         logArray.delete(0, logArray.length);
       });
 
-      // Second import
-      importSoloSessionToTable(doc, 'room-1', mockSession, mockJournalEntries);
+      // Second import — chapter can be resumed even though it was already imported/closed
+      importPlaySessionToTable(doc, 'room-1', mockSession, mockJournalEntries);
 
-      // Log array should remain empty because it was skipped
-      expect(logArray.length).toBe(0);
+      expect(logArray.length).toBe(2);
     });
   });
 });

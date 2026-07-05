@@ -1,10 +1,10 @@
 import {
   getDb,
-  getSoloSessionById,
+  getPlaySessionById,
   isDatabaseConfigured,
-  upsertSoloSession,
+  upsertPlaySession,
 } from '@codex/db';
-import { SoloSessionSchema } from '@codex/schemas';
+import { PlaySessionSchema } from '@codex/schemas';
 import { NextResponse } from 'next/server';
 import { requireServerSession } from '@/lib/auth-server';
 
@@ -30,11 +30,11 @@ export async function PUT(
 
   const { id } = await params;
   const body: unknown = await request.json();
-  const parsed = SoloSessionSchema.safeParse(body);
+  const parsed = PlaySessionSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Invalid solo session', code: 'VALIDATION_ERROR' },
+      { error: 'Invalid play session', code: 'VALIDATION_ERROR' },
       { status: 400 },
     );
   }
@@ -43,18 +43,18 @@ export async function PUT(
     return NextResponse.json({ error: 'ID mismatch', code: 'VALIDATION_ERROR' }, { status: 400 });
   }
 
-  const existing = await getSoloSessionById(getDb(), id);
+  const existing = await getPlaySessionById(getDb(), id);
   if (existing && existing.ownerId !== session.user.id) {
     return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
   }
 
-  const soloSession = {
+  const playSession = {
     ...parsed.data,
     ownerId: session.user.id,
     updatedAt: new Date().toISOString(),
   };
 
-  await upsertSoloSession(getDb(), soloSession);
+  await upsertPlaySession(getDb(), playSession);
 
-  return NextResponse.json({ ok: true, synced: true, id: soloSession.id });
+  return NextResponse.json({ ok: true, synced: true, id: playSession.id });
 }

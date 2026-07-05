@@ -5,7 +5,9 @@ import {
   listDiceSetsByOwner,
   listJournalEntriesByOwner,
   listLibraryTablesByOwner,
-  listSoloSessionsByOwner,
+  listPlayerNotesByOwner,
+  listPlaySessionsByOwner,
+  listSavedTagsByOwner,
 } from '@codex/db';
 import { NextResponse } from 'next/server';
 import { requireServerSession } from '@/lib/auth-server';
@@ -30,13 +32,16 @@ export async function GET() {
   const db = getDb();
   const ownerId = session.user.id;
 
-  const [sheets, sessions, journalEntries, diceSets, libraryTables] = await Promise.all([
-    listCharacterSheetsByOwner(db, ownerId),
-    listSoloSessionsByOwner(db, ownerId),
-    listJournalEntriesByOwner(db, ownerId),
-    listDiceSetsByOwner(db, ownerId),
-    listLibraryTablesByOwner(db, ownerId),
-  ]);
+  const [sheets, sessions, journalEntries, diceSets, libraryTables, savedTags, playerNotes] =
+    await Promise.all([
+      listCharacterSheetsByOwner(db, ownerId),
+      listPlaySessionsByOwner(db, ownerId),
+      listJournalEntriesByOwner(db, ownerId),
+      listDiceSetsByOwner(db, ownerId),
+      listLibraryTablesByOwner(db, ownerId),
+      listSavedTagsByOwner(db, ownerId),
+      listPlayerNotesByOwner(db, ownerId),
+    ]);
 
   return NextResponse.json({
     sheets,
@@ -44,6 +49,8 @@ export async function GET() {
     journalEntries,
     diceSets,
     libraryTables,
+    savedTags,
+    playerNotes,
     synced: true,
   });
 }

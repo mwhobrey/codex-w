@@ -10,7 +10,8 @@ import {
 } from '@codex/game-systems';
 import { Badge, Button, Card, CardHeader, CardTitle, Input } from '@codex/ui';
 import { useCallback, useEffect, useState } from 'react';
-import { patchGameState, readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
+import { SceneFocusSection } from './scene-focus-section';
+import { patchGameState, readGameStateNumber, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
 export function TableTotvPanel({
@@ -27,19 +28,16 @@ export function TableTotvPanel({
   const engine = plugin.soloEngine;
   const prompts = engine?.prompts ?? [];
 
-  const [sceneFocus, setSceneFocus] = useState(meta.sceneFocus ?? '');
   const [promptIndex, setPromptIndex] = useState(() =>
     readGameStateNumber(meta, 'promptIndex', 1),
   );
   const [jumpPrompt, setJumpPrompt] = useState('');
   const [rollReveal, setRollReveal] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
-  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
 
   useEffect(() => {
-    setSceneFocus(meta.sceneFocus ?? '');
     setPromptIndex(readGameStateNumber(meta, 'promptIndex', 1));
-  }, [meta.sceneFocus, meta.gameState]);
+  }, [meta.gameState]);
 
   const currentPrompt = prompts.find((p) => p.id === promptIndex) ?? prompts[0];
   const capacity = getTyovCapacity(activeCharacter ?? null);
@@ -54,12 +52,6 @@ export function TableTotvPanel({
     },
     [meta, onUpdateMeta],
   );
-
-  const handleSceneBlur = useCallback(() => {
-    if (sceneFocus !== (meta.sceneFocus ?? '')) {
-      onUpdateMeta({ sceneFocus });
-    }
-  }, [meta.sceneFocus, onUpdateMeta, sceneFocus]);
 
   const handleAdvancePrompt = useCallback(() => {
     if (!engine?.promptAdvance) return;
@@ -133,13 +125,6 @@ export function TableTotvPanel({
     onAppendLog({ type: 'note', content: `Jumped to prompt ${clamped}`, author: logAuthor });
   }, [engine?.promptAdvance, jumpPrompt, onAppendLog, savePromptIndex]);
 
-  const handleScenePrompt = useCallback(() => {
-    if (!engine) return;
-    const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
-    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', scenePromptIndex + 1);
-    onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
-  }, [engine, logAuthor, meta, onAppendLog, onUpdateMeta, scenePromptIndex]);
-
   if (!engine || engine.kind !== 'prompt-journal') return null;
 
   return (
@@ -148,18 +133,15 @@ export function TableTotvPanel({
         <CardTitle className="text-sm font-medium">{plugin.name} · Journal</CardTitle>
       </CardHeader>
 
-      <TableSection title="Era">
-        <Input
-          value={sceneFocus}
-          onChange={(e) => setSceneFocus(e.target.value)}
-          onBlur={handleSceneBlur}
-          placeholder="Where in your long life are you now?"
-          className="text-sm"
-        />
-        <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={handleScenePrompt}>
-          Draw a scene prompt →
-        </Button>
-      </TableSection>
+      <SceneFocusSection
+        title="Era"
+        placeholder="Where in your long life are you now?"
+        meta={meta}
+        onUpdateMeta={onUpdateMeta}
+        onAppendLog={onAppendLog}
+        logAuthor={logAuthor}
+        scenePrompts={engine.scenePrompts}
+      />
 
       <TableSection title={`Prompt ${currentPrompt?.id ?? '—'}`} description="Roll d10 − d6 to wander the journal">
         {currentPrompt?.tags?.length ? (

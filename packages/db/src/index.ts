@@ -19,10 +19,25 @@ export {
   upsertLibraryTable,
 } from './library-tables';
 export {
-  getSoloSessionById,
+  getPlaySessionById,
   listJournalEntriesByOwner,
   listJournalEntriesBySession,
-  listSoloSessionsByOwner,
+  listPlaySessionsByOwner,
+  listPlaySessionsByRoom,
+  searchJournalEntries,
   upsertJournalEntry,
-  upsertSoloSession,
-} from './solo-sessions';
+  upsertPlaySession,
+  type JournalSearchOptions,
+} from './play-sessions';
+export {
+  deleteSavedTag,
+  getSavedTagById,
+  listSavedTagsByOwner,
+  upsertSavedTag,
+} from './saved-tags';
+export {
+  appendPlayerNote,
+  deletePlayerNote,
+  listPlayerNotesByOwner,
+  listPlayerNotesByRoom,
+} from './player-notes';

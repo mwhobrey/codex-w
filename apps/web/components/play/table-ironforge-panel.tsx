@@ -2,9 +2,10 @@
 
 import { lookupTable, resolveForgeRoll, rollDiceNotation, tableMaxRoll } from '@codex/game-engine';
 import { getGameSystem, bumpIronforgeHeat, getIronforgeHeat, getSheetFieldValue, IRONFORGE_HEAT_MAX } from '@codex/game-systems';
-import { Button, Card, CardDescription, CardHeader, CardTitle, Input } from '@codex/ui';
-import { useCallback, useEffect, useState } from 'react';
-import { patchGameState, readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
+import { Button, Card, CardDescription, CardHeader, CardTitle } from '@codex/ui';
+import { useCallback, useState } from 'react';
+import { SceneFocusSection } from './scene-focus-section';
+import { patchGameState, readGameStateNumber, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
 export function TableIronforgePanel({
@@ -20,25 +21,15 @@ export function TableIronforgePanel({
   const engine = plugin.soloEngine;
   const vowConfig = engine?.vowProgress;
 
-  const [sceneFocus, setSceneFocus] = useState(meta.sceneFocus ?? '');
   const [rollReveal, setRollReveal] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
   const [difficulty, setDifficulty] = useState('dangerous');
-  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
 
   const vowProgress = readGameStateNumber(meta, 'vowProgress', 0);
   const heat = getIronforgeHeat(activeCharacter ?? null);
   const progressMax = vowConfig?.progressMax ?? 10;
   const grit = Number(activeCharacter?.fields.find((f) => f.key === 'grit')?.value ?? 1);
   const oath = activeCharacter ? getSheetFieldValue(activeCharacter, 'iron_oath') : '';
-
-  useEffect(() => {
-    setSceneFocus(meta.sceneFocus ?? '');
-  }, [meta.sceneFocus]);
-
-  const handleSceneBlur = useCallback(() => {
-    if (sceneFocus !== (meta.sceneFocus ?? '')) onUpdateMeta({ sceneFocus });
-  }, [meta.sceneFocus, onUpdateMeta, sceneFocus]);
 
   const saveVowProgress = useCallback(
     (next: number) => {
@@ -85,13 +76,6 @@ export function TableIronforgePanel({
     onAppendLog({ type: 'scene', content: text, author: logAuthor });
   }, [onAppendLog, vowConfig?.hazardTable]);
 
-  const handleScenePrompt = useCallback(() => {
-    if (!engine) return;
-    const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
-    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', scenePromptIndex + 1);
-    onAppendLog({ type: 'scene', content: prompt, author: logAuthor });
-  }, [engine, logAuthor, meta, onAppendLog, onUpdateMeta, scenePromptIndex]);
-
   const handleResetVow = useCallback(() => {
     saveVowProgress(0);
     onAppendLog({ type: 'note', content: 'Oath track reset — swear anew.', author: logAuthor });
@@ -106,18 +90,15 @@ export function TableIronforgePanel({
         <CardDescription className="text-xs">{oath || 'Link a character with an oath on their sheet.'}</CardDescription>
       </CardHeader>
 
-      <TableSection title="Shift">
-        <Input
-          value={sceneFocus}
-          onChange={(e) => setSceneFocus(e.target.value)}
-          onBlur={handleSceneBlur}
-          placeholder="What beat of the grind are you in?"
-          className="text-sm"
-        />
-        <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={handleScenePrompt}>
-          Draw a scene prompt →
-        </Button>
-      </TableSection>
+      <SceneFocusSection
+        title="Shift"
+        placeholder="What beat of the grind are you in?"
+        meta={meta}
+        onUpdateMeta={onUpdateMeta}
+        onAppendLog={onAppendLog}
+        logAuthor={logAuthor}
+        scenePrompts={engine.scenePrompts}
+      />
 
       <TableSection title="Iron oath">
         <div className="flex flex-wrap gap-1">

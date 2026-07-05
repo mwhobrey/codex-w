@@ -1,5 +1,13 @@
 import Dexie, { type Table } from 'dexie';
-import type { CharacterSheet, DiceSet, JournalEntry, SoloSession, UserLibraryTable } from '@codex/schemas';
+import type {
+  CharacterSheet,
+  DiceSet,
+  JournalEntry,
+  PlayerNote,
+  PlaySession,
+  SavedTag,
+  UserLibraryTable,
+} from '@codex/schemas';
 
 export type CharacterPortraitRow = {
   characterId: string;
@@ -10,11 +18,13 @@ export type CharacterPortraitRow = {
 
 export class CodexDatabase extends Dexie {
   characterSheets!: Table<CharacterSheet, string>;
-  soloSessions!: Table<SoloSession, string>;
+  playSessions!: Table<PlaySession, string>;
   journalEntries!: Table<JournalEntry, string>;
   diceSets!: Table<DiceSet, string>;
   userLibraryTables!: Table<UserLibraryTable, string>;
   characterPortraits!: Table<CharacterPortraitRow, string>;
+  savedTags!: Table<SavedTag, string>;
+  playerNotes!: Table<PlayerNote, string>;
 
   constructor(name = 'codex-w') {
     super(name);
@@ -39,6 +49,33 @@ export class CodexDatabase extends Dexie {
       diceSets: 'id, ownerId, updatedAt, name',
       userLibraryTables: 'id, ownerId, updatedAt, name, category',
       characterPortraits: 'characterId, updatedAt',
+    });
+    this.version(6)
+      .stores({
+        characterSheets: 'id, gameSystemId, ownerId, updatedAt, name',
+        soloSessions: null,
+        playSessions: 'id, gameSystemId, ownerId, updatedAt, roomId',
+        journalEntries: 'id, sessionId, createdAt',
+        diceSets: 'id, ownerId, updatedAt, name',
+        userLibraryTables: 'id, ownerId, updatedAt, name, category',
+        characterPortraits: 'characterId, updatedAt',
+        savedTags: 'id, ownerId, label, lastUsedAt',
+      })
+      .upgrade(async (tx) => {
+        const oldSessions = await tx.table('soloSessions').toArray();
+        if (oldSessions.length > 0) {
+          await tx.table('playSessions').bulkPut(oldSessions);
+        }
+      });
+    this.version(7).stores({
+      characterSheets: 'id, gameSystemId, ownerId, updatedAt, name',
+      playSessions: 'id, gameSystemId, ownerId, updatedAt, roomId',
+      journalEntries: 'id, sessionId, createdAt',
+      diceSets: 'id, ownerId, updatedAt, name',
+      userLibraryTables: 'id, ownerId, updatedAt, name, category',
+      characterPortraits: 'characterId, updatedAt',
+      savedTags: 'id, ownerId, label, lastUsedAt',
+      playerNotes: 'id, ownerId, roomId, createdAt, [ownerId+roomId]',
     });
   }
 }

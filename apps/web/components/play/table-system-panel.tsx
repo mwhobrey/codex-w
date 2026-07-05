@@ -8,11 +8,11 @@ import {
   Card,
   CardHeader,
   CardTitle,
-  Input,
   Textarea,
 } from '@codex/ui';
-import { useCallback, useEffect, useState } from 'react';
-import { readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
+import { useCallback, useState } from 'react';
+import { SceneFocusSection } from './scene-focus-section';
+import type { TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
 
 interface TableSystemPanelProps extends TablePanelProps {}
@@ -30,11 +30,9 @@ export function TableSystemPanel({
 
   const [question, setQuestion] = useState('');
   const [likelihood, setLikelihood] = useState<OracleLikelihoodId>('even');
-  const [sceneFocus, setSceneFocus] = useState(meta.sceneFocus ?? '');
   const [oracleReveal, setOracleReveal] = useState<string | null>(null);
   const [riskReveal, setRiskReveal] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
-  const scenePromptIndex = readGameStateNumber(meta, 'scenePromptIndex', 0);
 
   const appendWithFocus = useCallback(
     (type: PlaySessionLogEntry['type'], content: string) => {
@@ -102,24 +100,6 @@ export function TableSystemPanel({
     appendWithFocus('twist', text);
   }, [appendWithFocus, engine]);
 
-  const handleScenePrompt = useCallback(() => {
-    if (!engine) return;
-    const prompt = engine.scenePrompts[scenePromptIndex % engine.scenePrompts.length]!;
-    const next = scenePromptIndex + 1;
-    saveGameStateIndex(meta, onUpdateMeta, 'scenePromptIndex', next);
-    appendWithFocus('scene', prompt);
-  }, [appendWithFocus, engine, meta, onUpdateMeta, scenePromptIndex]);
-
-  const handleSceneBlur = useCallback(() => {
-    if (sceneFocus !== (meta.sceneFocus ?? '')) {
-      onUpdateMeta({ sceneFocus });
-    }
-  }, [meta.sceneFocus, onUpdateMeta, sceneFocus]);
-
-  useEffect(() => {
-    setSceneFocus(meta.sceneFocus ?? '');
-  }, [meta.sceneFocus]);
-
   if (!engine) return null;
 
   const oracleLikelihoods = engine.oracleLikelihoods ?? [];
@@ -134,18 +114,14 @@ export function TableSystemPanel({
         <CardTitle className="text-sm font-medium">{plugin.name}</CardTitle>
       </CardHeader>
 
-      <TableSection title="Scene" defaultOpen>
-        <Input
-          value={sceneFocus}
-          onChange={(e) => setSceneFocus(e.target.value)}
-          onBlur={handleSceneBlur}
-          placeholder="What's happening right now?"
-          className="text-sm"
-        />
-        <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={handleScenePrompt}>
-          Draw a scene prompt →
-        </Button>
-      </TableSection>
+      <SceneFocusSection
+        placeholder="What's happening right now?"
+        meta={meta}
+        onUpdateMeta={onUpdateMeta}
+        onAppendLog={onAppendLog}
+        logAuthor={logAuthor}
+        scenePrompts={engine.scenePrompts}
+      />
 
       {oracleLikelihoods.length > 0 && (
         <TableSection title="Oracle">

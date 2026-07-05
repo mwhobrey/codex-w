@@ -1,6 +1,6 @@
 import {
   getDb,
-  getSoloSessionById,
+  getPlaySessionById,
   isDatabaseConfigured,
   upsertJournalEntry,
 } from '@codex/db';
@@ -47,8 +47,8 @@ export async function POST(
     return NextResponse.json({ error: 'Session mismatch', code: 'VALIDATION_ERROR' }, { status: 400 });
   }
 
-  const soloSession = await getSoloSessionById(getDb(), sessionId);
-  if (soloSession && soloSession.ownerId !== session.user.id) {
+  const playSession = await getPlaySessionById(getDb(), sessionId);
+  if (playSession && playSession.ownerId !== session.user.id) {
     return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
   }
 

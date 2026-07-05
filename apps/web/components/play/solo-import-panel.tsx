@@ -1,20 +1,20 @@
 'use client';
 
 import { getGameSystem } from '@codex/game-systems';
-import { soloSessionRepo } from '@codex/sync';
-import type { SoloSession } from '@codex/schemas';
+import { playSessionRepo } from '@codex/sync';
+import type { PlaySession } from '@codex/schemas';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@codex/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useOwnerId } from '@/hooks/use-owner-id';
 
 interface SoloImportPanelProps {
-  onImport: (session: SoloSession) => void;
+  onImport: (session: PlaySession) => void;
 }
 
 export function SoloImportPanel({ onImport }: SoloImportPanelProps) {
   const { ownerId, ready } = useOwnerId();
   const sessions = useLiveQuery(
-    () => (ready && ownerId ? soloSessionRepo.listByOwner(ownerId) : Promise.resolve(undefined)),
+    () => (ready && ownerId ? playSessionRepo.listByOwner(ownerId) : Promise.resolve(undefined)),
     [ownerId, ready],
   );
 

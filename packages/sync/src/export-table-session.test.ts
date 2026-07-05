@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { exportTableToSoloSession } from './export-table-session';
+import { exportTableToPlaySession } from './export-table-session';
 
-describe('exportTableToSoloSession', () => {
-  it('maps table meta and log into a solo session archive', () => {
-    const { session, journalEntries } = exportTableToSoloSession(
+describe('exportTableToPlaySession', () => {
+  it('maps table meta and log into a play session archive', () => {
+    const { session, journalEntries } = exportTableToPlaySession(
       {
         gameSystemId: 'loner',
         name: 'Night run',
@@ -30,7 +30,7 @@ describe('exportTableToSoloSession', () => {
   });
 
   it('maps roll and system log lines to journal notes', () => {
-    const { journalEntries } = exportTableToSoloSession(
+    const { journalEntries } = exportTableToPlaySession(
       { gameSystemId: 'ironforge', name: 'Forge' },
       [
         {

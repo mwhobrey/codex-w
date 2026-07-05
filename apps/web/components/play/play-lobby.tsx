@@ -26,7 +26,7 @@ import {
 import { parseGameSystemId } from '@/lib/table-systems';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 import { SoloImportPanel } from './solo-import-panel';
-import type { SoloSession } from '@codex/schemas';
+import type { PlaySession } from '@codex/schemas';
 
 function createRoomId(): string {
   return crypto.randomUUID().replace(/-/g, '').slice(0, 16);
@@ -67,7 +67,7 @@ export function PlayLobby() {
     router.push(buildPlayRoomPath(id, options));
   };
 
-  const importSoloSession = (session: SoloSession) => {
+  const importSoloSession = (session: PlaySession) => {
     openTable(createRoomId(), {
       gameSystemId: session.gameSystemId,
       importSessionId: session.id,

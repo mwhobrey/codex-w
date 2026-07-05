@@ -2,17 +2,16 @@
 
 import { cn } from '@codex/ui';
 
-export type TableSidebarTab = 'play' | 'dice' | 'log';
+export type TableSidebarTab = 'play' | 'log';
 export type TableMobileTab = 'map' | TableSidebarTab;
 
-export const SIDEBAR_TAB_IDS = ['play', 'dice', 'log'] as const;
+export const SIDEBAR_TAB_IDS = ['play', 'log'] as const;
 export const MOBILE_TAB_IDS = ['map', ...SIDEBAR_TAB_IDS] as const;
 
 export const TABLE_TAB_LABELS: Record<TableMobileTab, string> = {
   map: 'Map',
   play: 'Play',
-  dice: 'Dice',
-  log: 'Log',
+  log: 'Session',
 };
 
 export function tableTabId(tab: TableMobileTab): string {
@@ -62,26 +61,5 @@ export function TableViewTablist<T extends TableMobileTab>({
         </button>
       ))}
     </div>
-  );
-}
-
-/** @deprecated Use TableViewTablist with SIDEBAR_TAB_IDS */
-export function TableSidebarTabs({
-  activeTab,
-  onTabChange,
-  className,
-}: {
-  activeTab: TableSidebarTab;
-  onTabChange: (tab: TableSidebarTab) => void;
-  className?: string;
-}) {
-  return (
-    <TableViewTablist
-      tabs={SIDEBAR_TAB_IDS}
-      activeTab={activeTab}
-      onTabChange={onTabChange}
-      ariaLabel="Table panels"
-      className={className}
-    />
   );
 }

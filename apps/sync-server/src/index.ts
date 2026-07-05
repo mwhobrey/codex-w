@@ -1,5 +1,6 @@
 import { Server } from '@hocuspocus/server';
 import { afterFogGuard, beforeFogGuard } from './fog-guard.js';
+import { afterLogGuard, beforeLogGuard } from './log-guard.js';
 import { admitWebSocket, handleHttpRequest } from './http-routes.js';
 
 const port = Number(process.env.PORT ?? 1999);
@@ -39,10 +40,12 @@ const server = new Server({
 
   async beforeHandleMessage({ document, connection }) {
     beforeFogGuard(document, connection);
+    beforeLogGuard(document, connection);
   },
 
   async afterHandleMessage({ document, connection }) {
     afterFogGuard(document, connection);
+    afterLogGuard(document, connection);
   },
 });
 

@@ -3,29 +3,37 @@ import {
   diceSetRepo,
   isCharacterSheetDeleted,
   journalRepo,
-  soloSessionRepo,
+  playerNoteRepo,
+  playSessionRepo,
+  savedTagRepo,
   userLibraryTableRepo,
 } from '@codex/sync';
 import type {
   CharacterSheet,
   DiceSet,
   JournalEntry,
-  SoloSession,
+  PlayerNote,
+  PlaySession,
+  SavedTag,
   UserLibraryTable,
 } from '@codex/schemas';
 import { getLocalOwnerId } from '@/lib/local-owner';
 import { syncPendingPortraitUploads } from '@/lib/portrait-cloud-sync';
 import { queueDiceSetSync } from '@/lib/dice-set-sync';
 import { queueLibraryTableSync } from '@/lib/library-table-sync';
+import { queuePlayerNoteSync } from '@/lib/player-note-sync';
 import { queueJournalSync, queueSessionSync } from '@/lib/session-sync';
+import { queueSavedTagSync } from '@/lib/saved-tag-sync';
 import { queueSheetSync } from '@/lib/sheet-sync';
 
 interface CloudSyncPayload {
   sheets: CharacterSheet[];
-  sessions: SoloSession[];
+  sessions: PlaySession[];
   journalEntries: JournalEntry[];
   diceSets: DiceSet[];
   libraryTables: UserLibraryTable[];
+  savedTags: SavedTag[];
+  playerNotes: PlayerNote[];
 }
 
 function isNewer(isoA: string, isoB: string): boolean {
@@ -43,13 +51,13 @@ async function mergeSheet(remote: CharacterSheet, userId: string): Promise<void>
   await characterSheetRepo.save(next);
 }
 
-async function mergeSession(remote: SoloSession, userId: string): Promise<void> {
-  const local = await soloSessionRepo.get(remote.id);
-  const next: SoloSession = {
+async function mergePlaySession(remote: PlaySession, userId: string): Promise<void> {
+  const local = await playSessionRepo.get(remote.id);
+  const next: PlaySession = {
     ...(local && isNewer(local.updatedAt, remote.updatedAt) ? local : remote),
     ownerId: userId,
   };
-  await soloSessionRepo.save(next);
+  await playSessionRepo.save(next);
 }
 
 async function mergeJournal(remote: JournalEntry): Promise<void> {
@@ -77,6 +85,21 @@ async function mergeLibraryTable(remote: UserLibraryTable, userId: string): Prom
   await userLibraryTableRepo.save(next);
 }
 
+async function mergeSavedTag(remote: SavedTag, userId: string): Promise<void> {
+  const local = await savedTagRepo.get(remote.id);
+  const next: SavedTag = {
+    ...(local && isNewer(local.lastUsedAt, remote.lastUsedAt) ? local : remote),
+    ownerId: userId,
+  };
+  await savedTagRepo.save(next);
+}
+
+async function mergePlayerNote(remote: PlayerNote, userId: string): Promise<void> {
+  const localNotes = await playerNoteRepo.listByRoom(userId, remote.roomId);
+  if (localNotes.some((note) => note.id === remote.id)) return;
+  await playerNoteRepo.append({ ...remote, ownerId: userId });
+}
+
 async function migrateLocalOwnerToUser(localOwnerId: string, userId: string): Promise<void> {
   if (localOwnerId === userId) return;
 
@@ -87,10 +110,10 @@ async function migrateLocalOwnerToUser(localOwnerId: string, userId: string): Pr
     void queueSheetSync(migrated);
   }
 
-  const sessions = await soloSessionRepo.listByOwner(localOwnerId);
+  const sessions = await playSessionRepo.listByOwner(localOwnerId);
   for (const session of sessions) {
     const migrated = { ...session, ownerId: userId };
-    await soloSessionRepo.save(migrated);
+    await playSessionRepo.save(migrated);
     void queueSessionSync(migrated);
 
     const entries = await journalRepo.listBySession(session.id);
@@ -112,6 +135,20 @@ async function migrateLocalOwnerToUser(localOwnerId: string, userId: string): Pr
     await userLibraryTableRepo.save(migrated);
     void queueLibraryTableSync(migrated);
   }
+
+  const savedTags = await savedTagRepo.listByOwner(localOwnerId);
+  for (const tag of savedTags) {
+    const migrated = { ...tag, ownerId: userId };
+    await savedTagRepo.save(migrated);
+    void queueSavedTagSync(migrated);
+  }
+
+  const playerNotes = await playerNoteRepo.listByOwner(localOwnerId);
+  for (const note of playerNotes) {
+    const migrated = { ...note, ownerId: userId };
+    await playerNoteRepo.append(migrated);
+    void queuePlayerNoteSync(migrated);
+  }
 }
 
 /** Pull cloud data and merge anonymous local records into the signed-in account. */
@@ -130,7 +167,7 @@ export async function pullCloudData(userId: string): Promise<void> {
       await mergeSheet(sheet, userId);
     }
     for (const session of payload.sessions ?? []) {
-      await mergeSession(session, userId);
+      await mergePlaySession(session, userId);
     }
     for (const entry of payload.journalEntries ?? []) {
       await mergeJournal(entry);
@@ -140,6 +177,12 @@ export async function pullCloudData(userId: string): Promise<void> {
     }
     for (const table of payload.libraryTables ?? []) {
       await mergeLibraryTable(table, userId);
+    }
+    for (const tag of payload.savedTags ?? []) {
+      await mergeSavedTag(tag, userId);
+    }
+    for (const note of payload.playerNotes ?? []) {
+      await mergePlayerNote(note, userId);
     }
 
     await syncPendingPortraitUploads(userId);
