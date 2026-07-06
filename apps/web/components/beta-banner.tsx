@@ -30,7 +30,7 @@ export function BetaBanner() {
         type="button"
         onClick={dismiss}
         aria-label="Dismiss beta notice"
-        className="shrink-0 rounded p-0.5 text-warning/70 hover:bg-warning/15 hover:text-warning"
+        className="shrink-0 rounded p-0.5 text-warning/70 outline-none hover:bg-warning/15 hover:text-warning focus-visible:ring-2 focus-visible:ring-ring"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path

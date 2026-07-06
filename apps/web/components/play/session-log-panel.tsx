@@ -197,8 +197,9 @@ export function SessionLogPanel({
           <button
             type="button"
             onClick={() => setActiveFilters(new Set())}
+            aria-pressed={activeFilters.size === 0}
             className={cn(
-              'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+              'rounded-full px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
               activeFilters.size === 0
                 ? 'bg-primary/20 text-primary'
                 : 'bg-background/60 text-muted-foreground hover:text-foreground',
@@ -213,8 +214,9 @@ export function SessionLogPanel({
                 key={option.key}
                 type="button"
                 onClick={() => toggleFilter(option.key)}
+                aria-pressed={active}
                 className={cn(
-                  'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                  'rounded-full px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   active
                     ? 'bg-primary/20 text-primary'
                     : 'bg-background/60 text-muted-foreground hover:text-foreground',
@@ -235,8 +237,9 @@ export function SessionLogPanel({
                   key={tag}
                   type="button"
                   onClick={() => setActiveTag(active ? null : tag)}
+                  aria-pressed={active}
                   className={cn(
-                    'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                    'rounded-full px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     active
                       ? 'bg-secondary text-secondary-foreground'
                       : 'bg-background/40 text-muted-foreground/80 hover:text-foreground',
@@ -298,9 +301,10 @@ export function SessionLogPanel({
                           <button
                             type="button"
                             aria-label={item.entry.pinned ? 'Unpin entry' : 'Pin entry'}
+                            aria-pressed={item.entry.pinned}
                             onClick={() => onPatch(item.entry.id, { pinned: !item.entry.pinned })}
                             className={cn(
-                              'text-sm leading-none',
+                              'rounded text-sm leading-none outline-none focus-visible:ring-2 focus-visible:ring-ring',
                               item.entry.pinned
                                 ? 'text-primary'
                                 : 'text-muted-foreground/50 hover:text-foreground',

@@ -130,12 +130,13 @@ export function JournalPage() {
               placeholder="Search journal content…"
               className="h-9 w-full rounded-md border border-border/40 bg-background/60 px-3 text-sm text-foreground placeholder:text-muted-foreground/60"
             />
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by type">
               <button
                 type="button"
                 onClick={() => setActiveType(null)}
+                aria-pressed={activeType === null}
                 className={cn(
-                  'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                  'rounded-full px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   activeType === null
                     ? 'bg-primary/20 text-primary'
                     : 'bg-background/60 text-muted-foreground hover:text-foreground',
@@ -148,8 +149,9 @@ export function JournalPage() {
                   key={option.key}
                   type="button"
                   onClick={() => setActiveType(activeType === option.key ? null : option.key)}
+                  aria-pressed={activeType === option.key}
                   className={cn(
-                    'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                    'rounded-full px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     activeType === option.key
                       ? 'bg-primary/20 text-primary'
                       : 'bg-background/60 text-muted-foreground hover:text-foreground',
@@ -160,14 +162,15 @@ export function JournalPage() {
               ))}
             </div>
             {tagOptions.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by tag">
                 {tagOptions.map((tag) => (
                   <button
                     key={tag}
                     type="button"
                     onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                    aria-pressed={activeTag === tag}
                     className={cn(
-                      'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                      'rounded-full px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       activeTag === tag
                         ? 'bg-secondary text-secondary-foreground'
                         : 'bg-background/40 text-muted-foreground/80 hover:text-foreground',
