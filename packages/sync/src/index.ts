@@ -58,6 +58,13 @@ export {
   setFogCellHidden,
 } from './yjs/fog';
 export {
+  fogSecretsDocName,
+  isFogSecretsDocName,
+  roomIdFromFogSecretsDocName,
+  reconcileFogSecrets,
+  type PositionedElement,
+} from './yjs/fog-secrets';
+export {
   applyUpdateRespectingFog,
   captureFogSnapshot,
   connectionIsTableGm,

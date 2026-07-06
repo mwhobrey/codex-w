@@ -24,6 +24,10 @@
       "types": "./src/yjs/kick-guard.ts",
       "default": "./src/yjs/kick-guard.ts"
     },
+    "./yjs/fog-secrets": {
+      "types": "./src/yjs/fog-secrets.ts",
+      "default": "./src/yjs/fog-secrets.ts"
+    },
     "./sync-relay-url": {
       "types": "./src/sync-relay-url.ts",
       "default": "./src/sync-relay-url.ts"

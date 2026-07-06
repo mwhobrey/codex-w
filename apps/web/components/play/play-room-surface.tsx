@@ -5,15 +5,17 @@ import { getGameSystem } from '@codex/game-systems';
 import { claimTableGmIfVacant, ensureTableInviteToken, importPlaySessionToTable, journalRepo, playSessionRepo, requestKick, transferTableGm } from '@codex/sync';
 import { Button, cn } from '@codex/ui';
 import { CharacterPicker, useCharacter } from '@/components/solo/character-picker';
+import { useFogSecretsDoc } from '@/hooks/use-fog-secrets-doc';
 import { useOwnerId } from '@/hooks/use-owner-id';
 import { usePlayRoom } from '@/hooks/use-play-room';
 import { useTableAwareness } from '@/hooks/use-table-awareness';
 import { useTableMeta } from '@/hooks/use-table-meta';
 import { useTableCharacterPatch } from '@/hooks/use-table-character-patch';
 import { useTableSidebarWidth } from '@/hooks/use-table-sidebar-width';
+import { useYjsFog } from '@/hooks/use-yjs-fog';
 import { useSession } from '@/lib/auth-client';
 import { MAP_FLOATING_BOTTOM_PLAY_STYLE } from '@/lib/map-overlay-layout';
-import { createPlayRoomUrl } from '@/lib/play-room';
+import { createPlayRoomUrl, getSyncRelayHost } from '@/lib/play-room';
 import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 import { writeStoredTableInvite } from '@/lib/table-invite-storage';
@@ -122,6 +124,16 @@ export function PlayRoomSurface({
   const mapRole = resolveFogViewRole(meta, ownerId, gmPreviewAsPlayer);
   const logAuthor = awarenessState.localName.trim() || 'You';
 
+  const { hiddenCells: fogHiddenCells } = useYjsFog(doc);
+  const secretsDoc = useFogSecretsDoc({
+    roomId,
+    host: getSyncRelayHost(),
+    isTableGm: tableGm,
+    ownerId: ownerReady ? ownerId : undefined,
+    publicDoc: doc,
+    hiddenCells: fogHiddenCells,
+  });
+
   useEffect(() => {
     if (!ready || !doc) return;
     const token = inviteToken ?? resolvedInvite ?? partyInvite ?? meta?.inviteToken;
@@ -143,8 +155,15 @@ export function PlayRoomSurface({
 
   useEffect(() => {
     if (!ready || !ownerReady || !doc || !ownerId) return;
+    // Wait for the relay to actually confirm current state before deciding
+    // GM is vacant — claiming off a freshly-created local doc (IndexedDB
+    // "ready" fires near-instantly for a client with no prior cache, well
+    // before the websocket has synced the real gmUserId from the server)
+    // races an established GM's claim and can steal/corrupt it. Solo/offline
+    // play has no relay to race against, so local-only claims immediately.
+    if (connectionStatus !== 'connected' && connectionStatus !== 'local-only') return;
     claimTableGmIfVacant(doc, ownerId);
-  }, [doc, ownerId, ownerReady, ready]);
+  }, [connectionStatus, doc, ownerId, ownerReady, ready]);
 
   useEffect(() => {
     if (!tableGm && gmPreviewAsPlayer) setGmPreviewAsPlayer(false);
@@ -423,6 +442,7 @@ export function PlayRoomSurface({
           >
             <VttCanvas
               doc={doc}
+              secretsDoc={secretsDoc}
               floatingToolbar
               playMode
               mapRole={mapRole}

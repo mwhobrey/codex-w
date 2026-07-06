@@ -48,6 +48,8 @@ const ExcalidrawCanvas = dynamic(
 
 interface VttCanvasProps {
   doc: Y.Doc | null;
+  /** GM-only doc holding whatever's currently under fog — see useFogSecretsDoc. */
+  secretsDoc?: Y.Doc | null;
   showToolbar?: boolean;
   floatingToolbar?: boolean;
   playMode?: boolean;
@@ -62,6 +64,7 @@ interface VttCanvasProps {
 
 export function VttCanvas({
   doc,
+  secretsDoc = null,
   showToolbar = true,
   floatingToolbar = false,
   playMode = false,
@@ -73,8 +76,8 @@ export function VttCanvas({
   localClientId = null,
   onPointerScene,
 }: VttCanvasProps) {
-  const { ready, initialElements, initialFiles, onChange, bindApi } = useYjsExcalidraw(doc);
   const { hiddenCells, paintRectAtScene, clearAllFog } = useYjsFog(doc);
+  const { ready, initialElements, initialFiles, onChange, bindApi } = useYjsExcalidraw(doc, secretsDoc, hiddenCells);
   const { tokens: playerTokens } = useYjsPlayerTokens(doc, peers);
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const [apiReady, setApiReady] = useState(false);

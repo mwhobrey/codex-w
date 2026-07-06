@@ -1,4 +1,6 @@
 import { Server } from '@hocuspocus/server';
+import { readTableGmUserId } from '@codex/sync/yjs/fog-guard';
+import { isFogSecretsDocName, roomIdFromFogSecretsDocName } from '@codex/sync/yjs/fog-secrets';
 import { afterFogGuard, beforeFogGuard } from './fog-guard.js';
 import { afterLogGuard, beforeLogGuard } from './log-guard.js';
 import { afterKickGuard, beforeKickGuard } from './kick-guard.js';
@@ -30,7 +32,18 @@ const server = new Server({
     throw undefined;
   },
 
-  async onAuthenticate({ documentName, token, requestParameters }) {
+  async onAuthenticate({ documentName, token, requestParameters, instance }) {
+    if (isFogSecretsDocName(documentName)) {
+      const roomId = roomIdFromFogSecretsDocName(documentName);
+      const claimedOwnerId = token?.trim() || requestParameters.get('ownerId')?.trim();
+      const publicDoc = roomId ? instance.documents.get(roomId) : undefined;
+      const gmUserId = publicDoc ? readTableGmUserId(publicDoc) : undefined;
+      if (!claimedOwnerId || !gmUserId || claimedOwnerId !== gmUserId) {
+        throw new Error('gm_secrets_denied');
+      }
+      return;
+    }
+
     const provided =
       token?.trim() || requestParameters.get('invite')?.trim() || null;
     const admission = admitWebSocket(documentName, provided);
