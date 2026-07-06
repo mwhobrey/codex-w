@@ -1,6 +1,7 @@
 'use client';
 
 import { AuthNav } from '@/components/auth-nav';
+import { BetaBanner } from '@/components/beta-banner';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -33,6 +34,7 @@ export function SiteHeader() {
 
   return (
     <header className="fixed top-0 inset-x-0 z-40 border-b border-border/50 bg-background/90 backdrop-blur-md">
+      <BetaBanner />
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
         <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-2">
           <span
