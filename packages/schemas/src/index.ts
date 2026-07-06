@@ -153,6 +153,8 @@ export const TableMetaSchema = z.object({
   gameState: z.record(z.string(), z.unknown()).optional(),
   /** Chapter counter for this table's live log — bumped each time a chapter is closed */
   chapterNumber: z.number().int().min(1).optional(),
+  /** Shared lines-and-veils / safety-tools notes, editable by anyone at the table */
+  safetyNotes: z.string().max(2000).optional(),
 });
 
 export type TableMeta = z.infer<typeof TableMetaSchema>;

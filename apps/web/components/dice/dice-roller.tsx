@@ -3,8 +3,9 @@
 import type { RollResult } from '@codex/game-engine';
 import { Button, Card, CardContent, Input, Label } from '@codex/ui';
 import type { DiceFormula, DiceSet } from '@codex/schemas';
-import { diceSetRepo } from '@codex/sync';
-import { useState } from 'react';
+import { diceRollHistoryRepo, diceSetRepo } from '@codex/sync';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { useCallback } from 'react';
 import { queueDiceSetSync } from '@/lib/dice-set-sync';
 import { useDiceRoll, type DicePreset } from '@/hooks/use-dice-roll';
 import { DieFace } from './die-face';
@@ -14,12 +15,35 @@ interface DiceRollerProps {
   presets?: DicePreset[];
   activeSetName?: string;
   onRoll?: (result: RollResult) => void;
+  /** When set, rolls persist to a local roll history (Dexie) that survives refresh. */
+  ownerId?: string;
 }
 
-export function DiceRoller({ presets, activeSetName, onRoll }: DiceRollerProps) {
+export function DiceRoller({ presets, activeSetName, onRoll, ownerId }: DiceRollerProps) {
+  const handleRoll = useCallback(
+    (rolled: RollResult) => {
+      onRoll?.(rolled);
+      if (ownerId) {
+        void diceRollHistoryRepo.append({
+          ownerId,
+          notation: rolled.notation,
+          total: rolled.total,
+          rolledAt: rolled.rolledAt,
+        });
+      }
+    },
+    [onRoll, ownerId],
+  );
+
   const { notation, setNotation, rolling, error, result, history, liveRef, roll, defaultPresets } =
-    useDiceRoll('d20', onRoll);
+    useDiceRoll('d20', handleRoll);
   const quickPresets = presets?.length ? presets : defaultPresets;
+
+  const persistedHistory = useLiveQuery(
+    () => (ownerId ? diceRollHistoryRepo.listByOwner(ownerId) : Promise.resolve(undefined)),
+    [ownerId],
+  );
+  const displayHistory = ownerId ? (persistedHistory ?? []) : history;
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
@@ -140,7 +164,7 @@ export function DiceRoller({ presets, activeSetName, onRoll }: DiceRollerProps) 
         )}
       </div>
 
-      <RollLog entries={history} />
+      <RollLog entries={displayHistory} />
     </div>
   );
 }

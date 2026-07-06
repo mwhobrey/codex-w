@@ -20,6 +20,10 @@
       "types": "./src/yjs/log-guard.ts",
       "default": "./src/yjs/log-guard.ts"
     },
+    "./yjs/kick-guard": {
+      "types": "./src/yjs/kick-guard.ts",
+      "default": "./src/yjs/kick-guard.ts"
+    },
     "./sync-relay-url": {
       "types": "./src/sync-relay-url.ts",
       "default": "./src/sync-relay-url.ts"

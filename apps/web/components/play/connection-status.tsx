@@ -10,6 +10,7 @@ const STATUS_LABEL: Record<PlayRoomConnectionStatus, string> = {
   'local-only': 'Offline (start sync relay for live play)',
   'invite-required': 'Invite code required for live sync',
   'auth-failed': 'Invite rejected — check your link',
+  kicked: 'Removed from this table by the GM',
 };
 
 const STATUS_LABEL_COMPACT: Record<PlayRoomConnectionStatus, string> = {
@@ -19,6 +20,7 @@ const STATUS_LABEL_COMPACT: Record<PlayRoomConnectionStatus, string> = {
   'local-only': 'Offline',
   'invite-required': 'Need invite',
   'auth-failed': 'Invite rejected',
+  kicked: 'Removed',
 };
 
 const STATUS_VARIANT: Record<PlayRoomConnectionStatus, 'default' | 'secondary' | 'outline'> = {
@@ -28,6 +30,7 @@ const STATUS_VARIANT: Record<PlayRoomConnectionStatus, 'default' | 'secondary' |
   'local-only': 'secondary',
   'invite-required': 'outline',
   'auth-failed': 'outline',
+  kicked: 'outline',
 };
 
 interface ConnectionStatusProps {
@@ -51,7 +54,7 @@ export function ConnectionStatus({ status, compact }: ConnectionStatusProps) {
             ? 'bg-success'
             : status === 'local-only' || status === 'invite-required'
               ? 'bg-warning'
-              : status === 'auth-failed'
+              : status === 'auth-failed' || status === 'kicked'
                 ? 'bg-destructive'
                 : 'bg-primary animate-pulse'
         }`}

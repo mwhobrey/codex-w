@@ -20,7 +20,7 @@ import {
   type CodexTokenOptions,
 } from '@/lib/map-symbols';
 import type { MapViewRole } from '@/lib/table-systems';
-import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
+import type { BinaryFiles, ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import dynamic from 'next/dynamic';
 import { viewportToScenePoint } from '@/lib/excalidraw-viewport-math';
@@ -73,7 +73,7 @@ export function VttCanvas({
   localClientId = null,
   onPointerScene,
 }: VttCanvasProps) {
-  const { ready, initialElements, onChange, bindApi } = useYjsExcalidraw(doc);
+  const { ready, initialElements, initialFiles, onChange, bindApi } = useYjsExcalidraw(doc);
   const { hiddenCells, paintRectAtScene, clearAllFog } = useYjsFog(doc);
   const { tokens: playerTokens } = useYjsPlayerTokens(doc, peers);
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
@@ -89,6 +89,7 @@ export function VttCanvas({
   const viewport = useExcalidrawViewport(apiRef.current, canvasContainerRef);
   const initialDataRef = useRef<{
     elements: readonly ExcalidrawElement[];
+    files?: BinaryFiles;
     scrollToContent: boolean;
     appState?: {
       viewBackgroundColor: string;
@@ -107,6 +108,7 @@ export function VttCanvas({
   if (ready && !initialDataRef.current) {
     initialDataRef.current = {
       elements: [...initialElements],
+      files: Object.fromEntries(initialFiles.map((file) => [file.id, file])),
       scrollToContent: initialElements.length === 0,
       ...(playMode
         ? {
@@ -121,8 +123,11 @@ export function VttCanvas({
   }
 
   const handleExcalidrawChange = useCallback(
-    (elements: readonly ExcalidrawElement[], appState: { selectedElementIds: readonly string[] | Record<string, true> }) => {
-      onChange(elements);
+    (
+      _elements: readonly ExcalidrawElement[],
+      appState: { selectedElementIds: readonly string[] | Record<string, true> },
+    ) => {
+      onChange();
       const nextSelected = Array.isArray(appState.selectedElementIds)
         ? appState.selectedElementIds
         : Object.keys(appState.selectedElementIds);
@@ -202,6 +207,10 @@ export function VttCanvas({
     },
     [],
   );
+
+  const handleUploadBackgroundImage = useCallback(() => {
+    apiRef.current?.setActiveTool({ type: 'image', insertOnCanvasDirectly: true });
+  }, []);
 
   const handleBreakApart = useCallback(() => {
     const api = apiRef.current;
@@ -347,6 +356,7 @@ export function VttCanvas({
           templates={MAP_TEMPLATES}
           canBreakApart={canBreakApart}
           onBreakApart={handleBreakApart}
+          onUploadBackgroundImage={handleUploadBackgroundImage}
         />
       ) : null}
       <div
@@ -378,7 +388,7 @@ export function VttCanvas({
               saveAsImage: false,
               toggleTheme: false,
             },
-            tools: { image: false },
+            tools: { image: true },
           }}
         />
         <FogOverlay viewport={viewport} hiddenCells={hiddenCells} mapRole={mapRole} />
@@ -409,6 +419,7 @@ export function VttCanvas({
             templates={MAP_TEMPLATES}
             canBreakApart={canBreakApart}
             onBreakApart={handleBreakApart}
+            onUploadBackgroundImage={handleUploadBackgroundImage}
           />
         ) : null}
       </div>

@@ -11,6 +11,7 @@ import {
   Textarea,
 } from '@codex/ui';
 import { useCallback, useState } from 'react';
+import { RulesPrimerSection } from './rules-primer-section';
 import { SceneFocusSection } from './scene-focus-section';
 import type { TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
@@ -113,6 +114,8 @@ export function TableSystemPanel({
       <CardHeader className="border-b border-border/40 py-2.5">
         <CardTitle className="text-sm font-medium">{plugin.name}</CardTitle>
       </CardHeader>
+
+      <RulesPrimerSection points={plugin.rulesPrimer ?? []} />
 
       <SceneFocusSection
         placeholder="What's happening right now?"

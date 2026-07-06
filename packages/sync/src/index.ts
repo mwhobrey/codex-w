@@ -9,15 +9,19 @@ export { userLibraryTableRepo } from './user-library-tables';
 export { journalRepo, playSessionRepo } from './play-sessions';
 export { savedTagRepo } from './saved-tags';
 export { playerNoteRepo } from './player-notes';
+export { diceRollHistoryRepo } from './dice-roll-history';
+export type { DiceRollHistoryEntry } from './db';
 export { CodexDatabase, getDatabase, resetDatabaseForTests } from './db';
 export {
   PLAY_ROOM_KEYS,
   createPlayRoomDoc,
   getPlayRoomExcalidrawElements,
+  getPlayRoomExcalidrawFiles,
   getPlayRoomFogMap,
   getPlayRoomLogArray,
   getPlayRoomMetaMap,
   getPlayRoomPlayerTokensMap,
+  type PlayRoomFileRecord,
 } from './yjs/play-room-doc';
 export {
   claimTableGmIfVacant,
@@ -30,6 +34,7 @@ export {
   transferTableGm,
   writeTableMeta,
 } from './yjs/table-meta';
+export { requestKick } from './yjs/kick-guard';
 export {
   INVITE_QUERY_PARAM,
   INVITE_TOKEN_MIN_LENGTH,

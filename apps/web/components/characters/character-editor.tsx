@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { queueSheetDelete, queueSheetSync } from '@/lib/sheet-sync';
+import { downloadTextFile, exportCharacterSheetMarkdown } from '@/lib/export-character-sheet';
 import {
   cloneCharacterSheet,
   getCustomFields,
@@ -116,6 +117,13 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
     window.location.href = `/characters/${cloned.id}`;
   }, [sheet]);
 
+  const handleExport = useCallback(() => {
+    if (!sheet) return;
+    const markdown = exportCharacterSheetMarkdown(sheet);
+    const filename = `${sheet.name.trim().replace(/[^\w\- ]+/g, '').replace(/\s+/g, '-') || 'character'}.md`;
+    downloadTextFile(filename, markdown);
+  }, [sheet]);
+
   const handleAdaptConfirm = useCallback(
     async (result: { mode: 'copy' | 'move'; sheets: CharacterSheet[] }) => {
       setAdapting(true);
@@ -206,6 +214,9 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" onClick={handleClone}>
             Clone
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={handleExport}>
+            Export
           </Button>
           <Button type="button" variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
             Delete

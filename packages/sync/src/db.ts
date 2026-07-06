@@ -16,6 +16,18 @@ export type CharacterPortraitRow = {
   updatedAt: string;
 };
 
+/**
+ * Standalone dice-hub roll history — local-only, no cloud sync. `rolledAt` is
+ * the primary key (each roll's own ISO timestamp), matching what the log UI
+ * already used as its React key.
+ */
+export interface DiceRollHistoryEntry {
+  ownerId: string;
+  notation: string;
+  total: number;
+  rolledAt: string;
+}
+
 export class CodexDatabase extends Dexie {
   characterSheets!: Table<CharacterSheet, string>;
   playSessions!: Table<PlaySession, string>;
@@ -25,6 +37,7 @@ export class CodexDatabase extends Dexie {
   characterPortraits!: Table<CharacterPortraitRow, string>;
   savedTags!: Table<SavedTag, string>;
   playerNotes!: Table<PlayerNote, string>;
+  diceRollHistory!: Table<DiceRollHistoryEntry, string>;
 
   constructor(name = 'codex-w') {
     super(name);
@@ -76,6 +89,17 @@ export class CodexDatabase extends Dexie {
       characterPortraits: 'characterId, updatedAt',
       savedTags: 'id, ownerId, label, lastUsedAt',
       playerNotes: 'id, ownerId, roomId, createdAt, [ownerId+roomId]',
+    });
+    this.version(8).stores({
+      characterSheets: 'id, gameSystemId, ownerId, updatedAt, name',
+      playSessions: 'id, gameSystemId, ownerId, updatedAt, roomId',
+      journalEntries: 'id, sessionId, createdAt',
+      diceSets: 'id, ownerId, updatedAt, name',
+      userLibraryTables: 'id, ownerId, updatedAt, name, category',
+      characterPortraits: 'characterId, updatedAt',
+      savedTags: 'id, ownerId, label, lastUsedAt',
+      playerNotes: 'id, ownerId, roomId, createdAt, [ownerId+roomId]',
+      diceRollHistory: 'rolledAt, ownerId',
     });
   }
 }

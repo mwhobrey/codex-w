@@ -30,6 +30,7 @@ interface CodexMapToolbarProps {
   onApplyTemplate?: (templateId: string) => void;
   canBreakApart?: boolean;
   onBreakApart?: () => void;
+  onUploadBackgroundImage?: () => void;
 }
 
 const TAB_LABELS: Record<CodexMapTab, string> = {
@@ -57,6 +58,7 @@ export function CodexMapToolbar({
   onApplyTemplate,
   canBreakApart = false,
   onBreakApart,
+  onUploadBackgroundImage,
 }: CodexMapToolbarProps) {
   const [tab, setTab] = useState<CodexMapTab>('terrain');
   const floating = variant === 'floating';
@@ -258,6 +260,19 @@ export function CodexMapToolbar({
       ) : tab === 'scenes' ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-2 border-t border-border/30 px-2 py-2">
+          {isTableGm && onUploadBackgroundImage ? (
+            <button
+              type="button"
+              onClick={onUploadBackgroundImage}
+              className="rounded-md border border-dashed border-border/60 px-3 py-2 text-left text-xs hover:border-primary/40 hover:bg-background/40"
+              data-testid="map-upload-background"
+            >
+              <span className="block font-medium text-foreground">Upload background image</span>
+              <span className="block text-muted-foreground">
+                Drop in a battle map or handout — visible to everyone at the table.
+              </span>
+            </button>
+          ) : null}
           {templates.map((template) => (
             <button
               key={template.id}

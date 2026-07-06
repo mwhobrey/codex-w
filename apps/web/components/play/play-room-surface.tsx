@@ -2,7 +2,7 @@
 
 import type { RollResult } from '@codex/game-engine';
 import { getGameSystem } from '@codex/game-systems';
-import { claimTableGmIfVacant, ensureTableInviteToken, importPlaySessionToTable, journalRepo, playSessionRepo, transferTableGm } from '@codex/sync';
+import { claimTableGmIfVacant, ensureTableInviteToken, importPlaySessionToTable, journalRepo, playSessionRepo, requestKick, transferTableGm } from '@codex/sync';
 import { Button, cn } from '@codex/ui';
 import { CharacterPicker, useCharacter } from '@/components/solo/character-picker';
 import { useOwnerId } from '@/hooks/use-owner-id';
@@ -165,6 +165,14 @@ export function PlayRoomSurface({
       setGmPreviewAsPlayer(false);
     },
     [doc, ownerId],
+  );
+
+  const handleKickPlayer = useCallback(
+    (targetOwnerId: string) => {
+      if (!doc || !tableGm) return;
+      requestKick(doc, targetOwnerId);
+    },
+    [doc, tableGm],
   );
 
   const activeSidebarTab: TableSidebarTab =
@@ -360,6 +368,8 @@ export function PlayRoomSurface({
         roomUrl={inviteUrl}
         systemName={plugin?.name}
         connectionStatus={connectionStatus}
+        safetyNotes={meta?.safetyNotes}
+        onSafetyNotesSave={(next) => updateMeta({ safetyNotes: next })}
         presence={
           <>
             {ownerReady ? (
@@ -369,6 +379,7 @@ export function PlayRoomSurface({
                 ownerId={ownerId}
                 peers={awarenessState.peers}
                 onTransfer={handleTransferGm}
+                onKick={handleKickPlayer}
               />
             ) : null}
             <TablePresence

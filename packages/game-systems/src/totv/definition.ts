@@ -106,4 +106,21 @@ export const totvSoloEngine = {
   ],
   promptAdvance: { minPrompt: 1, maxPrompt: totvPrompts.length },
   prompts: totvPrompts,
+  oracleDice: '1d6',
+  riskDice: '2d6',
+  oracleLikelihoods: [
+    { id: 'impossible' as const, label: 'No way', threshold: 1, description: 'Yes only on a 1' },
+    { id: 'unlikely' as const, label: 'Unlikely', threshold: 2, description: 'Yes on 1–2' },
+    { id: 'even' as const, label: '50/50', threshold: 3, description: 'Yes on 1–3' },
+    { id: 'likely' as const, label: 'Likely', threshold: 4, description: 'Yes on 1–4' },
+    { id: 'certain' as const, label: 'Almost certain', threshold: 5, description: 'Yes on 1–5' },
+  ],
+  twistTable: [
+    { roll: 1, text: 'A face from centuries past resurfaces somewhere it has no right to be' },
+    { roll: 2, text: 'Something you were certain you remembered turns out to be wrong' },
+    { roll: 3, text: 'Time slips — hours, or years, pass unaccounted for' },
+    { roll: 4, text: 'A mortal notices what you are, or very nearly does' },
+    { roll: 5, text: 'Hunger overrides intention — you take more than you meant to' },
+    { roll: 6, text: 'An old debt, oath, or enemy calls due without warning' },
+  ],
 };

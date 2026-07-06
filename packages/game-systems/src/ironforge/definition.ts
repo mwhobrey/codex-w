@@ -111,6 +111,23 @@ export const ironforgeSoloEngine = {
     'What machine sound stopped that should not have stopped?',
     'What promise did you make when the last oath-bearer fell?',
   ],
+  oracleDice: '1d6',
+  riskDice: '2d6',
+  oracleLikelihoods: [
+    { id: 'impossible' as const, label: 'No way', threshold: 1, description: 'Yes only on a 1' },
+    { id: 'unlikely' as const, label: 'Unlikely', threshold: 2, description: 'Yes on 1–2' },
+    { id: 'even' as const, label: '50/50', threshold: 3, description: 'Yes on 1–3' },
+    { id: 'likely' as const, label: 'Likely', threshold: 4, description: 'Yes on 1–4' },
+    { id: 'certain' as const, label: 'Almost certain', threshold: 5, description: 'Yes on 1–5' },
+  ],
+  twistTable: [
+    { roll: 1, text: 'The foreman changes the terms without warning' },
+    { roll: 2, text: 'A tool or resource you counted on is already spent' },
+    { roll: 3, text: 'The district shifts — patrol routes, curfews, or crews change' },
+    { roll: 4, text: 'Someone who owes you calls in a favor of their own' },
+    { roll: 5, text: 'The forge demands more than expected to keep running' },
+    { roll: 6, text: "Word travels faster than you did — you're expected before you arrive" },
+  ],
   vowProgress: {
     progressMax: 10,
     difficulties: [

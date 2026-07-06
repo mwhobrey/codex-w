@@ -4,6 +4,8 @@ import { lookupTable, resolveForgeRoll, rollDiceNotation, tableMaxRoll } from '@
 import { getGameSystem, bumpIronforgeHeat, getIronforgeHeat, getSheetFieldValue, IRONFORGE_HEAT_MAX } from '@codex/game-systems';
 import { Button, Card, CardDescription, CardHeader, CardTitle } from '@codex/ui';
 import { useCallback, useState } from 'react';
+import { OracleTwistSection } from './oracle-twist-section';
+import { RulesPrimerSection } from './rules-primer-section';
 import { SceneFocusSection } from './scene-focus-section';
 import { patchGameState, readGameStateNumber, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
@@ -90,6 +92,8 @@ export function TableIronforgePanel({
         <CardDescription className="text-xs">{oath || 'Link a character with an oath on their sheet.'}</CardDescription>
       </CardHeader>
 
+      <RulesPrimerSection points={plugin.rulesPrimer ?? []} />
+
       <SceneFocusSection
         title="Shift"
         placeholder="What beat of the grind are you in?"
@@ -155,6 +159,16 @@ export function TableIronforgePanel({
           {rollReveal ?? <span className="text-muted-foreground">Forge results appear here.</span>}
         </div>
       </TableSection>
+
+      <OracleTwistSection
+        oracleLikelihoods={engine.oracleLikelihoods}
+        twistTable={engine.twistTable}
+        oracleDice={engine.oracleDice}
+        twistDice="1d6"
+        onAppendLog={onAppendLog}
+        logAuthor={logAuthor}
+        activeCharacter={activeCharacter}
+      />
     </Card>
   );
 }

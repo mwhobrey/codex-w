@@ -16,6 +16,11 @@ export const lonerPlugin = {
   tagline: 'Solo RPG of risky questions and sharp twists.',
   sheetDefinition: lonerSheetDefinition,
   soloEngine: lonerSoloEngine,
+  rulesPrimer: [
+    'Ask the Oracle a yes/no question and pick a likelihood — impossible, unlikely, even, likely, or certain — before you roll.',
+    'When a scene gets risky, roll Risk & twist: a bad enough result pulls a twist that complicates things further.',
+    'Everything you roll or answer lands in the session log automatically, so your play history stays readable afterward.',
+  ],
   dicePresets: [
     { label: 'Oracle', notation: '1d6' },
     { label: 'Risk', notation: '2d6' },

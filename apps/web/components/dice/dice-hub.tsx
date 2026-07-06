@@ -245,6 +245,7 @@ export function DiceHub() {
       <DiceRoller
         presets={presets}
         activeSetName={selectedSet?.name}
+        ownerId={ready ? ownerId : undefined}
         onRoll={
           roomId
             ? (result) => {

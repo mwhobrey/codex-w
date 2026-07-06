@@ -10,6 +10,8 @@ import {
 } from '@codex/game-systems';
 import { Badge, Button, Card, CardHeader, CardTitle, Input } from '@codex/ui';
 import { useCallback, useEffect, useState } from 'react';
+import { OracleTwistSection } from './oracle-twist-section';
+import { RulesPrimerSection } from './rules-primer-section';
 import { SceneFocusSection } from './scene-focus-section';
 import { patchGameState, readGameStateNumber, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
@@ -133,6 +135,8 @@ export function TableTotvPanel({
         <CardTitle className="text-sm font-medium">{plugin.name} · Journal</CardTitle>
       </CardHeader>
 
+      <RulesPrimerSection points={plugin.rulesPrimer ?? []} />
+
       <SceneFocusSection
         title="Era"
         placeholder="Where in your long life are you now?"
@@ -206,6 +210,16 @@ export function TableTotvPanel({
           {rollReveal ?? <span className="text-muted-foreground">Navigation roll appears here.</span>}
         </div>
       </TableSection>
+
+      <OracleTwistSection
+        oracleLikelihoods={engine.oracleLikelihoods}
+        twistTable={engine.twistTable}
+        oracleDice={engine.oracleDice}
+        twistDice="1d6"
+        onAppendLog={onAppendLog}
+        logAuthor={logAuthor}
+        activeCharacter={activeCharacter}
+      />
     </Card>
   );
 }

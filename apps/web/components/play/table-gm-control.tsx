@@ -11,6 +11,7 @@ interface TableGmControlProps {
   ownerId: string;
   peers: TablePeer[];
   onTransfer: (toUserId: string) => void;
+  onKick?: (ownerId: string) => void;
   className?: string;
 }
 
@@ -20,9 +21,11 @@ export function TableGmControl({
   ownerId,
   peers,
   onTransfer,
+  onKick,
   className,
 }: TableGmControlProps) {
   const [open, setOpen] = useState(false);
+  const [kickOpen, setKickOpen] = useState(false);
 
   const transferTargets = peers.filter(
     (peer) => peer.ownerId && peer.ownerId !== ownerId,
@@ -77,6 +80,42 @@ export function TableGmControl({
                     onClick={() => {
                       if (peer.ownerId) onTransfer(peer.ownerId);
                       setOpen(false);
+                    }}
+                  >
+                    {formatPlayerTag(peer.name, peer.characterName)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
+      {isGm && onKick && transferTargets.length > 0 ? (
+        <div className="relative">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+            onClick={() => setKickOpen((value) => !value)}
+            data-testid="table-kick-toggle"
+          >
+            Remove player
+          </Button>
+          {kickOpen ? (
+            <ul
+              className="absolute right-0 top-full z-20 mt-1 min-w-[10rem] rounded-md border border-border/60 bg-card py-1 shadow-lg"
+              data-testid="table-kick-menu"
+            >
+              {transferTargets.map((peer) => (
+                <li key={peer.clientId}>
+                  <button
+                    type="button"
+                    className="block w-full px-3 py-1.5 text-left text-xs text-foreground hover:bg-secondary/60"
+                    onClick={() => {
+                      if (peer.ownerId) onKick(peer.ownerId);
+                      setKickOpen(false);
                     }}
                   >
                     {formatPlayerTag(peer.name, peer.characterName)}

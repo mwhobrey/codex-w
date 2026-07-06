@@ -16,6 +16,12 @@ export const muscadinesPlugin = {
   tagline: 'Cozy-dark folklore solo — mentor prompts, oracles, and magical jams.',
   sheetDefinition: muscadinesSheetDefinition,
   soloEngine: muscadinesSoloEngine,
+  rulesPrimer: [
+    'Mentor gives you a guided prompt to write toward right now — click "Next mentor prompt" once you\'re ready to move on.',
+    'Grove omen and Jar result pull flavor prompts for quiet, magical beats between scenes.',
+    'Oracle handles simple yes/no questions about the world when you need a quick answer.',
+    'Recipe notes save straight to your character sheet, so ingredients and warnings carry over between sessions.',
+  ],
   dicePresets: [
     { label: 'Oracle', notation: '1d6' },
     { label: 'Grove omen', notation: '1d6' },

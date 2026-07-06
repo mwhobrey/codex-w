@@ -14,6 +14,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import { ConnectionStatus } from './connection-status';
+import { SafetyNotesSection } from './safety-notes-section';
 
 interface TableHeaderProps {
   tableName: string;
@@ -24,6 +25,8 @@ interface TableHeaderProps {
   systemName?: string;
   connectionStatus: PlayRoomConnectionStatus;
   presence?: ReactNode;
+  safetyNotes?: string;
+  onSafetyNotesSave: (next: string | undefined) => void;
 }
 
 export function TableHeader({
@@ -35,6 +38,8 @@ export function TableHeader({
   systemName,
   connectionStatus,
   presence,
+  safetyNotes,
+  onSafetyNotesSave,
 }: TableHeaderProps) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -155,6 +160,7 @@ export function TableHeader({
                   </div>
                 </div>
                 {presence ? <div className="space-y-2">{presence}</div> : null}
+                <SafetyNotesSection value={safetyNotes} onSave={onSafetyNotesSave} />
               </div>
             </SheetContent>
           </Sheet>

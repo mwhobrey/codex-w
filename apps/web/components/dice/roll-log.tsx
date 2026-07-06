@@ -1,7 +1,11 @@
-import type { RollResult } from '@codex/game-engine';
+interface RollLogEntry {
+  notation: string;
+  total: number;
+  rolledAt: string;
+}
 
 interface RollLogProps {
-  entries: RollResult[];
+  entries: RollLogEntry[];
 }
 
 export function RollLog({ entries }: RollLogProps) {

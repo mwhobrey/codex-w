@@ -24,7 +24,8 @@ export type PlayRoomConnectionStatus =
   | 'disconnected'
   | 'local-only'
   | 'invite-required'
-  | 'auth-failed';
+  | 'auth-failed'
+  | 'kicked';
 
 export interface PlayRoomProviders {
   indexedDb: IndexeddbPersistence;
@@ -63,6 +64,7 @@ export function createPlayRoomProviders(
   let localAwareness: Awareness | undefined;
 
   let authFailed = false;
+  let kicked = false;
   const invite = options.params?.invite?.trim();
 
   if (
@@ -81,7 +83,11 @@ export function createPlayRoomProviders(
       },
       onClose: ({ event }) => {
         if (event.code === 4403) {
-          authFailed = true;
+          if (event.reason === 'kicked') {
+            kicked = true;
+          } else {
+            authFailed = true;
+          }
           relay?.disconnect();
         }
       },
@@ -92,6 +98,7 @@ export function createPlayRoomProviders(
   if (!relay) localAwareness = awareness;
 
   const getStatus = (): PlayRoomConnectionStatus => {
+    if (kicked) return 'kicked';
     if (authFailed) return 'auth-failed';
     if (!relay) {
       if (options.attemptLiveSync && !isValidInviteToken(invite)) {

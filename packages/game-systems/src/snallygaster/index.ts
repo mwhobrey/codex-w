@@ -17,6 +17,12 @@ export const snallygasterPlugin = {
   tagline: 'Summer camp horror solo — counselor and monster, problems in the pines.',
   sheetDefinition: snallygasterSheetDefinition,
   soloEngine: snallygasterSoloEngine,
+  rulesPrimer: [
+    'Switch between Counselor and Monster mode depending on whose turn it is to act, then roll 3d6.',
+    'Counselor succeeds when any die rolls higher than your stat; Monster succeeds when any die rolls lower.',
+    'Problem and Activity pull prompts scaled to the current summer week — advance the week as the story moves on.',
+    'Twist complicates whatever just happened, pulled independently of a roll.',
+  ],
   dicePresets: [
     { label: 'Counselor', notation: '3d6' },
     { label: 'Monster', notation: '3d6' },

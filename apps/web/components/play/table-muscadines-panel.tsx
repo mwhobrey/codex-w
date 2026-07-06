@@ -4,6 +4,7 @@ import { lookupTable, resolveYesNoOracle, rollDiceNotation, tableMaxRoll } from 
 import { getGameSystem, getSheetFieldValue } from '@codex/game-systems';
 import { Button, Card, CardHeader, CardTitle, Input, Textarea } from '@codex/ui';
 import { useCallback, useEffect, useState } from 'react';
+import { RulesPrimerSection } from './rules-primer-section';
 import { SceneFocusSection } from './scene-focus-section';
 import { readGameStateNumber, saveGameStateIndex, type TablePanelProps } from './table-panel-types';
 import { TableSection } from './table-section';
@@ -75,6 +76,8 @@ export function TableMuscadinesPanel({
       <CardHeader className="border-b border-border/40 py-2.5">
         <CardTitle className="text-sm font-medium">{plugin.name} · Grove</CardTitle>
       </CardHeader>
+
+      <RulesPrimerSection points={plugin.rulesPrimer ?? []} />
 
       <SceneFocusSection
         title="Season"

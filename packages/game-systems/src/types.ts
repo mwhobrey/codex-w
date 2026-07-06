@@ -31,6 +31,12 @@ export interface GameSystemPlugin {
   soloEngine?: SoloEngineConfig;
   /** Quick-roll presets for play table dice UI */
   dicePresets?: DicePreset[];
+  /**
+   * Short bullet points explaining what the table panel's buttons/mechanics
+   * do — shown as a collapsed "How this works" primer for cold-start solo
+   * players who don't have a GM to ask.
+   */
+  rulesPrimer?: string[];
   createEmptySheet: (name: string, ownerId: string) => CharacterSheet;
 }
 
