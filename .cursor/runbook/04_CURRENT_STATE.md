@@ -18,7 +18,7 @@
 
 - [x] **`packages/game-engine`** — dice parser, roller, oracles (unit tests)
 - [x] **Dice hub** at `/dice` — formula builder, saved sets, roll log (`/roll` redirects)
-- [x] **`packages/game-systems`** — generic + loner (Chance/Risk SRD), paranormal-files (GTL), totv, snallygaster (Camp Snallygaster CC BY tables + PATH solo), muscadines, ironforge (unit tests)
+- [x] **`packages/game-systems`** — generic + loner (Chance/Risk SRD), paranormal-files (GTL), totv (structural homage; Experiences/Marks; original 60 prompts), snallygaster (Camp Snallygaster CC BY tables + PATH solo), muscadines, ironsworn (CC BY SRD; unit tests)
 - [x] **`packages/sync`** — Dexie repos + Yjs play-room primitives (meta, log, fog, tokens, import)
 - [x] **Character sheets UI** at `/characters` + `/characters/[id]` — local CRUD, auto-save, cross-play adapt/move
 - [x] **Cloud sync API** at `/api/sheets`, `/api/dice-sets`, `/api/sync` — Postgres upsert when signed in
@@ -30,14 +30,14 @@
 - [x] **Player tokens** — Yjs-synced circles, GM move-any, resize/snap, portraits, fog visibility
 - [x] **Fog of war** — GM paint/reveal/clear; player vision; GM local “preview as player”
 - [x] **Host-owned GM** — `gmUserId` in table meta, first-claim, Pass GM transfer
-- [x] **Embedded journals** — TYOV, Snallygaster, Ironforge panels in play sidebar
+- [x] **Embedded journals** — TYOV, Snallygaster, Ironsworn panels in play sidebar
 - [x] **Invite + import** — copy invite link with system seed; Dexie solo session → table import
 - [x] **Dice → play room** — in-room rolls + `/dice?room=` push to session log
 - [x] **Arc B (partial)** — Better Auth at `/login`, Drizzle + Docker Postgres (`npm run stack:up`)
 - [x] **Portrait upload** — local IndexedDB blobs; `portrait_url` in Postgres when signed in; S3 object via `/api/assets`
 - [x] **CI/CD** — GitHub Actions: unit tests, web build, Playwright smoke on PR/push to `main`
 - [x] **Invite tokens** — relay auth gate; HTTP seed before websocket; multi-source resume (URL, meta, storage, recent)
-- [x] **Story integration** — per-system table panels, TYOV tag engine, Ironforge heat, `/library`, table export
+- [x] **Story integration** — per-system table panels, TYOV tag engine, Ironsworn vows/meters, `/library`, table export
 - [x] **E2E tests** — smoke (all systems + library) + multiplayer invite (sync-server in CI)
 - [x] **`apps/sync-server`** — Hocuspocus on Node; invite seed + fog guard; deploy docs for DO droplet
 - [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (44 tests)

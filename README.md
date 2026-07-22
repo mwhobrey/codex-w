@@ -4,7 +4,7 @@ A local-first, sync-capable TTRPG toolkit — dice, oracles, character sheets, i
 
 ## North Star
 
-One beautiful workspace where any TTRPG—especially solo systems like Loner, TOTV, Snallygaster, and Ironforge—can be played alone or together, online or offline.
+One beautiful workspace where any TTRPG—especially solo systems like Loner, TOTV, Snallygaster, and Ironsworn—can be played alone or together, online or offline.
 
 ## Stack (Summary)
 

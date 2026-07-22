@@ -1,12 +1,18 @@
 import type { GameSystemId } from '@codex/schemas';
 import { genericPlugin } from './generic';
-import { ironforgePlugin } from './ironforge';
+import { ironswornPlugin } from './ironsworn';
 import { lonerPlugin } from './loner';
 import { muscadinesPlugin } from './muscadines';
 import { paranormalFilesPlugin } from './paranormal-files';
 import { snallygasterPlugin } from './snallygaster';
 import { totvPlugin } from './totv';
 import type { GameSystemPlugin } from './types';
+
+/** Legacy Ironforge tables/sheets resolve to Ironsworn. */
+export function normalizeGameSystemId(id: string): GameSystemId {
+  if (id === 'ironforge') return 'ironsworn';
+  return id as GameSystemId;
+}
 
 const registry: Record<GameSystemId, GameSystemPlugin | undefined> = {
   generic: genericPlugin,
@@ -15,11 +21,12 @@ const registry: Record<GameSystemId, GameSystemPlugin | undefined> = {
   totv: totvPlugin,
   snallygaster: snallygasterPlugin,
   muscadines: muscadinesPlugin,
-  ironforge: ironforgePlugin,
+  ironsworn: ironswornPlugin,
 };
 
-export function getGameSystem(id: GameSystemId): GameSystemPlugin {
-  const plugin = registry[id];
+export function getGameSystem(id: GameSystemId | string): GameSystemPlugin {
+  const normalized = normalizeGameSystemId(id);
+  const plugin = registry[normalized];
   if (!plugin) {
     throw new Error(`Game system "${id}" is not implemented yet`);
   }

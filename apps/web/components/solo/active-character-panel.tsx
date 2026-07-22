@@ -60,8 +60,8 @@ export function ActiveCharacterPanel({
   const headline =
     character.gameSystemId === 'totv'
       ? vampireName || humanName || profile.tagline
-      : character.gameSystemId === 'ironforge'
-        ? getSheetFieldValue(character, 'iron_oath') || profile.tagline
+      : character.gameSystemId === 'ironsworn' || character.gameSystemId === 'ironforge'
+        ? getSheetFieldValue(character, 'iron_vow') || profile.tagline
         : character.gameSystemId === 'snallygaster'
         ? snallyMotivation || snallyCampName || fear || profile.tagline
         : character.gameSystemId === 'muscadines'
@@ -73,8 +73,8 @@ export function ActiveCharacterPanel({
   const headlineLabel =
     character.gameSystemId === 'totv'
       ? 'Identity'
-      : character.gameSystemId === 'ironforge'
-        ? 'Oath'
+      : character.gameSystemId === 'ironsworn' || character.gameSystemId === 'ironforge'
+        ? 'Vow'
         : character.gameSystemId === 'snallygaster'
         ? snallyMotivation
           ? 'Motivation'
@@ -88,8 +88,8 @@ export function ActiveCharacterPanel({
   const summary =
     character.gameSystemId === 'totv'
       ? getSheetFieldValue(character, 'diary') || profile.summary
-      : character.gameSystemId === 'ironforge'
-        ? getSheetFieldValue(character, 'scars') || profile.summary
+      : character.gameSystemId === 'ironsworn' || character.gameSystemId === 'ironforge'
+        ? getSheetFieldValue(character, 'background') || profile.summary
         : character.gameSystemId === 'snallygaster'
         ? getSheetFieldValue(character, 'style') ||
           getSheetFieldValue(character, 'camper_secret') ||
@@ -186,16 +186,21 @@ export function ActiveCharacterPanel({
             <p className="line-clamp-4 text-muted-foreground">{summary}</p>
           </div>
         )}
-        {(lonerNemesis || profile.nemesis) &&
-          (isLonerFamily || character.gameSystemId === 'ironforge') && (
+        {(lonerNemesis || profile.nemesis) && isLonerFamily && (
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {character.gameSystemId === 'ironforge' ? 'Opposition' : 'Nemesis'}
+              Nemesis
             </p>
-            <p className="text-muted-foreground">
-              {character.gameSystemId === 'ironforge'
-                ? getSheetFieldValue(character, 'iron_nemesis') || profile.nemesis
-                : lonerNemesis || profile.nemesis}
+            <p className="text-muted-foreground">{lonerNemesis || profile.nemesis}</p>
+          </div>
+        )}
+        {(character.gameSystemId === 'ironsworn' || character.gameSystemId === 'ironforge') && (
+          <div className="space-y-1 text-xs text-muted-foreground">
+            <p>
+              Momentum {getSheetFieldValue(character, 'momentum') || '2'} · Health{' '}
+              {getSheetFieldValue(character, 'health') || '5'} · Spirit{' '}
+              {getSheetFieldValue(character, 'spirit') || '5'} · Supply{' '}
+              {getSheetFieldValue(character, 'supply') || '5'}
             </p>
           </div>
         )}
@@ -203,6 +208,14 @@ export function ActiveCharacterPanel({
           <>
             <Separator />
             <div className="space-y-2">
+              {(() => {
+                const markFilled = (['mark_1', 'mark_2', 'mark_3', 'mark_4', 'mark_5'] as const).filter(
+                  (key) => getSheetFieldValue(character, key),
+                ).length;
+                return markFilled > 0 ? (
+                  <p className="text-xs text-muted-foreground">Marks {markFilled}/5</p>
+                ) : null;
+              })()}
               {(Object.keys(TYOV_SLOT_KEYS) as Array<keyof typeof TYOV_SLOT_KEYS>).flatMap((kind) =>
                 TYOV_SLOT_KEYS[kind].map((key) => {
                   const value = getSheetFieldValue(character, key);
@@ -212,7 +225,7 @@ export function ActiveCharacterPanel({
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                         {key.replace('_', ' ')}
                       </p>
-                      <p className="text-muted-foreground">{value || '—'}</p>
+                      <p className="line-clamp-3 text-muted-foreground">{value || '—'}</p>
                     </div>
                   );
                 }),

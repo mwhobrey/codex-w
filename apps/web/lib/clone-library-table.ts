@@ -7,6 +7,7 @@ const PROSE_CATEGORIES: LibraryCategory[] = [
   'mentor',
   'table',
   'forge',
+  'ironsworn',
 ];
 
 const PROSE_PLACEHOLDER = 'Add from your book…';

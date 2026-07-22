@@ -36,6 +36,6 @@ Every architectural decision filters through: *Does this work offline? Does it s
 ## Glossary
 
 - **VTT** — Virtual Tabletop (interactive map/canvas)
-- **Solo engine** — Structured prompts/oracles for single-player RPGs (Loner, TOTV, Snallygaster, Ironforge, etc.)
+- **Solo engine** — Structured prompts/oracles for single-player RPGs (Loner, TOTV, Snallygaster, Ironsworn, etc.)
 - **Game system plugin** — Self-contained module defining sheets, mechanics, and solo flows for one RPG
 - **Local-first** — Client owns data; server reconciles; app works fully offline

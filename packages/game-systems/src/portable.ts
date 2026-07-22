@@ -19,6 +19,8 @@ const FIELD_ALIASES: Record<string, keyof PortableProfile | 'trait'> = {
   score: 'tagline',
   motive: 'summary',
   cozy_dark: 'summary',
+  iron_vow: 'tagline',
+  background: 'summary',
   scars: 'summary',
   backstory: 'summary',
   verb: 'trait',
@@ -33,10 +35,6 @@ const FIELD_ALIASES: Record<string, keyof PortableProfile | 'trait'> = {
   grove: 'trait',
   nemesis: 'nemesis',
   fear: 'nemesis',
-  iron_nemesis: 'nemesis',
-  iron_oath: 'tagline',
-  callsign: 'trait',
-  district: 'trait',
   notes: 'notes',
   equipment: 'notes',
   contacts: 'notes',
@@ -118,10 +116,9 @@ const TARGET_FIELD_MAP: Partial<
     summary: 'cozy_dark',
     notes: 'notes',
   },
-  ironforge: {
-    tagline: 'iron_oath',
-    summary: 'scars',
-    nemesis: 'iron_nemesis',
+  ironsworn: {
+    tagline: 'iron_vow',
+    summary: 'background',
     notes: 'notes',
   },
 };

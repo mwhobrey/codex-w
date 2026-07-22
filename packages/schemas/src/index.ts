@@ -41,7 +41,7 @@ export const GameSystemIdSchema = z.enum([
   'totv',
   'snallygaster',
   'muscadines',
-  'ironforge',
+  'ironsworn',
 ]);
 
 export type GameSystemId = z.infer<typeof GameSystemIdSchema>;
@@ -222,6 +222,7 @@ export const LibraryTableCategorySchema = z.enum([
   'mentor',
   'table',
   'forge',
+  'ironsworn',
   'chargen',
 ]);
 

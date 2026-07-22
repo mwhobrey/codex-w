@@ -61,6 +61,7 @@ test.describe('core play loop smoke', () => {
     await expect(page).toHaveURL(/\/play\/[^/?]+(\?.*)?$/);
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-totv-panel')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Prompt \d+/)).toBeVisible();
     await expect(page.getByTestId('table-export-panel')).toBeVisible();
   });
 
@@ -72,12 +73,13 @@ test.describe('core play loop smoke', () => {
     await expect(page.getByTestId('snally-number')).toBeVisible();
   });
 
-  test('Ironforge table loads vow panel with heat track', async ({ page }) => {
-    await page.goto('/play?system=ironforge');
+  test('Ironsworn table loads vow panel with meters', async ({ page }) => {
+    await page.goto('/play?system=ironsworn');
     await page.getByTestId('create-table-button').click();
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('table-ironforge-panel')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('ironforge-heat-track')).toBeVisible();
+    await expect(page.getByTestId('table-ironsworn-panel')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('ironsworn-vow-track')).toBeVisible();
+    await expect(page.getByTestId('ironsworn-meters')).toBeVisible();
   });
 
   test('Muscadines table loads grove panel', async ({ page }) => {

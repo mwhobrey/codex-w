@@ -24,11 +24,14 @@ export const TYOV_CHARACTER_KEYS = [
   'character_5',
 ] as const;
 
-export type TyovSlotKind = 'memory' | 'skill' | 'resource' | 'character';
+export const TYOV_MARK_KEYS = ['mark_1', 'mark_2', 'mark_3', 'mark_4', 'mark_5'] as const;
+
+export type TyovSlotKind = 'memory' | 'skill' | 'resource' | 'character' | 'mark';
 
 export const TYOV_SLOT_KEYS: Record<TyovSlotKind, readonly string[]> = {
   memory: TYOV_MEMORY_KEYS,
   skill: TYOV_SKILL_KEYS,
   resource: TYOV_RESOURCE_KEYS,
   character: TYOV_CHARACTER_KEYS,
+  mark: TYOV_MARK_KEYS,
 };

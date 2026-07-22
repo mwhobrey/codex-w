@@ -70,7 +70,7 @@ export type SoloEngineKind =
   | 'prompt-journal'
   | 'lasers-feelings'
   | 'mentor'
-  | 'vow-progress';
+  | 'ironsworn';
 
 export interface PromptEntry {
   id: number;
@@ -134,12 +134,36 @@ export interface SoloEngineConfig {
     groveOmens?: OracleTableEntry[];
     jarResults?: OracleTableEntry[];
   };
-  /** Ironforge — grim industrial vow progress */
-  vowProgress?: {
-    progressMax: number;
-    difficulties: { id: string; label: string; target: number }[];
-    complicationTable: OracleTableEntry[];
-    hazardTable: OracleTableEntry[];
+  /** Ironsworn — action rolls, vows, oracles, assets (CC BY) */
+  ironsworn?: {
+    moves: Array<{
+      id: string;
+      name: string;
+      category: string;
+      stats: string[];
+      trigger: string;
+      strong: string;
+      weak: string;
+      miss: string;
+    }>;
+    oracles: Array<{
+      id: string;
+      title: string;
+      kind: 'd100' | 'range';
+      rows: Array<{
+        roll?: number;
+        min?: number;
+        max?: number;
+        text: string;
+      }>;
+    }>;
+    assets: Array<{
+      id: string;
+      name: string;
+      type: string;
+      summary: string;
+      abilities: Array<{ id: string; text: string; starting?: boolean }>;
+    }>;
   };
   /** Loner: Paranormal Files — Operating in the Shadows */
   paranormalFiles?: {

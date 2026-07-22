@@ -7,7 +7,9 @@ export {
 } from '@codex/game-systems';
 
 export function parseGameSystemId(value: string | null | undefined): GameSystemId | undefined {
-  const parsed = GameSystemIdSchema.safeParse(value);
+  if (!value) return undefined;
+  const normalized = value === 'ironforge' ? 'ironsworn' : value;
+  const parsed = GameSystemIdSchema.safeParse(normalized);
   return parsed.success ? parsed.data : undefined;
 }
 

@@ -17,6 +17,7 @@ export type LibraryCategory =
   | 'mentor'
   | 'table'
   | 'forge'
+  | 'ironsworn'
   | 'chargen';
 
 export interface LibraryEntry {
@@ -229,22 +230,50 @@ export function listLibraryEntries(): LibraryEntry[] {
       }
     }
 
-    if (engine.vowProgress) {
+    if (engine.ironsworn) {
+      for (const oracle of engine.ironsworn.oracles) {
+        entries.push({
+          id: `${plugin.id}-oracle-${oracle.id}`,
+          systemId: plugin.id,
+          systemName: plugin.name,
+          category: 'ironsworn',
+          title: oracle.title,
+          rows: oracle.rows.map((row) => {
+            if ('roll' in row && typeof row.roll === 'number') {
+              return { roll: row.roll, text: String(row.text ?? '') };
+            }
+            if ('min' in row && 'max' in row) {
+              return {
+                roll: typeof row.max === 'number' ? row.max : undefined,
+                label: `${row.min}–${row.max}`,
+                text: String(row.text ?? ''),
+              };
+            }
+            return { text: String(row.text ?? '') };
+          }),
+        });
+      }
       entries.push({
-        id: `${plugin.id}-hazards`,
+        id: `${plugin.id}-moves`,
         systemId: plugin.id,
         systemName: plugin.name,
-        category: 'forge',
-        title: 'Forge hazards',
-        rows: mapTableRows(engine.vowProgress.hazardTable),
+        category: 'ironsworn',
+        title: 'Core moves',
+        rows: engine.ironsworn.moves.map((move) => ({
+          label: move.name,
+          text: move.trigger,
+        })),
       });
       entries.push({
-        id: `${plugin.id}-complications`,
+        id: `${plugin.id}-assets`,
         systemId: plugin.id,
         systemName: plugin.name,
-        category: 'forge',
-        title: 'Forge complications',
-        rows: mapTableRows(engine.vowProgress.complicationTable),
+        category: 'ironsworn',
+        title: 'Assets',
+        rows: engine.ironsworn.assets.map((asset) => ({
+          label: asset.name,
+          text: asset.summary,
+        })),
       });
     }
 

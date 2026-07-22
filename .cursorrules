@@ -26,7 +26,7 @@ Keep updates concise and grounded in actual code. If nothing material changed, s
 ## Project Constraints
 
 - **Local-first**: offline must work; sync is enhancement, not requirement for solo play.
-- **Solo RPGs are first-class**: Loner, TOTV, Snallygaster, Ironforge — plugin architecture, not afterthoughts.
+- **Solo RPGs are first-class**: Loner, TOTV, Snallygaster, Ironsworn — plugin architecture, not afterthoughts.
 - **Performance + beauty**: 60fps canvas, sub-16ms local edits, premium UI (Tailwind + shadcn, no generic slop).
 - **TypeScript strict** everywhere; shared types via `@codex/schemas`.
 - **Minimal diffs**: match existing conventions; don't refactor unrelated code.

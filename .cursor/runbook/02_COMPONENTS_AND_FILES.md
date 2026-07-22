@@ -81,10 +81,10 @@ One subdirectory per RPG:
 game-systems/
 ├── loner/              # Loner (Chance/Risk Oracle; CC BY-SA SRD)
 ├── paranormal-files/   # Loner: Paranormal Files (GTL)
-├── totv/
+├── totv/               # TYOV structural homage (original prompts)
 ├── snallygaster/       # Camp Snallygaster (L&F; CC BY 4.0)
 ├── muscadines/
-├── ironforge/
+├── ironsworn/          # Ironsworn (CC BY SRD)
 └── generic/            # System-agnostic fallback sheet
 ```
 

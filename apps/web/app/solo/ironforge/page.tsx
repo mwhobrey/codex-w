@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 
-export default function SoloIronforgePage() {
-  redirect('/play?system=ironforge');
+/** Legacy Ironforge route → Ironsworn */
+export default function SoloIronforgeRedirectPage() {
+  redirect('/play?system=ironsworn');
 }

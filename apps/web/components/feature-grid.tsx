@@ -119,7 +119,7 @@ const features = [
     href: '/library',
     title: 'Game System Plugins',
     description:
-      'Loner, TOTV, Snallygaster, Ironforge — each system ships as a first-class module, not an afterthought.',
+      'Loner, TOTV, Snallygaster, Ironsworn — each system ships as a first-class module, not an afterthought.',
   },
 ] as const;
 

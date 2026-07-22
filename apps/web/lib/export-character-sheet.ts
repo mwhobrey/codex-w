@@ -1,5 +1,5 @@
-import { getGameSystem } from '@codex/game-systems';
-import { GameSystemIdSchema, type CharacterSheet, type CharacterSheetField } from '@codex/schemas';
+import { getGameSystem, normalizeGameSystemId } from '@codex/game-systems';
+import { type CharacterSheet, type CharacterSheetField } from '@codex/schemas';
 import { getCustomFields, listDefinitionKeys } from './generic-sheet-builder';
 
 function formatFieldValue(field: CharacterSheetField): string | null {
@@ -12,7 +12,7 @@ function formatFieldValue(field: CharacterSheetField): string | null {
 
 /** Renders a character sheet as portable Markdown — for backup, printing, or sharing outside the app. */
 export function exportCharacterSheetMarkdown(sheet: CharacterSheet): string {
-  const plugin = getGameSystem(GameSystemIdSchema.parse(sheet.gameSystemId));
+  const plugin = getGameSystem(normalizeGameSystemId(sheet.gameSystemId));
   const fieldsByKey = new Map(sheet.fields.map((field) => [field.key, field]));
   const hidden = new Set(sheet.layout?.hiddenFieldKeys ?? []);
   const lines = [`# ${sheet.name}`, '', `_${plugin.name}_`, ''];

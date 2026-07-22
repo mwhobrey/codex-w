@@ -18,7 +18,7 @@ interface OracleTwistSectionProps
 /**
  * "Stuck mid-scene, no scripted prompt left" fallback — shared across every
  * system panel that has oracle-likelihood + twist data. Extracted so ToTV
- * and Ironforge (which had this data but no live UI for it) don't each
+ * and Muscadines don't each
  * duplicate the same ~60 lines already written once for the generic panel.
  */
 export function OracleTwistSection({

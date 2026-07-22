@@ -10,14 +10,27 @@ function createId(): string {
 
 export { totvSheetDefinition, totvSoloEngine } from './definition';
 export { totvPrompts } from './prompts';
-export { getTyovCapacity, type TyovCapacity } from './capacity';
-export { TYOV_SLOT_KEYS } from './slots';
+export { getTyovCapacity, type TyovCapacity, EXPERIENCES_PER_MEMORY, MAX_EXPERIENCES } from './capacity';
+export { TYOV_SLOT_KEYS, TYOV_MARK_KEYS, type TyovSlotKind } from './slots';
 export {
   buildTyovPromptGuidance,
   seedTyovSlotFromPrompt,
   clearTyovSlot,
+  appendDiaryFromPrompt,
+  diaryPreviewLine,
   type TyovPromptGuidance,
 } from './tag-engine';
+export {
+  parseExperiences,
+  formatExperiences,
+  appendExperience,
+  compressMemory,
+  forgetOldestExperience,
+  forgetExperience,
+  clearMemory,
+  totalExperienceCount,
+  firstMemoryWithRoom,
+} from './experiences';
 
 export const totvPlugin = {
   id: 'totv' as const,
@@ -27,9 +40,12 @@ export const totvPlugin = {
   soloEngine: totvSoloEngine,
   rulesPrimer: [
     'Advance rolls d10 minus d6 to move through the prompt list — forward on a positive result, backward on a negative one.',
-    'Take prompt logs the current prompt to the session log and, if it grants or costs a Memory or Skill, opens your sheet so you can record it.',
-    'Decline skips a prompt without writing about it, still moving the navigation forward — useful when a prompt doesn\'t fit your story yet.',
-    'The Oracle below works the same as other systems: ask a yes/no question about the scene and pick how likely a "yes" is.',
+    'Each Memory holds up to three Experiences (one per line). When full, Forget or Compress before adding more.',
+    'Marks are lasting changes the centuries leave on you — five slots, gained or lost like other sheet entries.',
+    'Take prompt logs the current prompt and applies sheet guidance (Experience, slot, diary stanza, or Mark).',
+    'Decline skips a prompt without writing — useful when it does not fit your story yet.',
+    'Codex ships an original prompt journal inspired by TYOV’s structure. Use Tim Hutchings’ published book for his official prompts.',
+    'Use Table info → Safety notes for Lines, Veils, and X-card reminders.',
   ],
   dicePresets: [
     { label: 'Navigate', notation: 'd10-d6' },

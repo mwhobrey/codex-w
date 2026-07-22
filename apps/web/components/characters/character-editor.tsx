@@ -3,11 +3,11 @@
 import {
   getGameSystem,
   listAvailableSystems,
+  normalizeGameSystemId,
   updateSheetField,
 } from '@codex/game-systems';
 import { characterPortraitRepo, characterSheetRepo } from '@codex/sync';
 import type { CharacterSheet, GameSystemId } from '@codex/schemas';
-import { GameSystemIdSchema } from '@codex/schemas';
 import { Badge, Button, ConfirmDialog } from '@codex/ui';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -161,7 +161,7 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
     );
   }
 
-  const system = getGameSystem(GameSystemIdSchema.parse(sheet.gameSystemId));
+  const system = getGameSystem(normalizeGameSystemId(sheet.gameSystemId));
   const isGeneric = sheet.gameSystemId === 'generic';
   const adaptTargets = listAvailableSystems().filter((s) => s.id !== sheet.gameSystemId);
   const definitionKeys = listDefinitionKeys(

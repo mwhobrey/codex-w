@@ -2,8 +2,12 @@
 
 import { advancePromptIndex } from '@codex/game-engine';
 import {
+  appendDiaryFromPrompt,
   buildTyovPromptGuidance,
   clearTyovSlot,
+  compressMemory,
+  diaryPreviewLine,
+  forgetOldestExperience,
   getGameSystem,
   getTyovCapacity,
   seedTyovSlotFromPrompt,
@@ -46,6 +50,7 @@ export function TableTotvPanel({
   const guidance = currentPrompt
     ? buildTyovPromptGuidance(currentPrompt, activeCharacter ?? null)
     : null;
+  const diaryLine = diaryPreviewLine(activeCharacter ?? null);
 
   const savePromptIndex = useCallback(
     (next: number) => {
@@ -68,7 +73,7 @@ export function TableTotvPanel({
       onAppendLog({ type: 'oracle', content: text, author: logAuthor });
       setRolling(false);
     }, 480);
-  }, [engine?.promptAdvance, onAppendLog, promptIndex, savePromptIndex]);
+  }, [engine?.promptAdvance, logAuthor, onAppendLog, promptIndex, savePromptIndex]);
 
   const handleDeclinePrompt = useCallback(() => {
     if (!currentPrompt || !engine?.promptAdvance) return;
@@ -81,7 +86,7 @@ export function TableTotvPanel({
       author: logAuthor,
     });
     setRollReveal(`Declined · navigation → prompt ${result.next}`);
-  }, [currentPrompt, engine?.promptAdvance, onAppendLog, promptIndex, savePromptIndex]);
+  }, [currentPrompt, engine?.promptAdvance, logAuthor, onAppendLog, promptIndex, savePromptIndex]);
 
   const handleTakePrompt = useCallback(async () => {
     if (!currentPrompt) return;
@@ -97,12 +102,29 @@ export function TableTotvPanel({
       return;
     }
 
-    if (guidance.action === 'gain' && guidance.suggestedFieldKey && !guidance.blocked) {
+    if (guidance.action === 'diary') {
+      await onPatchCharacter((sheet) => appendDiaryFromPrompt(sheet, currentPrompt));
+      onOpenCharacterPeek?.('diary');
+      return;
+    }
+
+    if (
+      (guidance.action === 'gain' ||
+        guidance.action === 'bond' ||
+        guidance.action === 'mark') &&
+      guidance.suggestedFieldKey &&
+      !guidance.blocked
+    ) {
       await onPatchCharacter((sheet) =>
         seedTyovSlotFromPrompt(sheet, guidance.suggestedFieldKey!, currentPrompt),
       );
     } else if (guidance.action === 'loss' && guidance.suggestedFieldKey && !guidance.blocked) {
-      await onPatchCharacter((sheet) => clearTyovSlot(sheet, guidance.suggestedFieldKey!));
+      const key = guidance.suggestedFieldKey;
+      if (key.startsWith('memory_')) {
+        await onPatchCharacter((sheet) => forgetOldestExperience(sheet, key));
+      } else {
+        await onPatchCharacter((sheet) => clearTyovSlot(sheet, key));
+      }
     }
 
     onOpenCharacterPeek?.(guidance.suggestedFieldKey);
@@ -116,6 +138,30 @@ export function TableTotvPanel({
     onPatchCharacter,
   ]);
 
+  const handleForget = useCallback(async () => {
+    const key = guidance?.suggestedFieldKey;
+    if (!key?.startsWith('memory_') || !onPatchCharacter) return;
+    await onPatchCharacter((sheet) => forgetOldestExperience(sheet, key));
+    onAppendLog({
+      type: 'note',
+      content: `Forgot oldest Experience in ${key.replace('_', ' ')}.`,
+      author: logAuthor,
+    });
+    onOpenCharacterPeek?.(key);
+  }, [guidance?.suggestedFieldKey, logAuthor, onAppendLog, onOpenCharacterPeek, onPatchCharacter]);
+
+  const handleCompress = useCallback(async () => {
+    const key = guidance?.suggestedFieldKey;
+    if (!key?.startsWith('memory_') || !onPatchCharacter) return;
+    await onPatchCharacter((sheet) => compressMemory(sheet, key));
+    onAppendLog({
+      type: 'note',
+      content: `Compressed ${key.replace('_', ' ')} into a single Experience.`,
+      author: logAuthor,
+    });
+    onOpenCharacterPeek?.(key);
+  }, [guidance?.suggestedFieldKey, logAuthor, onAppendLog, onOpenCharacterPeek, onPatchCharacter]);
+
   const handleJumpPrompt = useCallback(() => {
     if (!engine?.promptAdvance) return;
     const n = Number.parseInt(jumpPrompt, 10);
@@ -125,7 +171,7 @@ export function TableTotvPanel({
     savePromptIndex(clamped);
     setJumpPrompt('');
     onAppendLog({ type: 'note', content: `Jumped to prompt ${clamped}`, author: logAuthor });
-  }, [engine?.promptAdvance, jumpPrompt, onAppendLog, savePromptIndex]);
+  }, [engine?.promptAdvance, jumpPrompt, logAuthor, onAppendLog, savePromptIndex]);
 
   if (!engine || engine.kind !== 'prompt-journal') return null;
 
@@ -162,9 +208,16 @@ export function TableTotvPanel({
           <p className="text-xs text-muted-foreground">Sheet hint: {currentPrompt.hint}</p>
         ) : null}
         {capacity ? (
-          <p className="text-xs text-muted-foreground">
-            Slots — memories {capacity.memories.filled}/{capacity.memories.max} · skills{' '}
-            {capacity.skills.filled}/{capacity.skills.max}
+          <p className="text-xs text-muted-foreground" data-testid="totv-capacity">
+            Memories {capacity.memories.filled}/{capacity.memories.max} · Experiences{' '}
+            {capacity.experiences.filled}/{capacity.experiences.max} · Skills{' '}
+            {capacity.skills.filled}/{capacity.skills.max} · Marks {capacity.marks.filled}/
+            {capacity.marks.max}
+          </p>
+        ) : null}
+        {diaryLine ? (
+          <p className="text-xs text-muted-foreground line-clamp-1">
+            Diary: <span className="text-foreground/80">{diaryLine}</span>
           </p>
         ) : null}
         {guidance ? (
@@ -191,6 +244,28 @@ export function TableTotvPanel({
           <Button type="button" size="sm" variant="ghost" onClick={handleDeclinePrompt}>
             Decline
           </Button>
+          {guidance?.canMakeRoom && guidance.suggestedFieldKey?.startsWith('memory_') ? (
+            <>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => void handleForget()}
+                data-testid="totv-forget-experience"
+              >
+                Forget
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => void handleCompress()}
+                data-testid="totv-compress-memory"
+              >
+                Compress
+              </Button>
+            </>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Input

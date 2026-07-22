@@ -1,0 +1,307 @@
+/** Ironsworn oracle tables — derived from the Ironsworn SRD by Shawn Tomkin (CC BY 4.0). See NOTICE. */
+
+export interface IronswornOracleTable {
+  roll: number;
+  text: string;
+}
+
+export interface IronswornOracleRange {
+  min: number;
+  max: number;
+  text: string;
+}
+
+export const actionOracle: IronswornOracleTable[] = [
+  { roll: 1, text: 'Scheme' },
+  { roll: 2, text: 'Clash' },
+  { roll: 3, text: 'Weaken' },
+  { roll: 4, text: 'Initiate' },
+  { roll: 5, text: 'Create' },
+  { roll: 6, text: 'Swear' },
+  { roll: 7, text: 'Avenge' },
+  { roll: 8, text: 'Guard' },
+  { roll: 9, text: 'Defeat' },
+  { roll: 10, text: 'Control' },
+  { roll: 11, text: 'Break' },
+  { roll: 12, text: 'Risk' },
+  { roll: 13, text: 'Surrender' },
+  { roll: 14, text: 'Inspect' },
+  { roll: 15, text: 'Raid' },
+  { roll: 16, text: 'Evade' },
+  { roll: 17, text: 'Assault' },
+  { roll: 18, text: 'Deflect' },
+  { roll: 19, text: 'Threaten' },
+  { roll: 20, text: 'Attack' },
+  { roll: 21, text: 'Leave' },
+  { roll: 22, text: 'Preserve' },
+  { roll: 23, text: 'Manipulate' },
+  { roll: 24, text: 'Remove' },
+  { roll: 25, text: 'Eliminate' },
+  { roll: 26, text: 'Withdraw' },
+  { roll: 27, text: 'Abandon' },
+  { roll: 28, text: 'Investigate' },
+  { roll: 29, text: 'Hold' },
+  { roll: 30, text: 'Focus' },
+  { roll: 31, text: 'Uncover' },
+  { roll: 32, text: 'Breach' },
+  { roll: 33, text: 'Aid' },
+  { roll: 34, text: 'Uphold' },
+  { roll: 35, text: 'Falter' },
+  { roll: 36, text: 'Suppress' },
+  { roll: 37, text: 'Hunt' },
+  { roll: 38, text: 'Share' },
+  { roll: 39, text: 'Destroy' },
+  { roll: 40, text: 'Avoid' },
+  { roll: 41, text: 'Reject' },
+  { roll: 42, text: 'Demand' },
+  { roll: 43, text: 'Explore' },
+  { roll: 44, text: 'Bolster' },
+  { roll: 45, text: 'Seize' },
+  { roll: 46, text: 'Mourn' },
+  { roll: 47, text: 'Reveal' },
+  { roll: 48, text: 'Gather' },
+  { roll: 49, text: 'Defy' },
+  { roll: 50, text: 'Transform' },
+  { roll: 51, text: 'Persevere' },
+  { roll: 52, text: 'Serve' },
+  { roll: 53, text: 'Begin' },
+  { roll: 54, text: 'Move' },
+  { roll: 55, text: 'Coordinate' },
+  { roll: 56, text: 'Resist' },
+  { roll: 57, text: 'Await' },
+  { roll: 58, text: 'Impress' },
+  { roll: 59, text: 'Take' },
+  { roll: 60, text: 'Oppose' },
+  { roll: 61, text: 'Capture' },
+  { roll: 62, text: 'Overwhelm' },
+  { roll: 63, text: 'Challenge' },
+  { roll: 64, text: 'Acquire' },
+  { roll: 65, text: 'Protect' },
+  { roll: 66, text: 'Finish' },
+  { roll: 67, text: 'Strengthen' },
+  { roll: 68, text: 'Restore' },
+  { roll: 69, text: 'Advance' },
+  { roll: 70, text: 'Command' },
+  { roll: 71, text: 'Refuse' },
+  { roll: 72, text: 'Find' },
+  { roll: 73, text: 'Deliver' },
+  { roll: 74, text: 'Hide' },
+  { roll: 75, text: 'Fortify' },
+  { roll: 76, text: 'Betray' },
+  { roll: 77, text: 'Secure' },
+  { roll: 78, text: 'Arrive' },
+  { roll: 79, text: 'Affect' },
+  { roll: 80, text: 'Change' },
+  { roll: 81, text: 'Defend' },
+  { roll: 82, text: 'Debate' },
+  { roll: 83, text: 'Support' },
+  { roll: 84, text: 'Follow' },
+  { roll: 85, text: 'Construct' },
+  { roll: 86, text: 'Locate' },
+  { roll: 87, text: 'Endure' },
+  { roll: 88, text: 'Release' },
+  { roll: 89, text: 'Lose' },
+  { roll: 90, text: 'Reduce' },
+  { roll: 91, text: 'Escalate' },
+  { roll: 92, text: 'Distract' },
+  { roll: 93, text: 'Journey' },
+  { roll: 94, text: 'Escort' },
+  { roll: 95, text: 'Learn' },
+  { roll: 96, text: 'Communicate' },
+  { roll: 97, text: 'Depart' },
+  { roll: 98, text: 'Search' },
+  { roll: 99, text: 'Charge' },
+  { roll: 100, text: 'Summon' },
+];
+
+export const themeOracle: IronswornOracleTable[] = [
+  { roll: 1, text: 'Risk' },
+  { roll: 2, text: 'Ability' },
+  { roll: 3, text: 'Price' },
+  { roll: 4, text: 'Ally' },
+  { roll: 5, text: 'Battle' },
+  { roll: 6, text: 'Safety' },
+  { roll: 7, text: 'Survival' },
+  { roll: 8, text: 'Weapon' },
+  { roll: 9, text: 'Wound' },
+  { roll: 10, text: 'Shelter' },
+  { roll: 11, text: 'Leader' },
+  { roll: 12, text: 'Fear' },
+  { roll: 13, text: 'Time' },
+  { roll: 14, text: 'Duty' },
+  { roll: 15, text: 'Secret' },
+  { roll: 16, text: 'Innocence' },
+  { roll: 17, text: 'Renown' },
+  { roll: 18, text: 'Direction' },
+  { roll: 19, text: 'Death' },
+  { roll: 20, text: 'Honor' },
+  { roll: 21, text: 'Labor' },
+  { roll: 22, text: 'Solution' },
+  { roll: 23, text: 'Tool' },
+  { roll: 24, text: 'Balance' },
+  { roll: 25, text: 'Love' },
+  { roll: 26, text: 'Barrier' },
+  { roll: 27, text: 'Creation' },
+  { roll: 28, text: 'Decay' },
+  { roll: 29, text: 'Trade' },
+  { roll: 30, text: 'Bond' },
+  { roll: 31, text: 'Hope' },
+  { roll: 32, text: 'Superstition' },
+  { roll: 33, text: 'Peace' },
+  { roll: 34, text: 'Deception' },
+  { roll: 35, text: 'History' },
+  { roll: 36, text: 'World' },
+  { roll: 37, text: 'Vow' },
+  { roll: 38, text: 'Protection' },
+  { roll: 39, text: 'Nature' },
+  { roll: 40, text: 'Opinion' },
+  { roll: 41, text: 'Burden' },
+  { roll: 42, text: 'Vengeance' },
+  { roll: 43, text: 'Opportunity' },
+  { roll: 44, text: 'Faction' },
+  { roll: 45, text: 'Danger' },
+  { roll: 46, text: 'Corruption' },
+  { roll: 47, text: 'Freedom' },
+  { roll: 48, text: 'Debt' },
+  { roll: 49, text: 'Hate' },
+  { roll: 50, text: 'Possession' },
+  { roll: 51, text: 'Stranger' },
+  { roll: 52, text: 'Passage' },
+  { roll: 53, text: 'Land' },
+  { roll: 54, text: 'Creature' },
+  { roll: 55, text: 'Disease' },
+  { roll: 56, text: 'Advantage' },
+  { roll: 57, text: 'Blood' },
+  { roll: 58, text: 'Language' },
+  { roll: 59, text: 'Rumor' },
+  { roll: 60, text: 'Weakness' },
+  { roll: 61, text: 'Greed' },
+  { roll: 62, text: 'Family' },
+  { roll: 63, text: 'Resource' },
+  { roll: 64, text: 'Structure' },
+  { roll: 65, text: 'Dream' },
+  { roll: 66, text: 'Community' },
+  { roll: 67, text: 'War' },
+  { roll: 68, text: 'Portent' },
+  { roll: 69, text: 'Prize' },
+  { roll: 70, text: 'Destiny' },
+  { roll: 71, text: 'Momentum' },
+  { roll: 72, text: 'Power' },
+  { roll: 73, text: 'Memory' },
+  { roll: 74, text: 'Ruin' },
+  { roll: 75, text: 'Mysticism' },
+  { roll: 76, text: 'Rival' },
+  { roll: 77, text: 'Problem' },
+  { roll: 78, text: 'Idea' },
+  { roll: 79, text: 'Revenge' },
+  { roll: 80, text: 'Health' },
+  { roll: 81, text: 'Fellowship' },
+  { roll: 82, text: 'Enemy' },
+  { roll: 83, text: 'Religion' },
+  { roll: 84, text: 'Spirit' },
+  { roll: 85, text: 'Fame' },
+  { roll: 86, text: 'Desolation' },
+  { roll: 87, text: 'Strength' },
+  { roll: 88, text: 'Knowledge' },
+  { roll: 89, text: 'Truth' },
+  { roll: 90, text: 'Quest' },
+  { roll: 91, text: 'Pride' },
+  { roll: 92, text: 'Loss' },
+  { roll: 93, text: 'Law' },
+  { roll: 94, text: 'Path' },
+  { roll: 95, text: 'Warning' },
+  { roll: 96, text: 'Relationship' },
+  { roll: 97, text: 'Wealth' },
+  { roll: 98, text: 'Home' },
+  { roll: 99, text: 'Strategy' },
+  { roll: 100, text: 'Supply' },
+];
+
+export const combatActionOracle: IronswornOracleRange[] = [
+  { min: 1, max: 3, text: 'Compel a surrender.' },
+  { min: 4, max: 6, text: 'Coordinate with allies.' },
+  { min: 7, max: 9, text: 'Gather reinforcements.' },
+  { min: 10, max: 13, text: 'Seize something or someone.' },
+  { min: 14, max: 17, text: 'Provoke a reckless response.' },
+  { min: 18, max: 21, text: 'Intimidate or frighten.' },
+  { min: 22, max: 25, text: 'Reveal a surprising truth.' },
+  { min: 26, max: 29, text: 'Shift focus to someone or something else.' },
+  { min: 30, max: 33, text: 'Destroy something, or render it useless.' },
+  { min: 34, max: 39, text: 'Take a decisive action.' },
+  { min: 40, max: 45, text: 'Reinforce defenses.' },
+  { min: 46, max: 52, text: 'Ready an action.' },
+  { min: 53, max: 60, text: 'Use the terrain to gain advantage.' },
+  { min: 61, max: 68, text: 'Leverage the advantage of a weapon or ability.' },
+  { min: 69, max: 78, text: 'Create an opportunity.' },
+  { min: 79, max: 89, text: 'Attack with precision.' },
+  { min: 90, max: 99, text: 'Attack with power.' },
+];
+
+export const plotTwistOracle: IronswornOracleRange[] = [
+  { min: 1, max: 5, text: 'It was all a diversion.' },
+  { min: 6, max: 10, text: 'A dark secret is revealed.' },
+  { min: 11, max: 15, text: 'A trap is sprung.' },
+  { min: 16, max: 20, text: 'An assumption is revealed to be false.' },
+  { min: 21, max: 25, text: 'A secret alliance is revealed.' },
+  { min: 26, max: 30, text: 'Your actions benefit an enemy.' },
+  { min: 31, max: 35, text: 'Someone returns unexpectedly.' },
+  { min: 36, max: 40, text: 'A more dangerous foe is revealed.' },
+  { min: 41, max: 45, text: 'You and an enemy share a common goal.' },
+  { min: 46, max: 50, text: 'A true identity is revealed.' },
+  { min: 51, max: 55, text: 'You are betrayed by someone who was trusted.' },
+  { min: 56, max: 60, text: 'You are too late.' },
+  { min: 61, max: 65, text: 'The true enemy is revealed.' },
+  { min: 66, max: 70, text: 'The enemy gains new allies.' },
+  { min: 71, max: 75, text: 'A new danger appears.' },
+  { min: 76, max: 80, text: 'Someone or something goes missing.' },
+  { min: 81, max: 85, text: 'The truth of a relationship is revealed.' },
+  { min: 86, max: 90, text: 'Two seemingly unrelated situations are shown to be connected.' },
+  { min: 91, max: 95, text: 'Unexpected powers or abilities are revealed.' },
+  { min: 96, max: 100, text: 'Roll twice more on this table. Both results occur. If they are the same result, make it more dramatic.' },
+];
+
+export const challengeRankOracle: IronswornOracleRange[] = [
+  { min: 1, max: 20, text: 'Troublesome' },
+  { min: 21, max: 55, text: 'Dangerous' },
+  { min: 56, max: 80, text: 'Formidable' },
+  { min: 81, max: 93, text: 'Extreme' },
+  { min: 94, max: 100, text: 'Epic' },
+];
+
+
+export function lookupOracleD100(table: IronswornOracleTable[], d100: number): string {
+  const die = ((d100 - 1) % 100) + 1;
+  const exact = table.find((row) => row.roll === die);
+  if (exact) return exact.text;
+  const sorted = [...table].sort((a, b) => a.roll - b.roll);
+  for (const row of sorted) {
+    if (die <= row.roll) return row.text;
+  }
+  return sorted[sorted.length - 1]?.text ?? '';
+}
+
+export function lookupOracleRange(table: IronswornOracleRange[], d100: number): string {
+  const die = d100 === 0 ? 100 : ((d100 - 1) % 100) + 1;
+  const row = table.find((entry) => die >= entry.min && die <= entry.max);
+  return row?.text ?? table[table.length - 1]?.text ?? '';
+}
+
+export function rollOracleD100(rng: () => number = Math.random): number {
+  const tens = Math.floor(rng() * 10);
+  const ones = Math.floor(rng() * 10);
+  const value = tens * 10 + ones;
+  return value === 0 ? 100 : value;
+}
+
+export const ironswornOracleCatalog: {
+  id: string;
+  title: string;
+  kind: 'd100' | 'range';
+  rows: IronswornOracleTable[] | IronswornOracleRange[];
+}[] = [
+  { id: 'action', title: 'Action', kind: 'd100', rows: actionOracle },
+  { id: 'theme', title: 'Theme', kind: 'd100', rows: themeOracle },
+  { id: 'combat-action', title: 'Combat Action', kind: 'range', rows: combatActionOracle },
+  { id: 'plot-twist', title: 'Major Plot Twist', kind: 'range', rows: plotTwistOracle },
+  { id: 'challenge-rank', title: 'Challenge Rank', kind: 'range', rows: challengeRankOracle },
+];

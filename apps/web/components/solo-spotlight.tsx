@@ -17,7 +17,7 @@ const SPOTLIGHT = [
     id: 'totv',
     name: 'Thousand Year Old Vampire',
     href: '/play?system=totv',
-    description: 'Prompt journal — d10−d6 navigation, fading memories. Live now.',
+    description: 'Original prompt journal — memories, Marks, centuries. Book-compatible structure.',
   },
   {
     id: 'snallygaster',
@@ -32,10 +32,10 @@ const SPOTLIGHT = [
     description: 'Cozy-dark folklore — mentor prompts and oracles. Live now.',
   },
   {
-    id: 'ironforge',
-    name: 'Ironforge',
-    href: '/play?system=ironforge',
-    description: 'Grim industrial survival — oath track, forge rolls, hazards. Live now.',
+    id: 'ironsworn',
+    name: 'Ironsworn',
+    href: '/play?system=ironsworn',
+    description: 'Iron vows, action rolls, and oracles in the Ironlands (CC BY).',
   },
 ];
 

@@ -31,7 +31,7 @@ describe('exportTableToPlaySession', () => {
 
   it('maps roll and system log lines to journal notes', () => {
     const { journalEntries } = exportTableToPlaySession(
-      { gameSystemId: 'ironforge', name: 'Forge' },
+      { gameSystemId: 'ironsworn', name: 'Ironlands' },
       [
         {
           id: 'log-roll',

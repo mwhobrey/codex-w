@@ -2,7 +2,7 @@
 
 import {
   genericPlugin,
-  ironforgePlugin,
+  ironswornPlugin,
   lonerPlugin,
   muscadinesPlugin,
   snallygasterPlugin,
@@ -24,7 +24,7 @@ const systemPlugins: GameSystemPlugin[] = [
   totvPlugin,
   snallygasterPlugin,
   muscadinesPlugin,
-  ironforgePlugin,
+  ironswornPlugin,
 ];
 
 function formatRelativeTime(iso: string): string {
@@ -42,7 +42,7 @@ function systemLabel(sheet: CharacterSheet): string {
   if (sheet.gameSystemId === 'totv') return 'TYOV';
   if (sheet.gameSystemId === 'snallygaster') return 'Snallygaster';
   if (sheet.gameSystemId === 'muscadines') return 'Muscadines';
-  if (sheet.gameSystemId === 'ironforge') return 'Ironforge';
+  if (sheet.gameSystemId === 'ironsworn' || sheet.gameSystemId === 'ironforge') return 'Ironsworn';
   if (sheet.gameSystemId === 'generic') return 'Generic';
   return sheet.gameSystemId;
 }

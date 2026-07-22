@@ -5,7 +5,7 @@ export type TablePanelId =
   | 'loner'
   | 'totv'
   | 'snallygaster'
-  | 'ironforge'
+  | 'ironsworn'
   | 'muscadines';
 
 const PANEL_BY_KIND: Record<SoloEngineKind, TablePanelId> = {
@@ -13,7 +13,7 @@ const PANEL_BY_KIND: Record<SoloEngineKind, TablePanelId> = {
   'loner-oracle': 'loner',
   'prompt-journal': 'totv',
   'lasers-feelings': 'snallygaster',
-  'vow-progress': 'ironforge',
+  ironsworn: 'ironsworn',
   mentor: 'muscadines',
 };
 
