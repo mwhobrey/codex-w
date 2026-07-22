@@ -3,6 +3,7 @@ import { genericPlugin } from './generic';
 import { ironforgePlugin } from './ironforge';
 import { lonerPlugin } from './loner';
 import { muscadinesPlugin } from './muscadines';
+import { paranormalFilesPlugin } from './paranormal-files';
 import { snallygasterPlugin } from './snallygaster';
 import { totvPlugin } from './totv';
 import type { GameSystemPlugin } from './types';
@@ -10,6 +11,7 @@ import type { GameSystemPlugin } from './types';
 const registry: Record<GameSystemId, GameSystemPlugin | undefined> = {
   generic: genericPlugin,
   loner: lonerPlugin,
+  'paranormal-files': paranormalFilesPlugin,
   totv: totvPlugin,
   snallygaster: snallygasterPlugin,
   muscadines: muscadinesPlugin,

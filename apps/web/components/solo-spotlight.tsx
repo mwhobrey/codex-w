@@ -5,7 +5,13 @@ const SPOTLIGHT = [
     id: 'loner',
     name: 'Loner',
     href: '/play?system=loner',
-    description: 'Oracle play — risky questions, sharp twists. Live now.',
+    description: 'Tags and Chance/Risk Oracle — twists, Luck, and emergent stories.',
+  },
+  {
+    id: 'paranormal-files',
+    name: 'Loner: Paranormal Files',
+    href: '/play?system=paranormal-files',
+    description: 'Agents and anomalies — Unknown Threshold, factions, redacted cases.',
   },
   {
     id: 'totv',

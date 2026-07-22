@@ -23,6 +23,9 @@ const FIELD_ALIASES: Record<string, keyof PortableProfile | 'trait'> = {
   backstory: 'summary',
   verb: 'trait',
   role: 'trait',
+  skill1: 'trait',
+  skill2: 'trait',
+  frailty: 'trait',
   alias: 'trait',
   specialty: 'trait',
   crew_role: 'trait',
@@ -88,7 +91,13 @@ const TARGET_FIELD_MAP: Partial<
     notes: 'notes',
   },
   loner: {
-    tagline: 'goal',
+    tagline: 'concept',
+    summary: 'motive',
+    nemesis: 'nemesis',
+    notes: 'notes',
+  },
+  'paranormal-files': {
+    tagline: 'concept',
     summary: 'motive',
     nemesis: 'nemesis',
     notes: 'notes',
@@ -171,9 +180,12 @@ function suggestTargetKey(
     const mapping = TARGET_FIELD_MAP[targetSystemId] ?? TARGET_FIELD_MAP.generic!;
     if (alias === 'trait') {
       if (targetKeys.has(field.key)) return field.key;
-      if (targetSystemId === 'loner') {
-        if (field.key === 'verb' && targetKeys.has('verb')) return 'verb';
-        if (field.key === 'role' && targetKeys.has('role')) return 'role';
+      if (targetSystemId === 'loner' || targetSystemId === 'paranormal-files') {
+        if (field.key === 'verb' && targetKeys.has('skill1')) return 'skill1';
+        if (field.key === 'role' && targetKeys.has('skill2')) return 'skill2';
+        if (field.key === 'skill1' && targetKeys.has('skill1')) return 'skill1';
+        if (field.key === 'skill2' && targetKeys.has('skill2')) return 'skill2';
+        if (field.key === 'frailty' && targetKeys.has('frailty')) return 'frailty';
       }
       return 'skip';
     }

@@ -27,7 +27,7 @@ Every architectural decision filters through: *Does this work offline? Does it s
 | Web app entry | `apps/web/` |
 | Shared UI | `packages/ui/` |
 | Game mechanics (dice, oracles) | `packages/game-engine/` |
-| Game system plugins (Loner, TOTV, …) | `packages/game-systems/` |
+| Game system plugins (Loner, Paranormal Files, TOTV, …) | `packages/game-systems/` |
 | Sync / offline | `packages/sync/` |
 | Schemas & types | `packages/schemas/` |
 | Realtime collab server | `apps/sync-server/` |

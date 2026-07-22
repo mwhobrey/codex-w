@@ -44,6 +44,10 @@ export function ActiveCharacterPanel({
   const lonerGoal = getSheetFieldValue(character, 'goal');
   const lonerMotive = getSheetFieldValue(character, 'motive');
   const lonerNemesis = getSheetFieldValue(character, 'nemesis');
+  const lonerConcept = getSheetFieldValue(character, 'concept');
+  const lonerLuck = getSheetFieldValue(character, 'luck');
+  const isLonerFamily =
+    character.gameSystemId === 'loner' || character.gameSystemId === 'paranormal-files';
   const humanName = getSheetFieldValue(character, 'human_name');
   const vampireName = getSheetFieldValue(character, 'vampire_name');
   const fear = getSheetFieldValue(character, 'fear');
@@ -59,7 +63,9 @@ export function ActiveCharacterPanel({
         ? fear || profile.tagline
         : character.gameSystemId === 'muscadines'
           ? jamSpecialty || grove || profile.tagline
-          : lonerGoal || profile.tagline;
+          : isLonerFamily
+            ? lonerConcept || lonerGoal || profile.tagline
+            : lonerGoal || profile.tagline;
 
   const headlineLabel =
     character.gameSystemId === 'totv'
@@ -70,7 +76,9 @@ export function ActiveCharacterPanel({
         ? 'Fear'
         : character.gameSystemId === 'muscadines'
           ? 'Grove craft'
-          : 'Goal';
+          : isLonerFamily
+            ? 'Concept'
+            : 'Goal';
 
   const summary =
     character.gameSystemId === 'totv'
@@ -108,9 +116,26 @@ export function ActiveCharacterPanel({
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {headline && (
-          <div className={fieldHighlightClass('goal', highlightFieldKey)}>
+          <div
+            className={fieldHighlightClass(
+              isLonerFamily ? 'concept' : 'goal',
+              highlightFieldKey,
+            )}
+          >
             <p className="text-xs font-medium uppercase tracking-wide text-primary">{headlineLabel}</p>
             <p className="text-foreground">{headline}</p>
+          </div>
+        )}
+        {isLonerFamily && lonerLuck !== '' && (
+          <div className={fieldHighlightClass('luck', highlightFieldKey)}>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Luck</p>
+            <p className="text-foreground">{lonerLuck}/6</p>
+          </div>
+        )}
+        {isLonerFamily && lonerGoal && (
+          <div className={fieldHighlightClass('goal', highlightFieldKey)}>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Goal</p>
+            <p className="text-muted-foreground">{lonerGoal}</p>
           </div>
         )}
         {summary && (
@@ -127,7 +152,7 @@ export function ActiveCharacterPanel({
           </div>
         )}
         {(lonerNemesis || profile.nemesis) &&
-          (character.gameSystemId === 'loner' || character.gameSystemId === 'ironforge') && (
+          (isLonerFamily || character.gameSystemId === 'ironforge') && (
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {character.gameSystemId === 'ironforge' ? 'Opposition' : 'Nemesis'}

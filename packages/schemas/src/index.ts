@@ -37,6 +37,7 @@ export const CharacterSheetFieldSchema = z.object({
 export const GameSystemIdSchema = z.enum([
   'generic',
   'loner',
+  'paranormal-files',
   'totv',
   'snallygaster',
   'muscadines',
@@ -221,6 +222,7 @@ export const LibraryTableCategorySchema = z.enum([
   'mentor',
   'table',
   'forge',
+  'chargen',
 ]);
 
 export type LibraryTableCategory = z.infer<typeof LibraryTableCategorySchema>;

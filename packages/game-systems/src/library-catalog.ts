@@ -1,4 +1,11 @@
 import type { GameSystemId } from '@codex/schemas';
+import {
+  flattenD66,
+  pfConceptGrid,
+  pfFrailtyGrid,
+  pfGearGrid,
+  pfSkillGrid,
+} from './paranormal-files/tables';
 import { listSoloSystems } from './registry';
 import type { OracleTableEntry, PromptEntry } from './types';
 
@@ -9,7 +16,8 @@ export type LibraryCategory =
   | 'prompt-journal'
   | 'mentor'
   | 'table'
-  | 'forge';
+  | 'forge'
+  | 'chargen';
 
 export interface LibraryEntry {
   id: string;
@@ -54,7 +62,24 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.twistTable?.length) {
+    if (engine.twistSubjects?.length && engine.twistActions?.length) {
+      entries.push({
+        id: `${plugin.id}-twist-subjects`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'twist',
+        title: 'Twist subjects',
+        rows: mapTableRows(engine.twistSubjects),
+      });
+      entries.push({
+        id: `${plugin.id}-twist-actions`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'twist',
+        title: 'Twist actions',
+        rows: mapTableRows(engine.twistActions),
+      });
+    } else if (engine.twistTable?.length) {
       entries.push({
         id: `${plugin.id}-twist`,
         systemId: plugin.id,
@@ -62,6 +87,17 @@ export function listLibraryEntries(): LibraryEntry[] {
         category: 'twist',
         title: 'Twist table',
         rows: mapTableRows(engine.twistTable),
+      });
+    }
+
+    if (engine.sceneMoodTable?.length) {
+      entries.push({
+        id: `${plugin.id}-scene-mood`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'table',
+        title: 'Next scene mood',
+        rows: mapTableRows(engine.sceneMoodTable),
       });
     }
 
@@ -157,6 +193,60 @@ export function listLibraryEntries(): LibraryEntry[] {
         category: 'forge',
         title: 'Forge complications',
         rows: mapTableRows(engine.vowProgress.complicationTable),
+      });
+    }
+
+    if (engine.paranormalFiles) {
+      entries.push({
+        id: `${plugin.id}-reality-fracture`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'table',
+        title: 'Reality Fracture',
+        rows: mapTableRows(engine.paranormalFiles.realityFractureTable),
+      });
+      entries.push({
+        id: `${plugin.id}-threshold-deltas`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'table',
+        title: 'Unknown Threshold changes',
+        rows: engine.paranormalFiles.thresholdDeltas.map((row) => ({
+          label: row.label,
+          text: `${row.description} (${row.delta >= 0 ? '+' : ''}${row.delta})`,
+        })),
+      });
+      entries.push({
+        id: `${plugin.id}-concepts`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'chargen',
+        title: 'Concepts (d66)',
+        rows: flattenD66(pfConceptGrid),
+      });
+      entries.push({
+        id: `${plugin.id}-skills`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'chargen',
+        title: 'Skills (d66)',
+        rows: flattenD66(pfSkillGrid),
+      });
+      entries.push({
+        id: `${plugin.id}-frailties`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'chargen',
+        title: 'Frailties (d66)',
+        rows: flattenD66(pfFrailtyGrid),
+      });
+      entries.push({
+        id: `${plugin.id}-gear`,
+        systemId: plugin.id,
+        systemName: plugin.name,
+        category: 'chargen',
+        title: 'Gear (d66)',
+        rows: flattenD66(pfGearGrid),
       });
     }
   }

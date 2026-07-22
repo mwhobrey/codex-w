@@ -8,6 +8,7 @@ describe('table panel registry', () => {
     expect(resolveTablePanelId('vow-progress')).toBe('ironforge');
     expect(resolveTablePanelId('mentor')).toBe('muscadines');
     expect(resolveTablePanelId('oracle')).toBe('system');
+    expect(resolveTablePanelId('loner-oracle')).toBe('loner');
   });
 
   it('returns null for undefined kind', () => {

@@ -4,6 +4,7 @@ import { resolveTablePanelId } from '@codex/game-systems';
 import { getGameSystem } from '@codex/game-systems';
 import type { TablePanelProps } from './table-panel-types';
 import { TableIronforgePanel } from './table-ironforge-panel';
+import { TableLonerPanel } from './table-loner-panel';
 import { TableMuscadinesPanel } from './table-muscadines-panel';
 import { TableSnallygasterPanel } from './table-snallygaster-panel';
 import { TableSystemPanel } from './table-system-panel';
@@ -15,6 +16,8 @@ export function TablePlayPanel(props: TablePanelProps) {
   if (!panelId) return null;
 
   switch (panelId) {
+    case 'loner':
+      return <TableLonerPanel {...props} />;
     case 'totv':
       return <TableTotvPanel {...props} />;
     case 'snallygaster':

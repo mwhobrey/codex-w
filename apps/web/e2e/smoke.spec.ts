@@ -36,7 +36,7 @@ test.describe('core play loop smoke', () => {
     await page.getByTestId('create-table-button').click();
     await expect(page).toHaveURL(/\/play\/[^/?]+(\?.*)?$/);
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('table-system-panel')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('table-loner-panel')).toBeVisible({ timeout: 15_000 });
     await page.getByRole('button', { name: 'Table info' }).click();
     await expect(page.getByTestId('table-presence')).toBeVisible();
     await expect(page.getByTestId('character-peek-button')).toBeVisible();
@@ -44,6 +44,14 @@ test.describe('core play loop smoke', () => {
     await expect(page.getByTestId('floating-dice-toggle')).toBeVisible();
     await page.getByTestId('floating-dice-toggle').click();
     await expect(page.getByTestId('floating-dice-roll')).toBeVisible();
+  });
+
+  test('Paranormal Files table loads loner panel with threshold', async ({ page }) => {
+    await page.goto('/play?system=paranormal-files');
+    await page.getByTestId('create-table-button').click();
+    await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('table-loner-panel')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('Unknown Threshold')).toBeVisible();
   });
 
   test('TYOV table loads embedded journal panel', async ({ page }) => {

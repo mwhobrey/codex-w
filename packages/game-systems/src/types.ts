@@ -66,6 +66,7 @@ export interface OracleTableEntry {
 
 export type SoloEngineKind =
   | 'oracle'
+  | 'loner-oracle'
   | 'prompt-journal'
   | 'lasers-feelings'
   | 'mentor'
@@ -85,12 +86,29 @@ export interface MentorPrompt {
   text: string;
 }
 
+/** Paranormal Files — Unknown Threshold delta from an Oracle label */
+export interface UnknownThresholdDelta {
+  label: string;
+  description: string;
+  delta: number;
+}
+
+export interface FactionDefinition {
+  id: string;
+  name: string;
+  concept: string;
+}
+
 export interface SoloEngineConfig {
   kind: SoloEngineKind;
   scenePrompts: string[];
-  /** Oracle + mentor modes */
+  /** Generic Mythic-style likelihood oracle */
   oracleLikelihoods?: OracleLikelihood[];
   twistTable?: OracleTableEntry[];
+  /** Loner SRD — separate subject / action columns for 2d6 twists */
+  twistSubjects?: OracleTableEntry[];
+  twistActions?: OracleTableEntry[];
+  sceneMoodTable?: OracleTableEntry[];
   oracleDice?: string;
   riskDice?: string;
   /** Thousand Year Old Vampire — d10 minus d6 prompt navigation */
@@ -115,6 +133,13 @@ export interface SoloEngineConfig {
     difficulties: { id: string; label: string; target: number }[];
     complicationTable: OracleTableEntry[];
     hazardTable: OracleTableEntry[];
+  };
+  /** Loner: Paranormal Files — Operating in the Shadows */
+  paranormalFiles?: {
+    unknownThresholdMax: number;
+    thresholdDeltas: UnknownThresholdDelta[];
+    realityFractureTable: OracleTableEntry[];
+    factions: FactionDefinition[];
   };
 }
 

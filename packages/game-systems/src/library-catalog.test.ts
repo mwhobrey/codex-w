@@ -6,6 +6,7 @@ describe('library catalog', () => {
     const entries = listLibraryEntries();
     const systems = new Set(entries.map((entry) => entry.systemId));
     expect(systems.has('loner')).toBe(true);
+    expect(systems.has('paranormal-files')).toBe(true);
     expect(systems.has('totv')).toBe(true);
     expect(systems.has('snallygaster')).toBe(true);
     expect(systems.has('muscadines')).toBe(true);

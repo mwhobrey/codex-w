@@ -1,9 +1,16 @@
 import type { SoloEngineKind } from './types';
 
-export type TablePanelId = 'system' | 'totv' | 'snallygaster' | 'ironforge' | 'muscadines';
+export type TablePanelId =
+  | 'system'
+  | 'loner'
+  | 'totv'
+  | 'snallygaster'
+  | 'ironforge'
+  | 'muscadines';
 
 const PANEL_BY_KIND: Record<SoloEngineKind, TablePanelId> = {
   oracle: 'system',
+  'loner-oracle': 'loner',
   'prompt-journal': 'totv',
   'lasers-feelings': 'snallygaster',
   'vow-progress': 'ironforge',

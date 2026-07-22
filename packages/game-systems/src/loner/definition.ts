@@ -1,80 +1,112 @@
 import type { SheetDefinition } from '../types';
+import {
+  lonerDicePresets,
+  lonerRulesPrimer,
+  lonerSceneMoodTable,
+  lonerScenePrompts,
+  lonerTwistActions,
+  lonerTwistSubjects,
+  lonerTwistTable,
+} from './oracle-core';
 
+/** Official Loner protagonist tags (CC BY-SA SRD). */
 export const lonerSheetDefinition: SheetDefinition = {
   sections: [
     {
       id: 'identity',
-      title: 'Character',
-      description: 'The core of who you are in this story.',
+      title: 'Protagonist',
+      description: 'Tags describe who you are — qualitative, not numeric.',
       fields: [
         {
-          key: 'verb',
-          label: 'Verb',
+          key: 'concept',
+          label: 'Concept',
           type: 'text',
           defaultValue: '',
-          placeholder: 'How you solve problems — sneak, fight, charm…',
+          placeholder: 'Adjective + role — Cynical Field Agent…',
         },
         {
-          key: 'role',
-          label: 'Role',
+          key: 'skill1',
+          label: 'Skill 1',
           type: 'text',
           defaultValue: '',
-          placeholder: 'Your place in the world — detective, exile, heir…',
+          placeholder: 'A specific ability — not “Smart”',
         },
-      ],
-    },
-    {
-      id: 'drives',
-      title: 'Drives',
-      description: 'What pulls you through the session.',
-      fields: [
         {
-          key: 'goal',
-          label: 'Goal',
+          key: 'skill2',
+          label: 'Skill 2',
           type: 'text',
           defaultValue: '',
-          placeholder: 'What you want to achieve right now',
+          placeholder: 'A second specific ability',
         },
         {
-          key: 'motive',
-          label: 'Motive',
-          type: 'textarea',
-          defaultValue: '',
-          placeholder: 'Why it matters to you',
-        },
-        {
-          key: 'nemesis',
-          label: 'Nemesis',
+          key: 'frailty',
+          label: 'Frailty',
           type: 'text',
           defaultValue: '',
-          placeholder: 'The force working against you',
+          placeholder: 'What gets in your way',
         },
       ],
     },
     {
       id: 'gear',
       title: 'Gear',
+      description: 'Two notable items; everyday kit is assumed.',
       fields: [
         {
           key: 'gear1',
           label: 'Gear 1',
           type: 'text',
           defaultValue: '',
-          placeholder: 'A useful item',
+          placeholder: 'A particular piece of equipment',
         },
         {
           key: 'gear2',
           label: 'Gear 2',
           type: 'text',
           defaultValue: '',
-          placeholder: 'A useful item',
+          placeholder: 'A particular piece of equipment',
         },
+      ],
+    },
+    {
+      id: 'drives',
+      title: 'Drives',
+      description: 'What pulls you through the story.',
+      fields: [
         {
-          key: 'gear3',
-          label: 'Gear 3',
+          key: 'goal',
+          label: 'Goal',
           type: 'text',
           defaultValue: '',
-          placeholder: 'A useful item',
+          placeholder: 'Long-term objective',
+        },
+        {
+          key: 'motive',
+          label: 'Motive',
+          type: 'textarea',
+          defaultValue: '',
+          placeholder: 'Why the goal matters',
+        },
+        {
+          key: 'nemesis',
+          label: 'Nemesis',
+          type: 'text',
+          defaultValue: '',
+          placeholder: 'Person or organization working against you',
+        },
+      ],
+    },
+    {
+      id: 'luck',
+      title: 'Luck',
+      description: 'Used in Conflicts; starts and caps at 6; recharges when a conflict ends.',
+      fields: [
+        {
+          key: 'luck',
+          label: 'Luck',
+          type: 'number',
+          defaultValue: 6,
+          description: '0–6. Harm reduces Luck; at 0 you lose the conflict.',
         },
       ],
     },
@@ -87,7 +119,7 @@ export const lonerSheetDefinition: SheetDefinition = {
           label: 'Notes',
           type: 'textarea',
           defaultValue: '',
-          placeholder: 'Facts, NPCs, threads to follow…',
+          placeholder: 'Conditions, scene tags, NPCs, threads…',
         },
       ],
     },
@@ -95,54 +127,14 @@ export const lonerSheetDefinition: SheetDefinition = {
 };
 
 export const lonerSoloEngine = {
-  kind: 'oracle' as const,
+  kind: 'loner-oracle' as const,
   oracleDice: '1d6',
-  riskDice: '2d6',
-  oracleLikelihoods: [
-    {
-      id: 'impossible' as const,
-      label: 'No way',
-      threshold: 1,
-      description: 'Yes only on a 1',
-    },
-    {
-      id: 'unlikely' as const,
-      label: 'Unlikely',
-      threshold: 2,
-      description: 'Yes on 1–2',
-    },
-    {
-      id: 'even' as const,
-      label: '50/50',
-      threshold: 3,
-      description: 'Yes on 1–3',
-    },
-    {
-      id: 'likely' as const,
-      label: 'Likely',
-      threshold: 4,
-      description: 'Yes on 1–4',
-    },
-    {
-      id: 'certain' as const,
-      label: 'Almost certain',
-      threshold: 5,
-      description: 'Yes on 1–5',
-    },
-  ],
-  twistTable: [
-    { roll: 1, text: 'Introduce a new fact that complicates things' },
-    { roll: 2, text: 'Remove or invalidate an established fact' },
-    { roll: 3, text: 'Shift the scene — location, time, or tone changes' },
-    { roll: 4, text: 'A NPC acts unexpectedly or reveals something' },
-    { roll: 5, text: 'An object is lost, found, broken, or transformed' },
-    { roll: 6, text: 'Things get worse — escalate the danger or cost' },
-  ],
-  scenePrompts: [
-    'Where are you, and what do you want here?',
-    'Who or what stands between you and your goal?',
-    'What detail makes this place feel real?',
-    'What do you try first — and what could go wrong?',
-    'How does your nemesis make itself felt?',
-  ],
+  riskDice: '1d6',
+  scenePrompts: lonerScenePrompts,
+  twistTable: lonerTwistTable,
+  twistSubjects: lonerTwistSubjects,
+  twistActions: lonerTwistActions,
+  sceneMoodTable: lonerSceneMoodTable,
 };
+
+export { lonerDicePresets, lonerRulesPrimer };

@@ -18,7 +18,7 @@
 
 - [x] **`packages/game-engine`** — dice parser, roller, oracles (unit tests)
 - [x] **Dice hub** at `/dice` — formula builder, saved sets, roll log (`/roll` redirects)
-- [x] **`packages/game-systems`** — generic + loner, totv, snallygaster, muscadines, ironforge (unit tests)
+- [x] **`packages/game-systems`** — generic + loner (Chance/Risk SRD), paranormal-files (GTL), totv, snallygaster, muscadines, ironforge (unit tests)
 - [x] **`packages/sync`** — Dexie repos + Yjs play-room primitives (meta, log, fog, tokens, import)
 - [x] **Character sheets UI** at `/characters` + `/characters/[id]` — local CRUD, auto-save, cross-play adapt/move
 - [x] **Cloud sync API** at `/api/sheets`, `/api/dice-sets`, `/api/sync` — Postgres upsert when signed in
@@ -114,7 +114,7 @@ Workflow: `.github/workflows/ci.yml` — `npm install` → `npm run test` → `n
 | Decision | Choice | Notes |
 |----------|--------|-------|
 | Repo / package name | **codex-w** | Product display name TBD (see `00_INDEX.md`) |
-| First solo system | **Loner** | MVP oracle plugin |
+| First solo system | **Loner** (+ Paranormal Files) | Chance/Risk Oracle; CC BY-SA SRD |
 | Sync host | **Hocuspocus** (`apps/sync-server`) | Self-hosted on VPS; `NEXT_PUBLIC_SYNC_HOST` |
 | VTT canvas | **Excalidraw** | MIT; replaced tldraw (commercial license risk) |
 | Auth provider | **Better Auth** + Neon | Self-hosted; local Docker Postgres for dev |

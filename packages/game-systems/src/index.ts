@@ -7,6 +7,27 @@ export * from './library-catalog';
 export { genericPlugin, genericSheetDefinition } from './generic';
 export { lonerPlugin, lonerSheetDefinition, lonerSoloEngine } from './loner';
 export {
+  getLonerLuck,
+  setLonerLuck,
+  applyTakeHarmToLuck,
+  rechargeLonerLuck,
+  LONER_LUCK_MAX,
+  LONER_LUCK_KEY,
+} from './loner/luck';
+export {
+  paranormalFilesPlugin,
+  paranormalFilesSheetDefinition,
+  paranormalFilesSoloEngine,
+  applyUnknownThreshold,
+  flattenD66,
+  pfConceptGrid,
+  pfSkillGrid,
+  pfFrailtyGrid,
+  pfGearGrid,
+  rollD66Entry,
+  UNKNOWN_THRESHOLD_MAX,
+} from './paranormal-files';
+export {
   totvPlugin,
   totvSheetDefinition,
   totvSoloEngine,

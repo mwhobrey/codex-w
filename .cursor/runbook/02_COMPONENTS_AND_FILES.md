@@ -79,11 +79,13 @@ One subdirectory per RPG:
 
 ```
 game-systems/
-├── loner/
-├── totv/           # Thieves of the Velvet
+├── loner/              # Loner (Chance/Risk Oracle; CC BY-SA SRD)
+├── paranormal-files/   # Loner: Paranormal Files (GTL)
+├── totv/
 ├── snallygaster/
+├── muscadines/
 ├── ironforge/
-└── generic/        # System-agnostic fallback sheet
+└── generic/            # System-agnostic fallback sheet
 ```
 
 Each exports a `GameSystemPlugin` (see `01_ARCHITECTURE.md`).
