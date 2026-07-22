@@ -1,0 +1,6 @@
+# Matches CI (.github/workflows/ci.yml). Mise activates this when you cd into the repo.
+[tools]
+node = "20"
+
+[env]
+_.path = ["node_modules/.bin"]
