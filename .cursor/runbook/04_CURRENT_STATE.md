@@ -1,6 +1,6 @@
 # Current State
 
-> Last updated: 2025-06-30 — self-hosted sync relay (Hocuspocus)
+> Last updated: 2026-07-22 — Midnight Muscadines CC BY-SA parity overhaul
 
 ## What Is Working
 
@@ -18,7 +18,7 @@
 
 - [x] **`packages/game-engine`** — dice parser, roller, oracles (unit tests)
 - [x] **Dice hub** at `/dice` — formula builder, saved sets, roll log (`/roll` redirects)
-- [x] **`packages/game-systems`** — generic + loner (Chance/Risk SRD), paranormal-files (GTL), totv (structural homage; Experiences/Marks; original 60 prompts), snallygaster (Camp Snallygaster CC BY tables + PATH solo), muscadines, ironsworn (CC BY SRD; unit tests)
+- [x] **`packages/game-systems`** — generic + loner (Chance/Risk SRD), paranormal-files (GTL), totv (structural homage; Experiences/Marks; original 60 prompts), snallygaster (Camp Snallygaster CC BY tables + PATH solo), muscadines (CC BY-SA; Marmateer sheet, backgrounds, challenge lite, mentor), ironsworn (CC BY SRD; unit tests)
 - [x] **`packages/sync`** — Dexie repos + Yjs play-room primitives (meta, log, fog, tokens, import)
 - [x] **Character sheets UI** at `/characters` + `/characters/[id]` — local CRUD, auto-save, cross-play adapt/move
 - [x] **Cloud sync API** at `/api/sheets`, `/api/dice-sets`, `/api/sync` — Postgres upsert when signed in

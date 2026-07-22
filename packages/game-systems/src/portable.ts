@@ -32,7 +32,11 @@ const FIELD_ALIASES: Record<string, keyof PortableProfile | 'trait'> = {
   specialty: 'trait',
   crew_role: 'trait',
   jam_specialty: 'trait',
+  style: 'trait',
   grove: 'trait',
+  jar_description: 'summary',
+  jar_spells: 'summary',
+  recipe_notes: 'notes',
   nemesis: 'nemesis',
   fear: 'nemesis',
   notes: 'notes',
@@ -112,8 +116,8 @@ const TARGET_FIELD_MAP: Partial<
     notes: 'notes',
   },
   muscadines: {
-    tagline: 'jam_specialty',
-    summary: 'cozy_dark',
+    tagline: 'style',
+    summary: 'jar_description',
     notes: 'notes',
   },
   ironsworn: {

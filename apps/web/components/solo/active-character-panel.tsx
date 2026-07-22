@@ -51,6 +51,9 @@ export function ActiveCharacterPanel({
   const humanName = getSheetFieldValue(character, 'human_name');
   const vampireName = getSheetFieldValue(character, 'vampire_name');
   const fear = getSheetFieldValue(character, 'fear');
+  const jamStyle = getSheetFieldValue(character, 'style');
+  const jamBackground = getSheetFieldValue(character, 'background');
+  const jamJar = getSheetFieldValue(character, 'jar_description');
   const jamSpecialty = getSheetFieldValue(character, 'jam_specialty');
   const grove = getSheetFieldValue(character, 'grove');
   const snallyNumber = getSheetFieldValue(character, 'number');
@@ -65,7 +68,7 @@ export function ActiveCharacterPanel({
         : character.gameSystemId === 'snallygaster'
         ? snallyMotivation || snallyCampName || fear || profile.tagline
         : character.gameSystemId === 'muscadines'
-          ? jamSpecialty || grove || profile.tagline
+          ? jamStyle || jamBackground || jamSpecialty || grove || profile.tagline
           : isLonerFamily
             ? lonerConcept || lonerGoal || profile.tagline
             : lonerGoal || profile.tagline;
@@ -80,7 +83,9 @@ export function ActiveCharacterPanel({
           ? 'Motivation'
           : 'Camp name'
         : character.gameSystemId === 'muscadines'
-          ? 'Grove craft'
+          ? jamStyle
+            ? 'Style'
+            : 'Background'
           : isLonerFamily
             ? 'Concept'
             : 'Goal';
@@ -95,7 +100,10 @@ export function ActiveCharacterPanel({
           getSheetFieldValue(character, 'camper_secret') ||
           profile.summary
         : character.gameSystemId === 'muscadines'
-          ? getSheetFieldValue(character, 'cozy_dark') || profile.summary
+          ? jamJar ||
+            getSheetFieldValue(character, 'jar_spells') ||
+            getSheetFieldValue(character, 'cozy_dark') ||
+            profile.summary
           : lonerMotive || profile.summary;
 
   return (

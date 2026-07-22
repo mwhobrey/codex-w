@@ -83,7 +83,7 @@ game-systems/
 ├── paranormal-files/   # Loner: Paranormal Files (GTL)
 ├── totv/               # TYOV structural homage (original prompts)
 ├── snallygaster/       # Camp Snallygaster (L&F; CC BY 4.0)
-├── muscadines/
+├── muscadines/         # Midnight Muscadines (CC BY-SA; challenge lite + mentor)
 ├── ironsworn/          # Ironsworn (CC BY SRD)
 └── generic/            # System-agnostic fallback sheet
 ```

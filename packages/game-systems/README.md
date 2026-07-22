@@ -6,7 +6,7 @@ Per-RPG plugins. Each subdirectory exports a `GameSystemPlugin`:
 - `paranormal-files/` — Loner: Paranormal Files (Geared Towards Loner; CC BY-SA SRD)
 - `totv/` — Thousand Year Old Vampire structural homage (original prompt journal)
 - `snallygaster/` — Camp Snallygaster (Lasers & Feelings; CC BY 4.0)
-- `muscadines/` — Midnight Muscadines (mentor + oracle)
+- `muscadines/` — Midnight Muscadines (CC BY-SA; mentor + challenge lite)
 - `ironsworn/` — Ironsworn (CC BY SRD: action rolls, vows, oracles, assets)
 - `generic/` — System-agnostic fallback sheet (Mythic-style likelihood oracle)
 
@@ -36,6 +36,24 @@ the published game. Book art, layout, logos, and PDF scans are not included.
 Codex-w is not affiliated with or endorsed by Pandion Games or John Harper.
 See `snallygaster/NOTICE`.
 
+## Attribution — Midnight Muscadines (CC BY-SA 4.0)
+
+Midnight Muscadines by Pandion Games is licensed under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Chargen
+options (folk, backgrounds, styles, quirks, starting items), sheet structure,
+and challenge lite helpers in `muscadines/` are derived from public Setting
+Guide / Character Options / Creator Guide materials.
+
+Midnight Muscadines is based on Songs and Sagas by Fari RPGs
+(https://farirpgs.com), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+Derivative mechanical content is offered under CC BY-SA 4.0. Codex-w is not
+affiliated with or endorsed by Pandion Games or Fari RPGs. Art, layout, logos,
+compatibility marks, brand fonts, and maps are not included. The full SRD was
+not published at module time — challenge resolution is a lite play aid; use a
+licensed copy for complete card-suit, feat, and ingredient magic rules.
+See `muscadines/NOTICE`.
+
 ## Attribution — Thousand Year Old Vampire (proprietary)
 
 Thousand Year Old Vampire is © Tim Hutchings. The `totv/` module is a
@@ -52,8 +70,5 @@ are derived from the Ironsworn SRD and related open content (commercial path).
 
 Official art, icons, card layout, and trade dress are not included. Codex is
 not an official Ironsworn product. See `ironsworn/NOTICE`.
-
-Other systems: solo prompt/table text is **codex-w authored** where noted —
-inspired by published game structures, not reproduced verbatim.
 
 See interface definition in `.cursor/runbook/01_ARCHITECTURE.md`.

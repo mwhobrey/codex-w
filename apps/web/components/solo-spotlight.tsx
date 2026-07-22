@@ -29,7 +29,7 @@ const SPOTLIGHT = [
     id: 'muscadines',
     name: 'Midnight Muscadines',
     href: '/play?system=muscadines',
-    description: 'Cozy-dark folklore — mentor prompts and oracles. Live now.',
+    description: 'Cozy-dark Marmateers — jars, challenges, mentor prompts (CC BY-SA).',
   },
   {
     id: 'ironsworn',

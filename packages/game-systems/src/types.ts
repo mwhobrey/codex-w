@@ -134,6 +134,15 @@ export interface SoloEngineConfig {
     groveOmens?: OracleTableEntry[];
     jarResults?: OracleTableEntry[];
   };
+  /** Midnight Muscadines — chargen tables + challenge defaults (CC BY-SA) */
+  muscadines?: {
+    styles?: OracleTableEntry[];
+    quirks?: OracleTableEntry[];
+    startingItems?: OracleTableEntry[];
+    backgrounds?: OracleTableEntry[];
+    defaultChallengeDR?: number;
+    defaultChallengeRS?: number;
+  };
   /** Ironsworn — action rolls, vows, oracles, assets (CC BY) */
   ironsworn?: {
     moves: Array<{

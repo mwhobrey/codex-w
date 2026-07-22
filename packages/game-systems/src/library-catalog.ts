@@ -141,7 +141,8 @@ export function listLibraryEntries(): LibraryEntry[] {
         systemId: plugin.id,
         systemName: plugin.name,
         category: 'table',
-        title: 'Grove omens',
+        title: 'Codex scene flavor',
+        description: 'Codex play-aid prompts — not official book tables.',
         rows: mapTableRows(engine.folkloreTables.groveOmens),
       });
     }
@@ -152,9 +153,54 @@ export function listLibraryEntries(): LibraryEntry[] {
         systemId: plugin.id,
         systemName: plugin.name,
         category: 'table',
-        title: 'Jar results',
+        title: 'Codex jam flavor',
+        description: 'Codex play-aid prompts — not official book tables.',
         rows: mapTableRows(engine.folkloreTables.jarResults),
       });
+    }
+
+    if (engine.muscadines) {
+      const mm = engine.muscadines;
+      if (mm.styles?.length) {
+        entries.push({
+          id: `${plugin.id}-styles`,
+          systemId: plugin.id,
+          systemName: plugin.name,
+          category: 'chargen',
+          title: 'Styles',
+          rows: mapTableRows(mm.styles),
+        });
+      }
+      if (mm.quirks?.length) {
+        entries.push({
+          id: `${plugin.id}-quirks`,
+          systemId: plugin.id,
+          systemName: plugin.name,
+          category: 'chargen',
+          title: 'Quirks',
+          rows: mapTableRows(mm.quirks),
+        });
+      }
+      if (mm.startingItems?.length) {
+        entries.push({
+          id: `${plugin.id}-starting-items`,
+          systemId: plugin.id,
+          systemName: plugin.name,
+          category: 'chargen',
+          title: 'Starting items',
+          rows: mapTableRows(mm.startingItems),
+        });
+      }
+      if (mm.backgrounds?.length) {
+        entries.push({
+          id: `${plugin.id}-backgrounds`,
+          systemId: plugin.id,
+          systemName: plugin.name,
+          category: 'chargen',
+          title: 'Backgrounds',
+          rows: mapTableRows(mm.backgrounds),
+        });
+      }
     }
 
     if (engine.lasersFeelings) {

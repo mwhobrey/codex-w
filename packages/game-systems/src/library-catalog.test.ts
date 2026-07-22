@@ -10,4 +10,14 @@ describe('listLibraryEntries', () => {
     expect(systems.has('ironsworn')).toBe(true);
     expect(systems.has('muscadines')).toBe(true);
   });
+
+  it('exposes muscadines chargen tables', () => {
+    const entries = listLibraryEntries().filter((e) => e.systemId === 'muscadines');
+    const titles = new Set(entries.map((e) => e.title));
+    expect(titles.has('Styles')).toBe(true);
+    expect(titles.has('Quirks')).toBe(true);
+    expect(titles.has('Starting items')).toBe(true);
+    expect(titles.has('Backgrounds')).toBe(true);
+    expect(titles.has('Mentor prompts')).toBe(true);
+  });
 });
