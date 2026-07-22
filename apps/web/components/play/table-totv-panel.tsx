@@ -229,7 +229,7 @@ export function TableTotvPanel({
           </p>
         ) : null}
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" onClick={handleAdvancePrompt} disabled={rolling}>
+          <Button type="button" size="sm" onClick={handleAdvancePrompt} disabled={rolling} data-testid="totv-advance-prompt">
             {rolling ? 'Rolling…' : 'Advance (d10 − d6)'}
           </Button>
           <Button
@@ -281,7 +281,7 @@ export function TableTotvPanel({
             Go
           </Button>
         </div>
-        <div className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs" aria-live="polite">
+        <div className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs" aria-live="polite" data-testid="totv-roll-reveal">
           {rollReveal ?? <span className="text-muted-foreground">Navigation roll appears here.</span>}
         </div>
       </TableSection>

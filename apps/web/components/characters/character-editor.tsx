@@ -4,11 +4,12 @@ import {
   getGameSystem,
   listAvailableSystems,
   normalizeGameSystemId,
+  renameSheet,
   updateSheetField,
 } from '@codex/game-systems';
 import { characterPortraitRepo, characterSheetRepo } from '@codex/sync';
 import type { CharacterSheet, GameSystemId } from '@codex/schemas';
-import { Badge, Button, ConfirmDialog } from '@codex/ui';
+import { Badge, Button, ConfirmDialog, Input, Label } from '@codex/ui';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -178,20 +179,24 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
         <div className="flex flex-1 gap-4">
           <CharacterPortraitUpload sheet={sheet} onSave={persist} />
           <div className="min-w-0 flex-1">
-          {isGeneric ? (
-            <>
-              <h1 className="font-display text-3xl font-medium tracking-tight">
-                {sheet.name === 'Unnamed character' ? 'New character' : sheet.name}
-              </h1>
+            <Label className="sr-only" htmlFor="character-display-name">
+              Character name
+            </Label>
+            <Input
+              id="character-display-name"
+              data-testid="character-name-input"
+              value={sheet.name}
+              onChange={(e) => void persist(renameSheet(sheet, e.target.value))}
+              className="font-display h-auto border-0 bg-transparent px-0 text-3xl font-medium tracking-tight shadow-none focus-visible:ring-0"
+              placeholder="Character name"
+            />
+            {isGeneric ? (
               <p className="mt-1 text-sm text-muted-foreground">
-                Character name lives in Identity below — the title updates as you type.
+                Identity “Character name” below also updates this title.
               </p>
-            </>
-          ) : (
-            <h1 className="font-display text-3xl font-medium tracking-tight">{sheet.name}</h1>
-          )}
+            ) : null}
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Badge>{system.name}</Badge>
+            <Badge data-testid="character-system-badge">{system.name}</Badge>
             {sheet.originSystemId && sheet.originSystemId !== sheet.gameSystemId && (
               <Badge variant="secondary">origin: {sheet.originSystemId}</Badge>
             )}

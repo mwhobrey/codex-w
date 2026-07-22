@@ -78,7 +78,7 @@ type Result<T, E = AppError> =
 |-------|------|---------------------|
 | Unit | Vitest | `game-engine`, `schemas`, parsers — 90%+ |
 | Component | Vitest + Testing Library | Critical UI (dice, sheets) |
-| E2E | Playwright | Happy paths: solo session, sheet save, map load |
+| E2E | Playwright | UI contracts: per-system create + short play (`e2e/playthrough.spec.ts`); smoke + multiplayer invite |
 | Sync | Integration tests | Offline write → reconnect → merge |
 
 Run before PR: `pnpm turbo run test lint typecheck`

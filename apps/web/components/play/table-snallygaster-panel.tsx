@@ -226,7 +226,13 @@ export function TableSnallygasterPanel({
           <span className="self-center text-xs text-muted-foreground">{diceCount}d6</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" onClick={handleRoll} disabled={rolling}>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleRoll}
+            disabled={rolling}
+            data-testid="snally-roll"
+          >
             {rolling ? 'Rolling…' : `Roll ${diceCount}d6`}
           </Button>
           <Button
@@ -311,6 +317,7 @@ export function TableSnallygasterPanel({
         <div
           className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs"
           aria-live="polite"
+          data-testid="snally-roll-reveal"
         >
           {rollReveal ?? <span className="text-muted-foreground">Roll results appear here.</span>}
         </div>

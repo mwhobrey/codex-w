@@ -270,7 +270,13 @@ export function TableMuscadinesPanel({
       <TableSection title="Mentor" description={currentMentor?.label}>
         <p className="text-sm leading-relaxed text-foreground">{currentMentor?.text}</p>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant="secondary" onClick={handleMentorPrompt}>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={handleMentorPrompt}
+            data-testid="muscadines-next-mentor"
+          >
             Next mentor prompt
           </Button>
           <Button type="button" size="sm" variant="outline" onClick={handleRandomMentor}>
@@ -540,7 +546,10 @@ export function TableMuscadinesPanel({
         <Button type="button" size="sm" onClick={handleOracle} disabled={!question.trim()}>
           Ask oracle
         </Button>
-        <div className="min-h-8 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs">
+        <div
+          className="min-h-8 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs"
+          data-testid="muscadines-reveal"
+        >
           {oracleReveal ?? <span className="text-muted-foreground">Rolls and answers appear here.</span>}
         </div>
       </TableSection>

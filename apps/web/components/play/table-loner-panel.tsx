@@ -232,6 +232,7 @@ export function TableLonerPanel({
           placeholder="Ask a closed yes/no question…"
           rows={2}
           className="min-h-[60px] resize-none text-sm"
+          data-testid="loner-oracle-question"
         />
         <div className="flex flex-wrap gap-1.5">
           {(
@@ -286,12 +287,14 @@ export function TableLonerPanel({
           size="sm"
           onClick={handleAskOracle}
           disabled={rolling || !question.trim()}
+          data-testid="loner-ask-oracle"
         >
           {rolling ? 'Consulting…' : 'Ask Oracle (Chance vs Risk)'}
         </Button>
         <div
           className="min-h-10 rounded-md border border-border/40 bg-background/40 px-3 py-2 text-xs"
           aria-live="polite"
+          data-testid="loner-oracle-reveal"
         >
           {oracleReveal ?? (
             <span className="text-muted-foreground">Answer appears here and in the log.</span>

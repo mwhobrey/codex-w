@@ -37,7 +37,7 @@ export function CharacterPicker({
   });
 
   return (
-    <div className="rounded-lg border border-border/50 bg-card/60 px-3 py-2.5">
+    <div className="rounded-lg border border-border/50 bg-card/60 px-3 py-2.5" data-testid="character-picker">
       <Label
         htmlFor="active-character"
         className={
@@ -50,6 +50,7 @@ export function CharacterPicker({
       </Label>
       <Select
         id="active-character"
+        data-testid="character-picker-select"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value || undefined)}
         className="text-sm"

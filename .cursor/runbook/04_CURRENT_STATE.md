@@ -38,7 +38,7 @@
 - [x] **CI/CD** — GitHub Actions: unit tests, web build, Playwright smoke on PR/push to `main`
 - [x] **Invite tokens** — relay auth gate; HTTP seed before websocket; multi-source resume (URL, meta, storage, recent)
 - [x] **Story integration** — per-system table panels, TYOV tag engine, Ironsworn vows/meters, `/library`, table export
-- [x] **E2E tests** — smoke (all systems + library) + multiplayer invite (sync-server in CI)
+- [x] **E2E tests** — smoke (all systems + library) + multiplayer invite + per-system playthrough (`playthrough.spec.ts`: create sheet → open table → bind → one core action; sync-server in CI)
 - [x] **`apps/sync-server`** — Hocuspocus on Node; invite seed + fog guard; deploy docs for DO droplet
 - [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (44 tests)
 - [x] **Design system polish** — shadcn `Dialog`/`Sheet` in `@codex/ui`; semantic Tailwind tokens (`primary`, `muted-foreground`, etc.); skip link, reduced-motion, mobile play header

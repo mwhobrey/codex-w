@@ -262,12 +262,13 @@ export function SessionLogPanel({
                 : 'No entries match these filters.'}
             </p>
           ) : (
-            <ul className="space-y-2" aria-live="polite">
+            <ul className="space-y-2" aria-live="polite" data-testid="session-log">
               {[...feed].reverse().map((item) =>
                 item.kind === 'private' ? (
                   <li
                     key={`private-${item.id}`}
                     className="rounded-md border border-dashed border-primary/30 bg-primary/5 px-3 py-2"
+                    data-testid="session-log-private"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-primary">
@@ -283,6 +284,7 @@ export function SessionLogPanel({
                   <li
                     key={item.id}
                     className="rounded-md border border-border/30 bg-secondary/40 px-3 py-2"
+                    data-testid="session-log-entry"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span

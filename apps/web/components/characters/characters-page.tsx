@@ -5,6 +5,7 @@ import {
   ironswornPlugin,
   lonerPlugin,
   muscadinesPlugin,
+  paranormalFilesPlugin,
   snallygasterPlugin,
   totvPlugin,
 } from '@codex/game-systems';
@@ -21,6 +22,7 @@ import { queueSheetSync } from '@/lib/sheet-sync';
 
 const systemPlugins: GameSystemPlugin[] = [
   lonerPlugin,
+  paranormalFilesPlugin,
   totvPlugin,
   snallygasterPlugin,
   muscadinesPlugin,
@@ -39,6 +41,7 @@ function formatRelativeTime(iso: string): string {
 
 function systemLabel(sheet: CharacterSheet): string {
   if (sheet.gameSystemId === 'loner') return 'Loner';
+  if (sheet.gameSystemId === 'paranormal-files') return 'Paranormal Files';
   if (sheet.gameSystemId === 'totv') return 'TYOV';
   if (sheet.gameSystemId === 'snallygaster') return 'Snallygaster';
   if (sheet.gameSystemId === 'muscadines') return 'Muscadines';
@@ -103,7 +106,7 @@ export function CharactersPage() {
                 size="sm"
                 disabled={creating}
                 onClick={() => handleCreate(plugin)}
-                data-testid={plugin.id === 'loner' ? 'characters-new-loner' : undefined}
+                data-testid={`characters-new-${plugin.id}`}
               >
                 {plugin.name}
               </Button>

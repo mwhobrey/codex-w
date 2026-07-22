@@ -355,7 +355,13 @@ export function TableIronswornPanel({
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" onClick={handleActionRoll} disabled={rolling}>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleActionRoll}
+            disabled={rolling}
+            data-testid="ironsworn-roll-action"
+          >
             {rolling ? 'Rolling…' : 'Roll action'}
           </Button>
           <Button
@@ -424,7 +430,13 @@ export function TableIronswornPanel({
             value={vowName}
             onChange={(e) => setVowName(e.target.value)}
           />
-          <Button type="button" size="sm" variant="outline" onClick={handleCreateVow}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={handleCreateVow}
+            data-testid="ironsworn-create-vow"
+          >
             Swear vow
           </Button>
           <Button type="button" size="sm" onClick={handleMarkProgress} disabled={!activeVow}>
@@ -503,7 +515,11 @@ export function TableIronswornPanel({
         )}
       </TableSection>
 
-      <div className="min-h-10 border-t border-border/40 px-3 py-2 text-xs" aria-live="polite">
+      <div
+        className="min-h-10 border-t border-border/40 px-3 py-2 text-xs"
+        aria-live="polite"
+        data-testid="ironsworn-roll-reveal"
+      >
         {rollReveal ?? <span className="text-muted-foreground">Rolls and oracle results appear here.</span>}
       </div>
 
