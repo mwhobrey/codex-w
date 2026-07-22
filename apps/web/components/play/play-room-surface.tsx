@@ -17,6 +17,7 @@ import { useSession } from '@/lib/auth-client';
 import { MAP_FLOATING_BOTTOM_PLAY_STYLE } from '@/lib/map-overlay-layout';
 import { createPlayRoomUrl, getSyncRelayHost } from '@/lib/play-room';
 import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
+import { queuePlayRoomSync } from '@/lib/play-room-sync';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 import { writeStoredTableInvite } from '@/lib/table-invite-storage';
 import { parseGameSystemId, type MapViewRole } from '@/lib/table-systems';
@@ -228,6 +229,33 @@ export function PlayRoomSurface({
       );
     }
   }, [inviteToken, ready, roomId, meta?.name, meta?.gameSystemId, meta?.inviteToken, partyInvite, resolvedInvite]);
+
+  useEffect(() => {
+    if (!ready || !meta || !tableGm || !authSession?.user?.id) return;
+    const invite =
+      meta.inviteToken ?? resolvedInvite ?? partyInvite ?? inviteToken ?? undefined;
+    if (!invite) return;
+    void queuePlayRoomSync({
+      roomId,
+      ownerId: authSession.user.id,
+      name: meta.name,
+      gameSystemId: meta.gameSystemId,
+      inviteToken: invite,
+      updatedAt: new Date().toISOString(),
+    });
+  }, [
+    authSession?.user?.id,
+    inviteToken,
+    meta?.gameSystemId,
+    meta?.inviteToken,
+    meta?.name,
+    meta,
+    partyInvite,
+    ready,
+    resolvedInvite,
+    roomId,
+    tableGm,
+  ]);
 
   useEffect(() => {
     setTableNameDraft(meta?.name ?? '');

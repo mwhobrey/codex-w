@@ -17,6 +17,7 @@ services:
       PORT: 1999
       HOST: 0.0.0.0
       NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-}
     networks:
       - proxy
     # Optional: expose on host for debugging only

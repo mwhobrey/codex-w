@@ -1,6 +1,6 @@
 # Current State
 
-> Last updated: 2026-07-22 — Midnight Muscadines CC BY-SA parity overhaul
+> Last updated: 2026-07-22 — cross-device play room Yjs persistence
 
 ## What Is Working
 
@@ -45,6 +45,7 @@
 - [x] **Portrait cloud sync** — local IndexedDB blobs + optional S3 upload; `/api/assets/status`; sync on sign-in via `portrait-cloud-sync.ts`
 - [x] **Character delete** — local tombstone + cloud `DELETE /api/sheets/:id`; blocks auto-save race and cloud re-merge
 - [x] **Map / VTT hardening** — codex scene grouping (`codexSceneId`), river/road path stamps, **Break apart** toolbar; Excalidraw infinite-loop fix on room enter
+- [x] **Cross-device play rooms** — Yjs docs + invites persisted on sync-server (`yjs_documents`, `room_invites`); account `play_rooms` lobby index; pull into recent tables on sign-in
 - [x] **Dice hub** — per-system starter sets (`system-dice-sets.ts`)
 - [x] **Library** — Reference + **My tables** tabs; clone reference table → editable local copy (Dexie v5 + Postgres `library_tables`); `/api/library-tables`
 - [x] **Sign-out cleanup** — strips invite tokens from recent play rooms only (keeps table names/metadata)
@@ -59,8 +60,8 @@
 - [ ] `apps/partykit` — legacy; superseded by `apps/sync-server` (PartyKit cloud-prem blocked on CF free tier)
 - [x] Room squatting hardening (atomic HTTP invite seed before websocket)
 - [x] Fog server-side enforcement on relay (non-GM fog writes reverted in `apps/sync-server`)
-- [ ] Map snapshots to Postgres (Yjs state is local + relay only)
-- [ ] Solo session / journal full cloud sync
+- [x] Map / Yjs snapshots to Postgres (sync-server `yjs_documents` via Hocuspocus Database)
+- [x] Solo / live table cross-device resume (durable Yjs + `play_rooms` lobby index; archived chapters still via `play_sessions`)
 - [x] Neon + Vercel dogfood env wired (`codex-w.whobrey.me` live; `pk.whobrey.me` relay confirmed healthy)
 - [ ] `packages/sync` unit tests — expand excalidraw / play-room provider coverage (`@codex/web` has `play-room` + viewport math tests; root `npm run test` includes `@codex/web`)
 - [ ] Dice hub live log push with invite auth
@@ -81,9 +82,8 @@
 
 ### Deferred
 
-- Postgres map snapshots
 - `paintFogBrush` UI (exported in sync, unwired)
-- Persisted invite tokens on relay (in-memory today; survives until process restart)
+- Client-side Yjs upload when sync host is disabled (cross-device still needs relay + `DATABASE_URL`)
 
 ## CI / E2E (local)
 

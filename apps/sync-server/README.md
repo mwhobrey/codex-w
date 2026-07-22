@@ -103,12 +103,16 @@ npm install
 PORT=1999 HOST=0.0.0.0 npm run start --workspace=@codex/sync-server
 ```
 
+## Persistence
+
+Set `DATABASE_URL` (same Neon / Postgres as the web app) so the relay can:
+
+- Persist Yjs documents (`yjs_documents`) for cross-device / post-restart resume
+- Persist room invite tokens (`room_invites`) across process restarts
+
+Without `DATABASE_URL`, invites and docs stay memory-only (fine for local smoke tests).
+
 ## Security
 
 - Invite token must be HTTP-seeded before websocket admission (prevents room squatting).
 - Server-side fog write guard for non-GM peers (same behavior as former PartyKit worker).
-
-## Limitations (MVP)
-
-- Invite tokens are in-memory (lost on container restart; rooms re-seed on first join).
-- No Postgres backup of Yjs state (local y-indexeddb + relay only).

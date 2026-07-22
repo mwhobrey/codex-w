@@ -1,5 +1,5 @@
 import type { CharacterSheetField, DiceFormula, LibraryTableRow } from '@codex/schemas';
-import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, customType, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth';
 
 export const characterSheets = pgTable('character_sheets', {
@@ -95,5 +95,35 @@ export const libraryTables = pgTable('library_tables', {
   rows: jsonb('rows').notNull().$type<LibraryTableRow[]>(),
   sourceTemplateId: text('source_template_id'),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+});
+
+/** Live Yjs document blobs (roomId or roomId::gm-secrets). Used by sync-server. */
+export const yjsDocuments = pgTable('yjs_documents', {
+  name: text('name').primaryKey(),
+  state: customType<{ data: Buffer; driverData: Buffer }>({
+    dataType() {
+      return 'bytea';
+    },
+  })('state').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+});
+
+/** Durable invite tokens for play rooms (sync-server). */
+export const roomInvites = pgTable('room_invites', {
+  roomId: text('room_id').primaryKey(),
+  token: text('token').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+});
+
+/** Account-owned lobby index for cross-device table resume. */
+export const playRooms = pgTable('play_rooms', {
+  roomId: text('room_id').primaryKey(),
+  ownerId: text('owner_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  name: text('name'),
+  gameSystemId: text('game_system_id'),
+  inviteToken: text('invite_token'),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });

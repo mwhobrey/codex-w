@@ -50,6 +50,14 @@ export function PlayLobby() {
 
   useEffect(() => {
     setRecent(readRecentPlayRooms());
+    const refresh = () => setRecent(readRecentPlayRooms());
+    window.addEventListener('focus', refresh);
+    // Cloud sync may finish shortly after sign-in.
+    const timer = window.setTimeout(refresh, 1500);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      window.clearTimeout(timer);
+    };
   }, []);
 
   const resolvedInvite = useMemo(
@@ -220,7 +228,9 @@ export function PlayLobby() {
         <Card className="border-border/60 bg-card/80">
           <CardHeader className="pb-2">
             <h2 className="text-base font-medium">Recent tables</h2>
-            <CardDescription>Pick up where you left off.</CardDescription>
+            <CardDescription>
+              On this device and synced from your account when signed in.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2" data-testid="recent-play-rooms">

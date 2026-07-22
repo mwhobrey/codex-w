@@ -7,6 +7,7 @@ COPY package.json package-lock.json ./
 COPY apps/sync-server/package.json apps/sync-server/
 COPY packages/sync/package.json packages/sync/
 COPY packages/schemas/package.json packages/schemas/
+COPY packages/db/package.json packages/db/
 COPY packages/config/package.json packages/config/
 
 RUN npm ci --workspace=@codex/sync-server --include-workspace-root
@@ -24,6 +25,7 @@ COPY package.json package-lock.json ./
 COPY apps/sync-server ./apps/sync-server
 COPY packages/sync ./packages/sync
 COPY packages/schemas ./packages/schemas
+COPY packages/db ./packages/db
 COPY packages/config ./packages/config
 
 EXPOSE 1999

@@ -81,3 +81,38 @@ export function renameRecentPlayRoom(id: string, label: string): void {
     ),
   );
 }
+
+/**
+ * Merge account-owned cloud rooms into local recent list (cross-device lobby).
+ * Cloud rooms win on invite/label/system when present; visitedAt uses cloud updatedAt.
+ */
+export function mergeCloudPlayRooms(
+  rooms: Array<{
+    roomId: string;
+    name?: string;
+    gameSystemId?: GameSystemId;
+    inviteToken?: string;
+    updatedAt: string;
+  }>,
+): RecentPlayRoom[] {
+  if (typeof window === 'undefined' || rooms.length === 0) {
+    return readRecentPlayRooms();
+  }
+
+  let next = readRaw();
+  for (const room of rooms) {
+    const id = room.roomId.trim();
+    if (!id) continue;
+    const existing = next.find((r) => r.id === id);
+    const merged: RecentPlayRoom = {
+      id,
+      label: room.name?.trim() || existing?.label,
+      gameSystemId: room.gameSystemId ?? existing?.gameSystemId,
+      inviteToken: room.inviteToken?.trim() || existing?.inviteToken,
+      visitedAt: room.updatedAt || existing?.visitedAt || new Date().toISOString(),
+    };
+    next = [merged, ...next.filter((r) => r.id !== id)];
+  }
+  writeRaw(next.slice(0, MAX_RECENT));
+  return readRecentPlayRooms();
+}

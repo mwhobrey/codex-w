@@ -13,6 +13,7 @@ import type {
   DiceSet,
   JournalEntry,
   PlayerNote,
+  PlayRoom,
   PlaySession,
   SavedTag,
   UserLibraryTable,
@@ -25,6 +26,7 @@ import { queuePlayerNoteSync } from '@/lib/player-note-sync';
 import { queueJournalSync, queueSessionSync } from '@/lib/session-sync';
 import { queueSavedTagSync } from '@/lib/saved-tag-sync';
 import { queueSheetSync } from '@/lib/sheet-sync';
+import { mergeCloudPlayRooms } from '@/lib/recent-play-rooms';
 
 interface CloudSyncPayload {
   sheets: CharacterSheet[];
@@ -34,6 +36,7 @@ interface CloudSyncPayload {
   libraryTables: UserLibraryTable[];
   savedTags: SavedTag[];
   playerNotes: PlayerNote[];
+  rooms: PlayRoom[];
 }
 
 function isNewer(isoA: string, isoB: string): boolean {
@@ -184,6 +187,8 @@ export async function pullCloudData(userId: string): Promise<void> {
     for (const note of payload.playerNotes ?? []) {
       await mergePlayerNote(note, userId);
     }
+
+    mergeCloudPlayRooms(payload.rooms ?? []);
 
     await syncPendingPortraitUploads(userId);
   } catch {

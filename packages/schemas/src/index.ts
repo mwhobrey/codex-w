@@ -242,3 +242,15 @@ export const UserLibraryTableSchema = z.object({
 });
 
 export type UserLibraryTable = z.infer<typeof UserLibraryTableSchema>;
+
+/** Account-owned play table index for cross-device lobby resume. */
+export const PlayRoomSchema = z.object({
+  roomId: z.string().min(1).max(64),
+  ownerId: z.string().min(1),
+  name: z.string().max(128).optional(),
+  gameSystemId: GameSystemIdSchema.optional(),
+  inviteToken: z.string().min(8).max(128).optional(),
+  updatedAt: z.string().datetime(),
+});
+
+export type PlayRoom = z.infer<typeof PlayRoomSchema>;

@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node --import tsx src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@codex/db": "*",
     "@codex/sync": "*",
+    "@hocuspocus/extension-database": "^4.3.0",
     "@hocuspocus/server": "^4.3.0",
     "tsx": "^4.20.3",
     "yjs": "^13.6.31"
@@ -17,6 +20,7 @@
   "devDependencies": {
     "@codex/config": "*",
     "@types/node": "^20.19.43",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

@@ -41,3 +41,20 @@ export {
   listPlayerNotesByOwner,
   listPlayerNotesByRoom,
 } from './player-notes';
+export {
+  deletePlayRoom,
+  getPlayRoomById,
+  listPlayRoomsByOwner,
+  upsertPlayRoom,
+} from './play-rooms';
+export {
+  getRoomInviteToken,
+  seedRoomInviteToken,
+  type SeedRoomInviteResult,
+} from './room-invites';
+export {
+  fetchYjsDocument,
+  storeYjsDocument,
+  toYjsStateBytes,
+  fromYjsStateBytes,
+} from './yjs-documents';

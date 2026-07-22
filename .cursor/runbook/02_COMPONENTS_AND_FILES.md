@@ -53,9 +53,11 @@ codex-w/
 
 | Path | Responsibility |
 |------|----------------|
-| `src/index.ts` | Hocuspocus server bootstrap |
-| `src/extensions/` | Auth, persistence hooks, Postgres snapshot writer |
-| `src/rooms/` | Room naming, token validation |
+| `src/index.ts` | Hocuspocus server bootstrap + Database extension |
+| `src/yjs-database.ts` | Postgres fetch/store for Yjs docs |
+| `src/invite-store.ts` | Durable room invites (`room_invites`) with memory fallback |
+| `src/http-routes.ts` | Invite seed HTTP + websocket admission |
+| `src/*-guard.ts` | Fog / log / kick write guards |
 
 ## Package: `packages/ui`
 

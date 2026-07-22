@@ -11,6 +11,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@codex/config": "*",
     "drizzle-kit": "^0.31.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   }
 }

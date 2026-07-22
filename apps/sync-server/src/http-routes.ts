@@ -71,7 +71,7 @@ export async function handleHttpRequest(req: IncomingMessage, res: ServerRespons
       return true;
     }
 
-    const result = seedRoomInvite(roomId, inviteToken!);
+    const result = await seedRoomInvite(roomId, inviteToken!);
     if (result === 'conflict') {
       sendJson(res, 409, { error: 'room_already_seeded' });
       return true;
@@ -90,8 +90,11 @@ export async function handleHttpRequest(req: IncomingMessage, res: ServerRespons
   return true;
 }
 
-export function admitWebSocket(roomId: string, inviteToken: string | null): { allowed: true } | { allowed: false; reason: string } {
-  const stored = getRoomInvite(roomId);
+export async function admitWebSocket(
+  roomId: string,
+  inviteToken: string | null,
+): Promise<{ allowed: true } | { allowed: false; reason: string }> {
+  const stored = await getRoomInvite(roomId);
   if (!stored) {
     return { allowed: false, reason: 'invite_required' };
   }
