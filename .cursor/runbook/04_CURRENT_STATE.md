@@ -1,6 +1,6 @@
 # Current State
 
-> Last updated: 2026-07-22 — cross-device play room Yjs persistence
+> Last updated: 2026-07-22 — dice hub invite-aware room log push
 
 ## What Is Working
 
@@ -32,7 +32,7 @@
 - [x] **Host-owned GM** — `gmUserId` in table meta, first-claim, Pass GM transfer
 - [x] **Embedded journals** — TYOV, Snallygaster, Ironsworn panels in play sidebar
 - [x] **Invite + import** — copy invite link with system seed; Dexie solo session → table import
-- [x] **Dice → play room** — in-room rolls + `/dice?room=` push to session log
+- [x] **Dice → play room** — in-room rolls + `/dice?room=&invite=` live log push (invite carried from table)
 - [x] **Arc B (partial)** — Better Auth at `/login`, Drizzle + Docker Postgres (`npm run stack:up`)
 - [x] **Portrait upload** — local IndexedDB blobs; `portrait_url` in Postgres when signed in; S3 object via `/api/assets`
 - [x] **CI/CD** — GitHub Actions: unit tests, web build, Playwright smoke on PR/push to `main`
@@ -64,7 +64,7 @@
 - [x] Solo / live table cross-device resume (durable Yjs + `play_rooms` lobby index; archived chapters still via `play_sessions`)
 - [x] Neon + Vercel dogfood env wired (`codex-w.whobrey.me` live; `pk.whobrey.me` relay confirmed healthy)
 - [ ] `packages/sync` unit tests — expand excalidraw / play-room provider coverage (`@codex/web` has `play-room` + viewport math tests; root `npm run test` includes `@codex/web`)
-- [ ] Dice hub live log push with invite auth
+- [x] Dice hub live log push with invite auth
 
 ## Immediate Next Steps (Recommended Order)
 

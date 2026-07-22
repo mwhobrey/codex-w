@@ -29,6 +29,7 @@ interface SessionLogPanelProps {
   logAuthor?: string;
   ownerId?: string;
   roomId?: string;
+  inviteToken?: string;
 }
 
 type FeedItem =
@@ -68,6 +69,7 @@ export function SessionLogPanel({
   logAuthor = 'You',
   ownerId,
   roomId,
+  inviteToken,
 }: SessionLogPanelProps) {
   const [journal, setJournal] = useState('');
   const [tagsDraft, setTagsDraft] = useState('');
@@ -191,7 +193,12 @@ export function SessionLogPanel({
           </p>
         </div>
 
-        <DiceRollBar onRoll={onRoll} systemPresets={systemDicePresets} roomId={roomId} />
+        <DiceRollBar
+          onRoll={onRoll}
+          systemPresets={systemDicePresets}
+          roomId={roomId}
+          inviteToken={inviteToken}
+        />
 
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter log entries">
           <button

@@ -8,11 +8,13 @@ import { useMemo } from 'react';
 import { DieFace } from '@/components/dice/die-face';
 import { useDiceRoll } from '@/hooks/use-dice-roll';
 import { useDiceSets } from '@/hooks/use-dice-sets';
+import { buildDiceHubPath } from '@/lib/play-room';
 
 interface DiceRollBarProps {
   onRoll: (result: RollResult) => void;
   systemPresets?: DicePreset[];
   roomId?: string;
+  inviteToken?: string;
   className?: string;
 }
 
@@ -21,7 +23,13 @@ interface DiceRollBarProps {
  * stream — rolling and reading the result happen in the same view as the
  * log, instead of behind a separate Dice tab.
  */
-export function DiceRollBar({ onRoll, systemPresets = [], roomId, className }: DiceRollBarProps) {
+export function DiceRollBar({
+  onRoll,
+  systemPresets = [],
+  roomId,
+  inviteToken,
+  className,
+}: DiceRollBarProps) {
   const { sets } = useDiceSets();
   const { notation, setNotation, rolling, error, result, roll, defaultPresets } = useDiceRoll(
     'd20',
@@ -109,8 +117,9 @@ export function DiceRollBar({ onRoll, systemPresets = [], roomId, className }: D
           </Button>
         ))}
         <Link
-          href={roomId ? `/dice?room=${encodeURIComponent(roomId)}` : '/dice'}
+          href={roomId ? buildDiceHubPath(roomId, inviteToken) : '/dice'}
           className="ml-auto shrink-0 text-xs text-muted-foreground hover:text-primary"
+          data-testid="dice-roll-bar-manage"
         >
           Manage sets →
         </Link>

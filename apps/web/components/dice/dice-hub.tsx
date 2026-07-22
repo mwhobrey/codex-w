@@ -3,7 +3,7 @@
 import { parseDiceNotation } from '@codex/game-engine';
 import { DiceParseError } from '@codex/game-engine';
 import type { DiceFormula, DiceSet } from '@codex/schemas';
-import { diceSetRepo } from '@codex/sync';
+import { diceSetRepo, INVITE_QUERY_PARAM } from '@codex/sync';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, ConfirmDialog, Input, Label } from '@codex/ui';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -13,7 +13,7 @@ import { queueDiceSetSync } from '@/lib/dice-set-sync';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 import { createDiceSetFromTemplate, listSystemDiceSetTemplates } from '@/lib/system-dice-sets';
 import { createEmptyDiceSet, useDiceSets } from '@/hooks/use-dice-sets';
-import { usePlayRoomLogPush } from '@/hooks/use-play-room-log-push';
+import { diceHubLogStatusMessage, usePlayRoomLogPush } from '@/hooks/use-play-room-log-push';
 import { DiceRoller } from './dice-roller';
 
 function FormulaRow({
@@ -190,8 +190,12 @@ function DiceSetEditor({
 export function DiceHub() {
   const searchParams = useSearchParams();
   const roomId = searchParams.get('room');
+  const urlInvite = searchParams.get(INVITE_QUERY_PARAM);
+  const inviteToken = roomId
+    ? resolvePlayRoomInvite(roomId, urlInvite ?? undefined)
+    : undefined;
   const { sets, ownerId, ready } = useDiceSets();
-  const { pushRoll, ready: logReady, connected } = usePlayRoomLogPush(roomId);
+  const { pushRoll, ready: logReady, status: logStatus } = usePlayRoomLogPush(roomId, urlInvite);
   const [lastPushed, setLastPushed] = useState<string | null>(null);
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
   const [addingTemplateId, setAddingTemplateId] = useState<string | null>(null);
@@ -264,12 +268,12 @@ export function DiceHub() {
                 Logging to room
                 <span className="ml-2 font-mono text-xs text-muted-foreground">{roomId}</span>
               </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {logReady
-                  ? connected
-                    ? 'Synced live with the room.'
-                    : 'Saved locally — will sync when PartyKit is online.'
-                  : 'Connecting to room log…'}
+              <p
+                className="mt-0.5 text-xs text-muted-foreground"
+                data-testid="dice-hub-room-status"
+                data-connection-status={logStatus}
+              >
+                {diceHubLogStatusMessage(logReady, logStatus)}
               </p>
               {lastPushed ? (
                 <p className="mt-0.5 text-xs text-primary" aria-live="polite">
@@ -278,7 +282,7 @@ export function DiceHub() {
               ) : null}
             </div>
             <Button type="button" variant="outline" size="sm" asChild>
-              <Link href={createPlayRoomUrl(roomId, undefined, resolvePlayRoomInvite(roomId))}>
+              <Link href={createPlayRoomUrl(roomId, undefined, inviteToken ?? urlInvite ?? undefined)}>
                 Back to room
               </Link>
             </Button>

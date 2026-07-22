@@ -71,7 +71,7 @@ test.describe('multiplayer table', () => {
     }
   });
 
-  test('rejects guest with wrong invite when PartyKit is live', async ({ browser }) => {
+  test('rejects guest with wrong invite when sync relay is live', async ({ browser }) => {
     const hostContext = await browser.newContext();
     const guestContext = await browser.newContext();
     const host = await hostContext.newPage();
@@ -97,7 +97,7 @@ test.describe('multiplayer table', () => {
       )) === 'connected';
 
       if (!partykitLive) {
-        test.skip(true, 'PartyKit not running — skipping live auth assertion');
+        test.skip(true, 'Sync relay not running — skipping live auth assertion');
       }
 
       await expect

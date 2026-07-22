@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildPlayRoomPath, createPlayRoomUrl, parseTableInviteInput } from './play-room';
+import { diceHubLogStatusMessage } from '@/hooks/use-play-room-log-push';
+import {
+  buildDiceHubPath,
+  buildPlayRoomPath,
+  createPlayRoomUrl,
+  parseTableInviteInput,
+} from './play-room';
 
 describe('buildPlayRoomPath', () => {
   it('builds path with system and invite', () => {
@@ -10,6 +16,27 @@ describe('buildPlayRoomPath', () => {
 
   it('builds bare path', () => {
     expect(buildPlayRoomPath('abc123')).toBe('/play/abc123');
+  });
+});
+
+describe('buildDiceHubPath', () => {
+  it('includes room and invite for live log push', () => {
+    expect(buildDiceHubPath('abc123', 'tokentokentoken12')).toBe(
+      '/dice?room=abc123&invite=tokentokentoken12',
+    );
+  });
+
+  it('omits invite when absent', () => {
+    expect(buildDiceHubPath('abc123')).toBe('/dice?room=abc123');
+  });
+});
+
+describe('diceHubLogStatusMessage', () => {
+  it('explains invite-required and live states', () => {
+    expect(diceHubLogStatusMessage(false, 'connecting')).toMatch(/Connecting/);
+    expect(diceHubLogStatusMessage(true, 'connected')).toMatch(/Synced live/);
+    expect(diceHubLogStatusMessage(true, 'invite-required')).toMatch(/Invite code required/);
+    expect(diceHubLogStatusMessage(true, 'local-only')).toMatch(/sync relay/);
   });
 });
 

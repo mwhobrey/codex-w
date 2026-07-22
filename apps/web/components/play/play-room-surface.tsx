@@ -517,6 +517,9 @@ export function PlayRoomSurface({
                   logAuthor={logAuthor}
                   ownerId={ownerReady ? ownerId : undefined}
                   roomId={roomId}
+                  inviteToken={
+                    meta?.inviteToken ?? resolvedInvite ?? partyInvite ?? inviteToken
+                  }
                 />
               ) : null}
             </div>

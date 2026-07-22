@@ -71,6 +71,14 @@ export function createPlayRoomUrl(
   return `${window.location.origin}${path}`;
 }
 
+/** Dice hub deep-link that keeps room log push authenticated for live sync. */
+export function buildDiceHubPath(roomId: string, inviteToken?: string): string {
+  const params = new URLSearchParams();
+  params.set('room', roomId);
+  if (inviteToken?.trim()) params.set(INVITE_QUERY_PARAM, inviteToken.trim());
+  return `/dice?${params.toString()}`;
+}
+
 export function parseInviteToken(value: string | null | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed || undefined;

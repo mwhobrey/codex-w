@@ -1,22 +1,22 @@
 'use client';
 
-import { appendPlayRoomLogEntry } from '@codex/sync';
+import { appendPlayRoomLogEntry, type PlayRoomConnectionStatus } from '@codex/sync';
 import type { RollResult } from '@codex/game-engine';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as Y from 'yjs';
 import { acquirePlayRoomSession } from '@/lib/play-room-session';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 
-export function usePlayRoomLogPush(roomId: string | null) {
+export function usePlayRoomLogPush(roomId: string | null, inviteToken?: string | null) {
   const [ready, setReady] = useState(false);
-  const [connected, setConnected] = useState(false);
+  const [status, setStatus] = useState<PlayRoomConnectionStatus>('connecting');
   const docRef = useRef<Y.Doc | null>(null);
 
   useEffect(() => {
     if (!roomId) {
       docRef.current = null;
       setReady(false);
-      setConnected(false);
+      setStatus('connecting');
       return;
     }
 
@@ -25,7 +25,7 @@ export function usePlayRoomLogPush(roomId: string | null) {
     let statusTimer: number | undefined;
 
     const boot = async () => {
-      const invite = resolvePlayRoomInvite(roomId);
+      const invite = resolvePlayRoomInvite(roomId, inviteToken ?? undefined);
       const session = await acquirePlayRoomSession(roomId, invite);
       if (cancelled) {
         session.release();
@@ -36,8 +36,7 @@ export function usePlayRoomLogPush(roomId: string | null) {
       docRef.current = session.doc;
 
       const syncStatus = () => {
-        const status = session.getStatus();
-        setConnected(status === 'connected');
+        setStatus(session.getStatus());
       };
 
       const handleSynced = () => {
@@ -64,9 +63,9 @@ export function usePlayRoomLogPush(roomId: string | null) {
       release?.();
       docRef.current = null;
       setReady(false);
-      setConnected(false);
+      setStatus('connecting');
     };
-  }, [roomId]);
+  }, [inviteToken, roomId]);
 
   const pushRoll = useCallback(
     (result: RollResult, author = 'You') => {
@@ -84,5 +83,34 @@ export function usePlayRoomLogPush(roomId: string | null) {
     [roomId],
   );
 
-  return { roomId, ready, connected, pushRoll };
+  return {
+    roomId,
+    ready,
+    status,
+    connected: status === 'connected',
+    pushRoll,
+  };
+}
+
+export function diceHubLogStatusMessage(
+  ready: boolean,
+  status: PlayRoomConnectionStatus,
+): string {
+  if (!ready) return 'Connecting to room log…';
+  switch (status) {
+    case 'connected':
+      return 'Synced live with the room.';
+    case 'invite-required':
+      return 'Invite code required for live sync — reopen Dice from the table.';
+    case 'auth-failed':
+      return 'Invite rejected — check your link or reopen Dice from the table.';
+    case 'kicked':
+      return 'Removed from this table by the GM.';
+    case 'connecting':
+    case 'disconnected':
+      return 'Reconnecting to the sync relay…';
+    case 'local-only':
+    default:
+      return 'Saved locally — will sync when the sync relay is online.';
+  }
 }
