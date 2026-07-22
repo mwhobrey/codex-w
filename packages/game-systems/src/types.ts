@@ -120,6 +120,13 @@ export interface SoloEngineConfig {
     monsterLabel: string;
     problemTable: OracleTableEntry[];
     activityTable?: OracleTableEntry[];
+    mischiefTable?: OracleTableEntry[];
+    monstrousTable?: OracleTableEntry[];
+    locationTable?: OracleTableEntry[];
+    monsterTable?: OracleTableEntry[];
+    campLeaderTable?: OracleTableEntry[];
+    monsterMotiveTable?: OracleTableEntry[];
+    decisionOracleTable?: OracleTableEntry[];
   };
   /** Midnight Muscadines — directed solo guidance */
   mentorPrompts?: MentorPrompt[];

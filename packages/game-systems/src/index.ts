@@ -46,7 +46,13 @@ export {
   snallygasterSoloEngine,
   biasCampDie,
   lookupCampTable,
+  campDayArcLabel,
   campWeekArcLabel,
+  monstrousProblemsForDay,
+  resolveSnallygasterNumber,
+  driftSkillAfterFailure,
+  skillFromStyleSpecialty,
+  backpackFromChargen,
 } from './snallygaster';
 export {
   muscadinesPlugin,

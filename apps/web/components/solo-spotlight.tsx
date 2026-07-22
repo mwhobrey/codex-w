@@ -23,7 +23,7 @@ const SPOTLIGHT = [
     id: 'snallygaster',
     name: 'Camp Snallygaster',
     href: '/play?system=snallygaster',
-    description: 'Summer camp horror — counselor & monster rolls. Live now.',
+    description: 'PATH solo loop — Skill, Counselor & Monster, five days of camp horror.',
   },
   {
     id: 'muscadines',

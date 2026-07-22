@@ -53,6 +53,9 @@ export function ActiveCharacterPanel({
   const fear = getSheetFieldValue(character, 'fear');
   const jamSpecialty = getSheetFieldValue(character, 'jam_specialty');
   const grove = getSheetFieldValue(character, 'grove');
+  const snallyNumber = getSheetFieldValue(character, 'number');
+  const snallyMotivation = getSheetFieldValue(character, 'motivation');
+  const snallyCampName = getSheetFieldValue(character, 'camp_name');
 
   const headline =
     character.gameSystemId === 'totv'
@@ -60,7 +63,7 @@ export function ActiveCharacterPanel({
       : character.gameSystemId === 'ironforge'
         ? getSheetFieldValue(character, 'iron_oath') || profile.tagline
         : character.gameSystemId === 'snallygaster'
-        ? fear || profile.tagline
+        ? snallyMotivation || snallyCampName || fear || profile.tagline
         : character.gameSystemId === 'muscadines'
           ? jamSpecialty || grove || profile.tagline
           : isLonerFamily
@@ -73,7 +76,9 @@ export function ActiveCharacterPanel({
       : character.gameSystemId === 'ironforge'
         ? 'Oath'
         : character.gameSystemId === 'snallygaster'
-        ? 'Fear'
+        ? snallyMotivation
+          ? 'Motivation'
+          : 'Camp name'
         : character.gameSystemId === 'muscadines'
           ? 'Grove craft'
           : isLonerFamily
@@ -86,7 +91,9 @@ export function ActiveCharacterPanel({
       : character.gameSystemId === 'ironforge'
         ? getSheetFieldValue(character, 'scars') || profile.summary
         : character.gameSystemId === 'snallygaster'
-        ? getSheetFieldValue(character, 'secret') || profile.summary
+        ? getSheetFieldValue(character, 'style') ||
+          getSheetFieldValue(character, 'camper_secret') ||
+          profile.summary
         : character.gameSystemId === 'muscadines'
           ? getSheetFieldValue(character, 'cozy_dark') || profile.summary
           : lonerMotive || profile.summary;
@@ -118,12 +125,32 @@ export function ActiveCharacterPanel({
         {headline && (
           <div
             className={fieldHighlightClass(
-              isLonerFamily ? 'concept' : 'goal',
+              character.gameSystemId === 'snallygaster'
+                ? snallyMotivation
+                  ? 'motivation'
+                  : 'camp_name'
+                : isLonerFamily
+                  ? 'concept'
+                  : 'goal',
               highlightFieldKey,
             )}
           >
             <p className="text-xs font-medium uppercase tracking-wide text-primary">{headlineLabel}</p>
             <p className="text-foreground">{headline}</p>
+          </div>
+        )}
+        {character.gameSystemId === 'snallygaster' && snallyNumber !== '' && (
+          <div className={fieldHighlightClass('number', highlightFieldKey)}>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Skill</p>
+            <p className="text-foreground">{snallyNumber}</p>
+          </div>
+        )}
+        {character.gameSystemId === 'snallygaster' && snallyCampName && snallyMotivation && (
+          <div className={fieldHighlightClass('camp_name', highlightFieldKey)}>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Camp name
+            </p>
+            <p className="text-muted-foreground">{snallyCampName}</p>
           </div>
         )}
         {isLonerFamily && lonerLuck !== '' && (
@@ -141,12 +168,20 @@ export function ActiveCharacterPanel({
         {summary && (
           <div
             className={fieldHighlightClass(
-              character.gameSystemId === 'totv' ? 'diary' : 'motive',
+              character.gameSystemId === 'totv'
+                ? 'diary'
+                : character.gameSystemId === 'snallygaster'
+                  ? 'style'
+                  : 'motive',
               highlightFieldKey,
             )}
           >
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {character.gameSystemId === 'totv' ? 'Diary' : 'Motive'}
+              {character.gameSystemId === 'totv'
+                ? 'Diary'
+                : character.gameSystemId === 'snallygaster'
+                  ? 'Style'
+                  : 'Motive'}
             </p>
             <p className="line-clamp-4 text-muted-foreground">{summary}</p>
           </div>

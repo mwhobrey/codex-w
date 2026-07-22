@@ -157,22 +157,74 @@ export function listLibraryEntries(): LibraryEntry[] {
     }
 
     if (engine.lasersFeelings) {
-      entries.push({
-        id: `${plugin.id}-camp-problems`,
-        systemId: plugin.id,
-        systemName: plugin.name,
-        category: 'table',
-        title: 'Camp problems',
-        rows: mapTableRows(engine.lasersFeelings.problemTable),
-      });
-      if (engine.lasersFeelings.activityTable?.length) {
+      const lf = engine.lasersFeelings;
+      const campTables: { suffix: string; title: string; rows: typeof lf.problemTable }[] = [
+        { suffix: 'camp-problems', title: 'Mundane problems', rows: lf.mischiefTable ?? lf.problemTable },
+      ];
+      if (lf.activityTable?.length) {
+        campTables.push({
+          suffix: 'camp-activities',
+          title: 'Daily activities',
+          rows: lf.activityTable,
+        });
+      }
+      if (lf.mischiefTable?.length && lf.problemTable !== lf.mischiefTable) {
+        campTables.push({
+          suffix: 'camper-mischief',
+          title: 'Camper mischief',
+          rows: lf.mischiefTable,
+        });
+      }
+      if (lf.monstrousTable?.length) {
+        campTables.push({
+          suffix: 'monstrous-problems',
+          title: 'Monstrous problems',
+          rows: lf.monstrousTable,
+        });
+      }
+      if (lf.locationTable?.length) {
+        campTables.push({
+          suffix: 'camp-locations',
+          title: 'Camp locations',
+          rows: lf.locationTable,
+        });
+      }
+      if (lf.monsterTable?.length) {
+        campTables.push({
+          suffix: 'camp-monsters',
+          title: 'Monsters',
+          rows: lf.monsterTable,
+        });
+      }
+      if (lf.campLeaderTable?.length) {
+        campTables.push({
+          suffix: 'camp-leader',
+          title: 'Camp leader plot',
+          rows: lf.campLeaderTable,
+        });
+      }
+      if (lf.monsterMotiveTable?.length) {
+        campTables.push({
+          suffix: 'monster-motive',
+          title: 'Monster motive (That is…)',
+          rows: lf.monsterMotiveTable,
+        });
+      }
+      if (lf.decisionOracleTable?.length) {
+        campTables.push({
+          suffix: 'decision-oracle',
+          title: 'Decision oracle',
+          rows: lf.decisionOracleTable,
+        });
+      }
+      for (const table of campTables) {
         entries.push({
-          id: `${plugin.id}-camp-activities`,
+          id: `${plugin.id}-${table.suffix}`,
           systemId: plugin.id,
           systemName: plugin.name,
           category: 'table',
-          title: 'Camp activities',
-          rows: mapTableRows(engine.lasersFeelings.activityTable),
+          title: table.title,
+          rows: mapTableRows(table.rows),
         });
       }
     }

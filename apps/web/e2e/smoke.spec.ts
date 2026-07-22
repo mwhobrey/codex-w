@@ -69,6 +69,7 @@ test.describe('core play loop smoke', () => {
     await page.getByTestId('create-table-button').click();
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-snallygaster-panel')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('snally-number')).toBeVisible();
   });
 
   test('Ironforge table loads vow panel with heat track', async ({ page }) => {

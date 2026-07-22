@@ -18,7 +18,7 @@
 
 - [x] **`packages/game-engine`** — dice parser, roller, oracles (unit tests)
 - [x] **Dice hub** at `/dice` — formula builder, saved sets, roll log (`/roll` redirects)
-- [x] **`packages/game-systems`** — generic + loner (Chance/Risk SRD), paranormal-files (GTL), totv, snallygaster, muscadines, ironforge (unit tests)
+- [x] **`packages/game-systems`** — generic + loner (Chance/Risk SRD), paranormal-files (GTL), totv, snallygaster (Camp Snallygaster CC BY tables + PATH solo), muscadines, ironforge (unit tests)
 - [x] **`packages/sync`** — Dexie repos + Yjs play-room primitives (meta, log, fog, tokens, import)
 - [x] **Character sheets UI** at `/characters` + `/characters/[id]` — local CRUD, auto-save, cross-play adapt/move
 - [x] **Cloud sync API** at `/api/sheets`, `/api/dice-sets`, `/api/sync` — Postgres upsert when signed in

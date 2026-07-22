@@ -17,36 +17,77 @@ export function advancePromptIndex(
 
 export type LasersFeelingsMode = 'counselor' | 'monster';
 
+export type LasersFeelingsOutcome = 'fail' | 'mixed' | 'success' | 'critical';
+
 export interface LasersFeelingsResult {
-  dice: [number, number, number];
+  dice: number[];
   stat: number;
   mode: LasersFeelingsMode;
+  /** True when at least one die succeeds (including Laser Feelings). */
   success: boolean;
+  successes: number;
+  outcome: LasersFeelingsOutcome;
+  /** At least one die matched the Number exactly. */
+  laserFeelings: boolean;
+  /** Highest die (counselor) or lowest die (monster) — useful for display. */
   highest: number;
 }
 
-/** Camp Snallygaster style: roll 3d6, succeed if sum relation to stat (counselor: any die > stat, monster: any die < stat) */
+export interface ResolveLasersFeelingsOptions {
+  /** Dice to roll (1–3). Default 1. Prepared / expert / help are applied by the caller. */
+  diceCount?: number;
+  rng?: Rng;
+}
+
+function outcomeFromSuccesses(successes: number): LasersFeelingsOutcome {
+  if (successes <= 0) return 'fail';
+  if (successes === 1) return 'mixed';
+  if (successes === 2) return 'success';
+  return 'critical';
+}
+
+/**
+ * Lasers & Feelings / Camp Snallygaster resolution.
+ * Counselor = roll over Number; Monster = roll under Number.
+ * Exact match is Laser Feelings (counts as a success) and grants insight.
+ */
 export function resolveLasersFeelings(
   stat: number,
   mode: LasersFeelingsMode,
-  rng: Rng = defaultRng,
+  options: ResolveLasersFeelingsOptions = {},
 ): LasersFeelingsResult {
+  const { diceCount = 1, rng = defaultRng } = options;
   const clamped = Math.max(1, Math.min(6, Math.round(stat)));
-  const dice: [number, number, number] = [
-    rollInt(1, 6, rng),
-    rollInt(1, 6, rng),
-    rollInt(1, 6, rng),
-  ];
-  const highest = Math.max(...dice);
-  const lowest = Math.min(...dice);
-  const success =
-    mode === 'counselor' ? dice.some((d) => d > clamped) : dice.some((d) => d < clamped);
+  const count = Math.max(1, Math.min(3, Math.round(diceCount)));
+
+  const dice: number[] = [];
+  for (let i = 0; i < count; i++) {
+    dice.push(rollInt(1, 6, rng));
+  }
+
+  let successes = 0;
+  let laserFeelings = false;
+  for (const die of dice) {
+    if (die === clamped) {
+      successes += 1;
+      laserFeelings = true;
+      continue;
+    }
+    if (mode === 'counselor' ? die > clamped : die < clamped) {
+      successes += 1;
+    }
+  }
+
+  const highest = mode === 'counselor' ? Math.max(...dice) : Math.min(...dice);
 
   return {
     dice,
     stat: clamped,
     mode,
-    success,
-    highest: mode === 'counselor' ? highest : lowest,
+    success: successes > 0,
+    successes,
+    outcome: outcomeFromSuccesses(successes),
+    laserFeelings,
+    highest,
   };
 }

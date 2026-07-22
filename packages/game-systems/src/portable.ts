@@ -108,9 +108,9 @@ const TARGET_FIELD_MAP: Partial<
     notes: 'diary',
   },
   snallygaster: {
-    tagline: 'fear',
-    summary: 'secret',
-    nemesis: 'notes',
+    tagline: 'motivation',
+    summary: 'camper_secret',
+    nemesis: 'camper_name',
     notes: 'notes',
   },
   muscadines: {

@@ -36,6 +36,12 @@ coverage/
 playwright-report/
 test-results/
 
+# Local book scans / OCR scratch (CC BY text is ported into .ts — do not commit scans)
+packages/game-systems/src/snallygaster/camp-snallygaster.pdf
+packages/game-systems/src/snallygaster/_ocr-pages/
+packages/game-systems/src/snallygaster/_pdf-extract.txt
+packages/game-systems/src/snallygaster/_fix_tables.py
+
 # Serwist
 public/sw*
 public/swe-worker*

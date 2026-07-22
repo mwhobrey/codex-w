@@ -82,7 +82,7 @@ game-systems/
 ├── loner/              # Loner (Chance/Risk Oracle; CC BY-SA SRD)
 ├── paranormal-files/   # Loner: Paranormal Files (GTL)
 ├── totv/
-├── snallygaster/
+├── snallygaster/       # Camp Snallygaster (L&F; CC BY 4.0)
 ├── muscadines/
 ├── ironforge/
 └── generic/            # System-agnostic fallback sheet

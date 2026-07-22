@@ -9,24 +9,58 @@ function createId(): string {
 }
 
 export { snallygasterSheetDefinition, snallygasterSoloEngine } from './definition';
-export { biasCampDie, lookupCampTable, campWeekArcLabel } from './summer-arc';
+export {
+  biasCampDie,
+  lookupCampTable,
+  campDayArcLabel,
+  campWeekArcLabel,
+  monstrousProblemsForDay,
+} from './summer-arc';
+export {
+  resolveSnallygasterNumber,
+  skillFromStyleSpecialty,
+  driftSkillAfterFailure,
+  backpackFromChargen,
+} from './number';
+export {
+  styleOptions,
+  specialtyOptions,
+  motivationOptions,
+  mischiefTable,
+  monstrousTable,
+  locationTable,
+  monsterTable,
+  campLeaderTable,
+  monsterMotiveTable,
+  activityTable,
+  decisionOracleTable,
+  mentorPrompts,
+  placeholderProblemTable,
+  placeholderActivityTable,
+  placeholderTwistTable,
+} from './tables';
 
 export const snallygasterPlugin = {
   id: 'snallygaster' as const,
   name: 'Camp Snallygaster',
-  tagline: 'Summer camp horror solo — counselor and monster, problems in the pines.',
+  tagline: 'Summer camp horror — Skill, Counselor & Monster, PATH over five days.',
   sheetDefinition: snallygasterSheetDefinition,
   soloEngine: snallygasterSoloEngine,
   rulesPrimer: [
-    'Switch between Counselor and Monster mode depending on whose turn it is to act, then roll 3d6.',
-    'Counselor succeeds when any die rolls higher than your stat; Monster succeeds when any die rolls lower.',
-    'Problem and Activity pull prompts scaled to the current summer week — advance the week as the story moves on.',
-    'Twist complicates whatever just happened, pulled independently of a roll.',
+    'PATH each day: Pick a location → Approach problems → Take action → Huddle at the fire.',
+    'Skill is Style + Specialty (2–5). Counselor = roll over; Monster = roll under. Exact = Monstrous Counselor.',
+    'Dice pool: 1d6 +1 if using an item +1 if Style/Specialty/Motivation applies (max 3d6).',
+    'Failed rolls drift Skill toward the opposite mode (min 2 / max 5).',
+    'Solo: Day 1 mundane only; Days 2–5 add escalating monstrous problems. Use Oracle & Mentor when stuck.',
+    'Table info → Safety notes for X-card, Lines, and Veils (this is a horror game).',
   ],
   dicePresets: [
-    { label: 'Counselor', notation: '3d6' },
-    { label: 'Monster', notation: '3d6' },
-    { label: 'Problem', notation: '1d12' },
+    { label: 'Action (1d6)', notation: '1d6' },
+    { label: 'With item (2d6)', notation: '2d6' },
+    { label: 'Full pool (3d6)', notation: '3d6' },
+    { label: 'Mundane', notation: '1d40' },
+    { label: 'Monstrous', notation: '1d20' },
+    { label: 'Oracle', notation: '1d6' },
   ],
   createEmptySheet(name: string, ownerId: string) {
     const now = new Date().toISOString();
