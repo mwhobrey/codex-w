@@ -12,7 +12,7 @@ apps/partykit
 packages/ui
 packages/game-engine
 packages/game-systems
-packages/db
+# packages/db is required by apps/sync-server (Yjs + invite persistence) — do not ignore
 **/.env*
 !.env.example
 coverage
