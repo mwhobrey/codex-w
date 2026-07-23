@@ -51,7 +51,7 @@ test.describe('core play loop smoke', () => {
     await page.getByTestId('create-table-button').click();
     await expect(page.getByTestId('play-room-surface')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('table-loner-panel')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText('Unknown Threshold')).toBeVisible();
+    await expect(page.getByText(/Unknown Threshold:\s*\d+/)).toBeVisible();
   });
 
   test('TYOV table loads embedded journal panel', async ({ page }) => {
