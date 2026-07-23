@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as Y from 'yjs';
 import { HocuspocusProvider, WebSocketStatus } from '@hocuspocus/provider';
 import { IndexeddbPersistence } from 'y-indexeddb';
@@ -43,10 +43,23 @@ vi.mock('@hocuspocus/provider', () => {
 
 describe('play-room-providers', () => {
   let doc: Y.Doc;
+  const originalWebSocket = globalThis.WebSocket;
 
   beforeEach(() => {
     doc = new Y.Doc();
     vi.clearAllMocks();
+    // Node/vitest has no WebSocket; stub so relay-path tests exercise HocuspocusProvider.
+    // @ts-expect-error - minimal stub for typeof checks
+    globalThis.WebSocket = originalWebSocket ?? class WebSocket {};
+  });
+
+  afterEach(() => {
+    if (originalWebSocket) {
+      globalThis.WebSocket = originalWebSocket;
+    } else {
+      // @ts-expect-error - restore undefined in node
+      delete globalThis.WebSocket;
+    }
   });
 
   it('creates local-only provider when connect is false', () => {
