@@ -28,6 +28,31 @@ export interface DiceRollHistoryEntry {
   rolledAt: string;
 }
 
+/** Durable cloud mutation queue row (Phase D). */
+export type CloudMutationEntity =
+  | 'sheet'
+  | 'sheet-delete'
+  | 'dice-set'
+  | 'library-table'
+  | 'player-note'
+  | 'saved-tag'
+  | 'session'
+  | 'journal'
+  | 'play-room';
+
+export interface CloudMutationRecord {
+  id: string;
+  /** Dedupes pending writes for the same resource (keep latest). */
+  dedupeKey: string;
+  entity: CloudMutationEntity;
+  method: 'PUT' | 'POST' | 'DELETE';
+  url: string;
+  body?: unknown;
+  attempts: number;
+  nextAttemptAt: number;
+  createdAt: string;
+}
+
 export class CodexDatabase extends Dexie {
   characterSheets!: Table<CharacterSheet, string>;
   playSessions!: Table<PlaySession, string>;
@@ -38,6 +63,7 @@ export class CodexDatabase extends Dexie {
   savedTags!: Table<SavedTag, string>;
   playerNotes!: Table<PlayerNote, string>;
   diceRollHistory!: Table<DiceRollHistoryEntry, string>;
+  cloudMutationQueue!: Table<CloudMutationRecord, string>;
 
   constructor(name = 'codex-w') {
     super(name);
@@ -101,6 +127,30 @@ export class CodexDatabase extends Dexie {
       playerNotes: 'id, ownerId, roomId, createdAt, [ownerId+roomId]',
       diceRollHistory: 'rolledAt, ownerId',
     });
+    this.version(9).stores({
+      characterSheets: 'id, gameSystemId, ownerId, updatedAt, name',
+      playSessions: 'id, gameSystemId, ownerId, updatedAt, roomId',
+      journalEntries: 'id, sessionId, createdAt',
+      diceSets: 'id, ownerId, updatedAt, name',
+      userLibraryTables: 'id, ownerId, updatedAt, name, category',
+      characterPortraits: 'characterId, updatedAt',
+      savedTags: 'id, ownerId, label, lastUsedAt',
+      playerNotes: 'id, ownerId, roomId, createdAt, [ownerId+roomId]',
+      diceRollHistory: 'rolledAt, ownerId',
+      cloudMutationQueue: 'id, dedupeKey, nextAttemptAt, entity',
+    });
+    this.version(10).stores({
+      characterSheets: 'id, gameSystemId, ownerId, updatedAt, name',
+      playSessions: 'id, gameSystemId, ownerId, updatedAt, roomId',
+      journalEntries: 'id, sessionId, createdAt',
+      diceSets: 'id, ownerId, updatedAt, name',
+      userLibraryTables: 'id, ownerId, updatedAt, name, category',
+      characterPortraits: 'characterId, updatedAt',
+      savedTags: 'id, ownerId, label, lastUsedAt',
+      playerNotes: 'id, ownerId, roomId, createdAt, [ownerId+roomId]',
+      diceRollHistory: 'rolledAt, ownerId',
+      cloudMutationQueue: 'id, dedupeKey, nextAttemptAt, createdAt, entity',
+    });
   }
 }
 
@@ -119,4 +169,11 @@ export function getDatabase(): CodexDatabase {
 /** Reset for tests — do not use in production UI */
 export function resetDatabaseForTests(): void {
   dbInstance = null;
+}
+
+/** Delete IndexedDB + reset singleton (for unit tests). */
+export async function deleteDatabaseForTests(): Promise<void> {
+  const name = dbInstance?.name ?? 'codex-w';
+  dbInstance = null;
+  await Dexie.delete(name);
 }

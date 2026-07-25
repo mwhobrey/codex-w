@@ -51,7 +51,7 @@ export function TableLonerPanel({
   onOpenCharacterPeek,
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
-  const engine = plugin.soloEngine;
+  const engine = plugin.soloEngine?.kind === 'loner-oracle' ? plugin.soloEngine : null;
   const pf = engine?.paranormalFiles;
 
   const [question, setQuestion] = useState('');

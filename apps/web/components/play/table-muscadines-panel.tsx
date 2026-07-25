@@ -51,7 +51,7 @@ export function TableMuscadinesPanel({
   onPatchCharacter,
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
-  const engine = plugin.soloEngine;
+  const engine = plugin.soloEngine?.kind === 'mentor' ? plugin.soloEngine : null;
   const mm = engine?.muscadines;
   const folklore = engine?.folkloreTables;
   const mentorPrompts = engine?.mentorPrompts ?? [];

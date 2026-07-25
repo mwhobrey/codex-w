@@ -1,4 +1,5 @@
 import { HeroDice } from '@/components/hero-dice';
+import { Button } from '@codex/ui';
 import Link from 'next/link';
 
 export function Hero() {
@@ -33,18 +34,16 @@ export function Hero() {
           </p>
 
           <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <Link
-              href="/dice"
-              className="codex-glow rounded-full bg-primary px-8 py-3.5 text-center text-base font-medium text-primary-foreground transition-transform motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]"
+            <Button
+              asChild
+              size="pill"
+              className="codex-glow motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]"
             >
-              Roll your first die
-            </Link>
-            <Link
-              href="/play"
-              className="rounded-full border border-border px-8 py-3.5 text-center text-base font-medium text-foreground transition-colors hover:border-primary/50 hover:text-primary"
-            >
-              Open a table
-            </Link>
+              <Link href="/dice">Roll your first die</Link>
+            </Button>
+            <Button asChild size="pill" variant="outline">
+              <Link href="/play">Open a table</Link>
+            </Button>
           </div>
         </div>
 

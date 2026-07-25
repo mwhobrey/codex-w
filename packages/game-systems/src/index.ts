@@ -1,4 +1,6 @@
 export * from './types';
+export * from './create-id';
+export * from './character-peek';
 export * from './registry';
 export * from './field-access';
 export * from './portable';

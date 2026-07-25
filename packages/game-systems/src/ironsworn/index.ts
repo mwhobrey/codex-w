@@ -1,3 +1,4 @@
+import { createId } from '../create-id';
 import { createSheetFromDefinition } from '../types';
 import {
   ironswornDicePresets,
@@ -6,12 +7,7 @@ import {
   ironswornSoloEngine,
 } from './definition';
 
-function createId(): string {
-  if (typeof globalThis.crypto?.randomUUID === 'function') {
-    return globalThis.crypto.randomUUID();
-  }
-  return `sheet-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
+
 
 export { ironswornSheetDefinition, ironswornSoloEngine } from './definition';
 export {

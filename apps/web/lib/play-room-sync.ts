@@ -1,25 +1,20 @@
 import type { PlayRoom } from '@codex/schemas';
+import { pushOrEnqueue } from '@/lib/push-or-enqueue';
 
-export async function queuePlayRoomSync(room: PlayRoom): Promise<{ synced: boolean }> {
-  try {
-    const res = await fetch(`/api/rooms/${encodeURIComponent(room.roomId)}`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(room),
-    });
-
-    if (res.status === 401 || res.status === 503) {
-      return { synced: false };
-    }
-
-    if (!res.ok) {
-      return { synced: false };
-    }
-
-    const data = (await res.json()) as { synced?: boolean };
-    return { synced: data.synced === true };
-  } catch {
-    return { synced: false };
-  }
+export async function pushPlayRoomSync(room: PlayRoom): Promise<{ synced: boolean }> {
+  const url = `/api/rooms/${encodeURIComponent(room.roomId)}`;
+  return pushOrEnqueue({
+    request: () =>
+      fetch(url, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(room),
+      }),
+    dedupeKey: `play-room:${room.roomId}`,
+    entity: 'play-room',
+    method: 'PUT',
+    url,
+    body: room,
+  });
 }

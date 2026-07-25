@@ -1,3 +1,4 @@
+import { Button } from '@codex/ui';
 import Link from 'next/link';
 
 export const metadata = {
@@ -14,12 +15,9 @@ export default function OfflinePage() {
         Network is unavailable. Previously visited pages and local character data should still work
         on this device.
       </p>
-      <Link
-        href="/"
-        className="mt-8 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
-      >
-        Return home
-      </Link>
+      <Button asChild size="pillSm" className="mt-8">
+        <Link href="/">Return home</Link>
+      </Button>
     </main>
   );
 }

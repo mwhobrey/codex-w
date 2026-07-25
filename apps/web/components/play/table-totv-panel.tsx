@@ -31,7 +31,7 @@ export function TableTotvPanel({
   onOpenCharacterPeek,
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
-  const engine = plugin.soloEngine;
+  const engine = plugin.soloEngine?.kind === 'prompt-journal' ? plugin.soloEngine : null;
   const prompts = engine?.prompts ?? [];
 
   const [promptIndex, setPromptIndex] = useState(() =>

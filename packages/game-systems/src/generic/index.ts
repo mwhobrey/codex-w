@@ -1,12 +1,6 @@
+import { createId } from '../create-id';
 import { createSheetFromDefinition } from '../types';
 import { genericSheetDefinition, genericSoloEngine } from './definition';
-
-function createId(): string {
-  if (typeof globalThis.crypto?.randomUUID === 'function') {
-    return globalThis.crypto.randomUUID();
-  }
-  return `sheet-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
 
 export { genericSheetDefinition, genericSoloEngine } from './definition';
 

@@ -1,4 +1,5 @@
 import { CharacterEditor } from '@/components/characters/character-editor';
+import { AppShell } from '@/components/app-shell';
 import { SiteHeader } from '@/components/site-header';
 
 interface PageProps {
@@ -19,9 +20,9 @@ export default async function CharacterDetailPage({ params }: PageProps) {
   return (
     <>
       <SiteHeader />
-      <main id="main-content" className="px-6 pt-28 pb-16">
+      <AppShell width="narrow">
         <CharacterEditor sheetId={id} />
-      </main>
+      </AppShell>
     </>
   );
 }

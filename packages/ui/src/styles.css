@@ -18,7 +18,7 @@
   --accent-foreground: var(--codex-ember);
   --destructive: var(--codex-danger);
   --success: var(--codex-success);
-  --warning: var(--codex-ember);
+  --warning: var(--codex-warning);
   --border: var(--codex-border);
   --input: var(--codex-border);
   --ring: var(--codex-ember);

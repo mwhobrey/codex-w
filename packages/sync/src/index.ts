@@ -3,6 +3,16 @@ export {
   type ExportTableToPlaySessionOptions,
 } from './export-table-session';
 export { characterSheetRepo, isCharacterSheetDeleted } from './character-sheets';
+export {
+  cloudMutationBackoffMs,
+  enqueueCloudMutation,
+  flushCloudQueue,
+  listCloudMutationQueue,
+  type EnqueueCloudMutationInput,
+  type FlushCloudQueueOptions,
+  type FlushCloudQueueResult,
+} from './cloud-mutation-queue';
+export type { CloudMutationEntity, CloudMutationRecord, DiceRollHistoryEntry } from './db';
 export { characterPortraitRepo, type CharacterPortraitRecord } from './character-portraits';
 export { diceSetRepo } from './dice-sets';
 export { userLibraryTableRepo } from './user-library-tables';
@@ -10,8 +20,7 @@ export { journalRepo, playSessionRepo } from './play-sessions';
 export { savedTagRepo } from './saved-tags';
 export { playerNoteRepo } from './player-notes';
 export { diceRollHistoryRepo } from './dice-roll-history';
-export type { DiceRollHistoryEntry } from './db';
-export { CodexDatabase, getDatabase, resetDatabaseForTests } from './db';
+export { CodexDatabase, getDatabase, resetDatabaseForTests, deleteDatabaseForTests } from './db';
 export {
   PLAY_ROOM_KEYS,
   createPlayRoomDoc,

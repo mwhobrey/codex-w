@@ -4,7 +4,7 @@ import type { LibraryEntry } from '@codex/game-systems';
 import type { UserLibraryTable } from '@codex/schemas';
 import { userLibraryTableRepo } from '@codex/sync';
 import { cloneLibraryEntryToUserTable, createEmptyUserLibraryTable } from '@/lib/clone-library-table';
-import { queueLibraryTableSync } from '@/lib/library-table-sync';
+import { pushLibraryTableSync } from '@/lib/library-table-sync';
 import { useUserLibraryTables } from '@/hooks/use-user-library-tables';
 import { LibraryBrowser } from '@/components/library/library-browser';
 
@@ -18,21 +18,21 @@ export function LibraryPageClient({ referenceEntries }: LibraryPageClientProps) 
   const handleCloneReference = async (entry: LibraryEntry) => {
     const created = cloneLibraryEntryToUserTable(entry, ownerId);
     await userLibraryTableRepo.save(created);
-    void queueLibraryTableSync(created);
+    void pushLibraryTableSync(created);
     return created.id;
   };
 
   const handleCreateEmpty = async () => {
     const created = createEmptyUserLibraryTable(ownerId, 'Custom table');
     await userLibraryTableRepo.save(created);
-    void queueLibraryTableSync(created);
+    void pushLibraryTableSync(created);
     return created.id;
   };
 
   const handleSaveTable = async (table: UserLibraryTable) => {
     const updated = { ...table, updatedAt: new Date().toISOString() };
     await userLibraryTableRepo.save(updated);
-    void queueLibraryTableSync(updated);
+    void pushLibraryTableSync(updated);
   };
 
   const handleDeleteTable = async (id: string) => {

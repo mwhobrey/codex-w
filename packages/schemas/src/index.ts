@@ -149,7 +149,7 @@ export const TableMetaSchema = z.object({
   sceneFocus: z.string().max(512).optional(),
   /** Owner id (account or local) of the table GM — first claim wins, transferable */
   gmUserId: z.string().min(1).optional(),
-  /** Secret invite token required to join via PartyKit relay */
+  /** Secret invite token required to join via the Yjs relay (Hocuspocus) */
   inviteToken: z.string().min(16).max(128).optional(),
   gameState: z.record(z.string(), z.unknown()).optional(),
   /** Chapter counter for this table's live log — bumped each time a chapter is closed */
@@ -227,6 +227,21 @@ export const LibraryTableCategorySchema = z.enum([
 ]);
 
 export type LibraryTableCategory = z.infer<typeof LibraryTableCategorySchema>;
+
+/** Alias used by reference library catalog (same enum as user tables). */
+export type LibraryCategory = LibraryTableCategory;
+
+export const LibraryEntrySchema = z.object({
+  id: z.string().min(1),
+  systemId: GameSystemIdSchema,
+  systemName: z.string().min(1),
+  category: LibraryTableCategorySchema,
+  title: z.string().min(1),
+  description: z.string().optional(),
+  rows: z.array(LibraryTableRowSchema),
+});
+
+export type LibraryEntry = z.infer<typeof LibraryEntrySchema>;
 
 export const UserLibraryTableSchema = z.object({
   id: z.string().uuid(),

@@ -1,4 +1,5 @@
 import { CharactersPage } from '@/components/characters/characters-page';
+import { AppShell } from '@/components/app-shell';
 import { SiteHeader } from '@/components/site-header';
 
 export const metadata = {
@@ -10,9 +11,9 @@ export default function CharactersRoute() {
   return (
     <>
       <SiteHeader />
-      <main id="main-content" className="px-6 pt-28 pb-16">
+      <AppShell width="narrow" testId="characters-shell">
         <CharactersPage />
-      </main>
+      </AppShell>
     </>
   );
 }

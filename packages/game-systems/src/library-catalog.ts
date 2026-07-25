@@ -1,4 +1,4 @@
-import type { GameSystemId } from '@codex/schemas';
+import type { LibraryEntry } from '@codex/schemas';
 import {
   flattenD66,
   pfConceptGrid,
@@ -9,26 +9,7 @@ import {
 import { listSoloSystems } from './registry';
 import type { OracleTableEntry, PromptEntry } from './types';
 
-export type LibraryCategory =
-  | 'oracle-likelihood'
-  | 'twist'
-  | 'scene-prompt'
-  | 'prompt-journal'
-  | 'mentor'
-  | 'table'
-  | 'forge'
-  | 'ironsworn'
-  | 'chargen';
-
-export interface LibraryEntry {
-  id: string;
-  systemId: GameSystemId;
-  systemName: string;
-  category: LibraryCategory;
-  title: string;
-  description?: string;
-  rows: { roll?: number; label?: string; text: string }[];
-}
+export type { LibraryCategory, LibraryEntry } from '@codex/schemas';
 
 function mapTableRows(table: OracleTableEntry[]) {
   return table.map((row) => ({ roll: row.roll, text: row.text }));
@@ -49,7 +30,7 @@ export function listLibraryEntries(): LibraryEntry[] {
     const engine = plugin.soloEngine;
     if (!engine) continue;
 
-    if (engine.oracleLikelihoods?.length) {
+    if ('oracleLikelihoods' in engine && engine.oracleLikelihoods?.length) {
       entries.push({
         id: `${plugin.id}-oracle-likelihoods`,
         systemId: plugin.id,
@@ -63,7 +44,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.twistSubjects?.length && engine.twistActions?.length) {
+    if ('twistSubjects' in engine && engine.twistSubjects?.length && engine.twistActions?.length) {
       entries.push({
         id: `${plugin.id}-twist-subjects`,
         systemId: plugin.id,
@@ -80,7 +61,7 @@ export function listLibraryEntries(): LibraryEntry[] {
         title: 'Twist actions',
         rows: mapTableRows(engine.twistActions),
       });
-    } else if (engine.twistTable?.length) {
+    } else if ('twistTable' in engine && engine.twistTable?.length) {
       entries.push({
         id: `${plugin.id}-twist`,
         systemId: plugin.id,
@@ -91,7 +72,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.sceneMoodTable?.length) {
+    if ('sceneMoodTable' in engine && engine.sceneMoodTable?.length) {
       entries.push({
         id: `${plugin.id}-scene-mood`,
         systemId: plugin.id,
@@ -113,7 +94,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.prompts?.length) {
+    if ('prompts' in engine && engine.prompts?.length) {
       entries.push({
         id: `${plugin.id}-journal`,
         systemId: plugin.id,
@@ -124,7 +105,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.mentorPrompts?.length) {
+    if ('mentorPrompts' in engine && engine.mentorPrompts?.length) {
       entries.push({
         id: `${plugin.id}-mentor`,
         systemId: plugin.id,
@@ -135,7 +116,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.folkloreTables?.groveOmens?.length) {
+    if ('folkloreTables' in engine && engine.folkloreTables?.groveOmens?.length) {
       entries.push({
         id: `${plugin.id}-grove-omens`,
         systemId: plugin.id,
@@ -147,7 +128,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.folkloreTables?.jarResults?.length) {
+    if ('folkloreTables' in engine && engine.folkloreTables?.jarResults?.length) {
       entries.push({
         id: `${plugin.id}-jar-results`,
         systemId: plugin.id,
@@ -159,7 +140,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.muscadines) {
+    if ('muscadines' in engine && engine.muscadines) {
       const mm = engine.muscadines;
       if (mm.styles?.length) {
         entries.push({
@@ -203,7 +184,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       }
     }
 
-    if (engine.lasersFeelings) {
+    if ('lasersFeelings' in engine && engine.lasersFeelings) {
       const lf = engine.lasersFeelings;
       const campTables: { suffix: string; title: string; rows: typeof lf.problemTable }[] = [
         { suffix: 'camp-problems', title: 'Mundane problems', rows: lf.mischiefTable ?? lf.problemTable },
@@ -276,7 +257,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       }
     }
 
-    if (engine.ironsworn) {
+    if ('ironsworn' in engine && engine.ironsworn) {
       for (const oracle of engine.ironsworn.oracles) {
         entries.push({
           id: `${plugin.id}-oracle-${oracle.id}`,
@@ -323,7 +304,7 @@ export function listLibraryEntries(): LibraryEntry[] {
       });
     }
 
-    if (engine.paranormalFiles) {
+    if ('paranormalFiles' in engine && engine.paranormalFiles) {
       entries.push({
         id: `${plugin.id}-reality-fracture`,
         systemId: plugin.id,

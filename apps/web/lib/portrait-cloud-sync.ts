@@ -67,12 +67,12 @@ export async function syncPendingPortraitUploads(ownerId: string): Promise<void>
   if (!status.canUpload) return;
 
   const sheets = await characterSheetRepo.listByOwner(ownerId);
-  const { queueSheetSync } = await import('./sheet-sync');
+  const { pushSheetSync } = await import('./sheet-sync');
 
   for (const sheet of sheets) {
     const next = await ensureSheetPortraitSynced(sheet, true);
     if (!next.portraitUrl || next.portraitUrl === sheet.portraitUrl) continue;
     await characterSheetRepo.save(next);
-    void queueSheetSync(next);
+    void pushSheetSync(next);
   }
 }

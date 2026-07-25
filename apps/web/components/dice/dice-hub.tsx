@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { createPlayRoomUrl } from '@/lib/play-room';
-import { queueDiceSetSync } from '@/lib/dice-set-sync';
+import { pushDiceSetSync } from '@/lib/dice-set-sync';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
 import { createDiceSetFromTemplate, listSystemDiceSetTemplates } from '@/lib/system-dice-sets';
 import { createEmptyDiceSet, useDiceSets } from '@/hooks/use-dice-sets';
@@ -91,7 +91,7 @@ function DiceSetEditor({
     const updated = { ...next, updatedAt: new Date().toISOString() };
     setDraft(updated);
     await diceSetRepo.save(updated);
-    void queueDiceSetSync(updated);
+    void pushDiceSetSync(updated);
     setSaving(false);
     onSaved();
   };
@@ -210,7 +210,7 @@ export function DiceHub() {
   const handleCreateSet = async () => {
     const created = createEmptyDiceSet(ownerId, 'My dice set');
     await diceSetRepo.save(created);
-    void queueDiceSetSync(created);
+    void pushDiceSetSync(created);
     setSelectedSetId(created.id);
   };
 
@@ -230,13 +230,13 @@ export function DiceHub() {
     setAddingTemplateId(templateId);
     const created = createDiceSetFromTemplate(ownerId, template);
     await diceSetRepo.save(created);
-    void queueDiceSetSync(created);
+    void pushDiceSetSync(created);
     setSelectedSetId(created.id);
     setAddingTemplateId(null);
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8" data-testid="dice-hub">
+    <div className="space-y-8" data-testid="dice-hub">
       <header className="text-center sm:text-left">
         <h1 className="font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
           Dice

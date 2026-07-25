@@ -2,6 +2,7 @@
 
 import { AuthNav } from '@/components/auth-nav';
 import { BetaBanner } from '@/components/beta-banner';
+import { Button } from '@codex/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -163,12 +164,9 @@ export function SiteHeader() {
               <AuthNav variant="mobile" />
             </li>
             <li className="pt-2 md:hidden">
-              <Link
-                href="/dice"
-                className="block rounded-full bg-primary px-3 py-2.5 text-center text-sm font-medium text-primary-foreground"
-              >
-                Roll dice
-              </Link>
+              <Button asChild size="pillSm" className="w-full">
+                <Link href="/dice">Roll dice</Link>
+              </Button>
             </li>
           </ul>
         </nav>

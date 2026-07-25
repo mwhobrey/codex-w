@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, cn } from '@codex/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState } from 'react';
 import { useOwnerId } from '@/hooks/use-owner-id';
+import { LockIcon } from '@/components/lock-icon';
 
 const TYPE_OPTIONS: { key: JournalEntryType; label: string }[] = [
   { key: 'scene', label: 'Scene' },
@@ -110,7 +111,7 @@ export function JournalPage() {
   }, [privateNotes, text]);
 
   return (
-    <div className="mx-auto max-w-3xl" data-testid="journal-page">
+    <div data-testid="journal-page">
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
@@ -217,7 +218,7 @@ export function JournalPage() {
                             {entry.tags.map((tag) => (
                               <span
                                 key={tag}
-                                className="rounded-full bg-background/60 px-2 py-0.5 text-[11px] text-muted-foreground"
+                                className="rounded-full bg-background/60 px-2 py-0.5 text-xs text-muted-foreground"
                               >
                                 #{tag}
                               </span>
@@ -238,8 +239,8 @@ export function JournalPage() {
 
         {filteredPrivateNotes.size > 0 ? (
           <div>
-            <h2 className="mb-2 text-sm font-medium text-muted-foreground">
-              🔒 Your private notes — only visible to you
+            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+              <LockIcon /> Your private notes — only visible to you
             </h2>
             <div className="flex flex-col gap-3">
               {[...filteredPrivateNotes.entries()].map(([roomId, notes]) => (

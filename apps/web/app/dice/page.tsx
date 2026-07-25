@@ -1,4 +1,5 @@
 import { DiceHub } from '@/components/dice/dice-hub';
+import { AppShell } from '@/components/app-shell';
 import { SiteHeader } from '@/components/site-header';
 import { Suspense } from 'react';
 
@@ -11,11 +12,11 @@ export default function DicePage() {
   return (
     <>
       <SiteHeader />
-      <main id="main-content" className="px-4 pt-20 pb-16 sm:px-6 sm:pt-24">
+      <AppShell width="default" testId="dice-page">
         <Suspense fallback={<p className="text-center text-sm text-muted-foreground">Loading dice…</p>}>
           <DiceHub />
         </Suspense>
-      </main>
+      </AppShell>
     </>
   );
 }

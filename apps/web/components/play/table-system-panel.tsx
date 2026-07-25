@@ -27,7 +27,7 @@ export function TableSystemPanel({
   logAuthor = 'You',
 }: TableSystemPanelProps) {
   const plugin = getGameSystem(gameSystemId);
-  const engine = plugin.soloEngine;
+  const engine = plugin.soloEngine?.kind === 'oracle' ? plugin.soloEngine : null;
 
   const [question, setQuestion] = useState('');
   const [likelihood, setLikelihood] = useState<OracleLikelihoodId>('even');

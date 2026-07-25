@@ -1,6 +1,12 @@
 'use client';
 
-import { extractPortableProfile, getSheetFieldValue, TYOV_SLOT_KEYS } from '@codex/game-systems';
+import {
+  extractPortableProfile,
+  getCharacterPeekSummary,
+  getSheetFieldValue,
+  normalizeGameSystemId,
+  TYOV_SLOT_KEYS,
+} from '@codex/game-systems';
 import type { CharacterSheet } from '@codex/schemas';
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Separator } from '@codex/ui';
 import Link from 'next/link';
@@ -36,75 +42,36 @@ export function ActiveCharacterPanel({
   }
 
   const profile = extractPortableProfile(character);
+  const peek = getCharacterPeekSummary(character);
+  const systemId = normalizeGameSystemId(character.gameSystemId);
   const isCrossPlay =
     character.lineageSheetId !== undefined ||
     (character.originSystemId !== undefined &&
       character.originSystemId !== character.gameSystemId);
 
-  const lonerGoal = getSheetFieldValue(character, 'goal');
-  const lonerMotive = getSheetFieldValue(character, 'motive');
-  const lonerNemesis = getSheetFieldValue(character, 'nemesis');
-  const lonerConcept = getSheetFieldValue(character, 'concept');
-  const lonerLuck = getSheetFieldValue(character, 'luck');
-  const isLonerFamily =
-    character.gameSystemId === 'loner' || character.gameSystemId === 'paranormal-files';
-  const humanName = getSheetFieldValue(character, 'human_name');
-  const vampireName = getSheetFieldValue(character, 'vampire_name');
-  const fear = getSheetFieldValue(character, 'fear');
-  const jamStyle = getSheetFieldValue(character, 'style');
-  const jamBackground = getSheetFieldValue(character, 'background');
-  const jamJar = getSheetFieldValue(character, 'jar_description');
-  const jamSpecialty = getSheetFieldValue(character, 'jam_specialty');
-  const grove = getSheetFieldValue(character, 'grove');
-  const snallyNumber = getSheetFieldValue(character, 'number');
-  const snallyMotivation = getSheetFieldValue(character, 'motivation');
-  const snallyCampName = getSheetFieldValue(character, 'camp_name');
+  const headlineFieldKey =
+    systemId === 'snallygaster'
+      ? getSheetFieldValue(character, 'motivation')
+        ? 'motivation'
+        : 'camp_name'
+      : systemId === 'loner' || systemId === 'paranormal-files'
+        ? 'concept'
+        : systemId === 'totv'
+          ? 'vampire_name'
+          : systemId === 'ironsworn'
+            ? 'iron_vow'
+            : systemId === 'muscadines'
+              ? 'style'
+              : 'goal';
 
-  const headline =
-    character.gameSystemId === 'totv'
-      ? vampireName || humanName || profile.tagline
-      : character.gameSystemId === 'ironsworn' || character.gameSystemId === 'ironforge'
-        ? getSheetFieldValue(character, 'iron_vow') || profile.tagline
-        : character.gameSystemId === 'snallygaster'
-        ? snallyMotivation || snallyCampName || fear || profile.tagline
-        : character.gameSystemId === 'muscadines'
-          ? jamStyle || jamBackground || jamSpecialty || grove || profile.tagline
-          : isLonerFamily
-            ? lonerConcept || lonerGoal || profile.tagline
-            : lonerGoal || profile.tagline;
-
-  const headlineLabel =
-    character.gameSystemId === 'totv'
-      ? 'Identity'
-      : character.gameSystemId === 'ironsworn' || character.gameSystemId === 'ironforge'
-        ? 'Vow'
-        : character.gameSystemId === 'snallygaster'
-        ? snallyMotivation
-          ? 'Motivation'
-          : 'Camp name'
-        : character.gameSystemId === 'muscadines'
-          ? jamStyle
-            ? 'Style'
-            : 'Background'
-          : isLonerFamily
-            ? 'Concept'
-            : 'Goal';
-
-  const summary =
-    character.gameSystemId === 'totv'
-      ? getSheetFieldValue(character, 'diary') || profile.summary
-      : character.gameSystemId === 'ironsworn' || character.gameSystemId === 'ironforge'
-        ? getSheetFieldValue(character, 'background') || profile.summary
-        : character.gameSystemId === 'snallygaster'
-        ? getSheetFieldValue(character, 'style') ||
-          getSheetFieldValue(character, 'camper_secret') ||
-          profile.summary
-        : character.gameSystemId === 'muscadines'
-          ? jamJar ||
-            getSheetFieldValue(character, 'jar_spells') ||
-            getSheetFieldValue(character, 'cozy_dark') ||
-            profile.summary
-          : lonerMotive || profile.summary;
+  const summaryFieldKey =
+    systemId === 'totv'
+      ? 'diary'
+      : systemId === 'snallygaster'
+        ? 'style'
+        : systemId === 'ironsworn'
+          ? 'background'
+          : 'motive';
 
   return (
     <Card>
@@ -130,79 +97,39 @@ export function ActiveCharacterPanel({
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        {headline && (
-          <div
-            className={fieldHighlightClass(
-              character.gameSystemId === 'snallygaster'
-                ? snallyMotivation
-                  ? 'motivation'
-                  : 'camp_name'
-                : isLonerFamily
-                  ? 'concept'
-                  : 'goal',
-              highlightFieldKey,
-            )}
-          >
-            <p className="text-xs font-medium uppercase tracking-wide text-primary">{headlineLabel}</p>
-            <p className="text-foreground">{headline}</p>
-          </div>
-        )}
-        {character.gameSystemId === 'snallygaster' && snallyNumber !== '' && (
-          <div className={fieldHighlightClass('number', highlightFieldKey)}>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Skill</p>
-            <p className="text-foreground">{snallyNumber}</p>
-          </div>
-        )}
-        {character.gameSystemId === 'snallygaster' && snallyCampName && snallyMotivation && (
-          <div className={fieldHighlightClass('camp_name', highlightFieldKey)}>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Camp name
+        {peek.headline ? (
+          <div className={fieldHighlightClass(headlineFieldKey, highlightFieldKey)}>
+            <p className="text-xs font-medium uppercase tracking-wide text-primary">
+              {peek.headlineLabel}
             </p>
-            <p className="text-muted-foreground">{snallyCampName}</p>
+            <p className="text-foreground">{peek.headline}</p>
           </div>
-        )}
-        {isLonerFamily && lonerLuck !== '' && (
-          <div className={fieldHighlightClass('luck', highlightFieldKey)}>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Luck</p>
-            <p className="text-foreground">{lonerLuck}/6</p>
-          </div>
-        )}
-        {isLonerFamily && lonerGoal && (
-          <div className={fieldHighlightClass('goal', highlightFieldKey)}>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Goal</p>
-            <p className="text-muted-foreground">{lonerGoal}</p>
-          </div>
-        )}
-        {summary && (
-          <div
-            className={fieldHighlightClass(
-              character.gameSystemId === 'totv'
-                ? 'diary'
-                : character.gameSystemId === 'snallygaster'
-                  ? 'style'
-                  : 'motive',
-              highlightFieldKey,
-            )}
-          >
+        ) : null}
+        {peek.details.map((row) => (
+          <div key={row.fieldKey} className={fieldHighlightClass(row.fieldKey, highlightFieldKey)}>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {character.gameSystemId === 'totv'
+              {row.label}
+            </p>
+            <p className="text-foreground">
+              {row.fieldKey === 'luck' ? `${row.value}/6` : row.value}
+            </p>
+          </div>
+        ))}
+        {peek.summary ? (
+          <div className={fieldHighlightClass(summaryFieldKey, highlightFieldKey)}>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {systemId === 'totv'
                 ? 'Diary'
-                : character.gameSystemId === 'snallygaster'
+                : systemId === 'snallygaster'
                   ? 'Style'
-                  : 'Motive'}
+                  : systemId === 'ironsworn'
+                    ? 'Background'
+                    : 'Motive'}
             </p>
-            <p className="line-clamp-4 text-muted-foreground">{summary}</p>
+            <p className="line-clamp-4 text-muted-foreground">{peek.summary}</p>
           </div>
-        )}
-        {(lonerNemesis || profile.nemesis) && isLonerFamily && (
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Nemesis
-            </p>
-            <p className="text-muted-foreground">{lonerNemesis || profile.nemesis}</p>
-          </div>
-        )}
-        {(character.gameSystemId === 'ironsworn' || character.gameSystemId === 'ironforge') && (
+        ) : null}
+        {systemId === 'ironsworn' ? (
           <div className="space-y-1 text-xs text-muted-foreground">
             <p>
               Momentum {getSheetFieldValue(character, 'momentum') || '2'} · Health{' '}
@@ -211,8 +138,8 @@ export function ActiveCharacterPanel({
               {getSheetFieldValue(character, 'supply') || '5'}
             </p>
           </div>
-        )}
-        {character.gameSystemId === 'totv' ? (
+        ) : null}
+        {systemId === 'totv' ? (
           <>
             <Separator />
             <div className="space-y-2">

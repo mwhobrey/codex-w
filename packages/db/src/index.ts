@@ -4,6 +4,7 @@ export {
   deleteCharacterSheet,
   getCharacterSheetById,
   listCharacterSheetsByOwner,
+  mapCharacterSheetRow,
   upsertCharacterSheet,
 } from './character-sheets';
 export {

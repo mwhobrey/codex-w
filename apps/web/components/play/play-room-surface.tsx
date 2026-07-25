@@ -2,12 +2,13 @@
 
 import type { RollResult } from '@codex/game-engine';
 import { getGameSystem } from '@codex/game-systems';
-import { claimTableGmIfVacant, ensureTableInviteToken, importPlaySessionToTable, journalRepo, playSessionRepo, requestKick, transferTableGm } from '@codex/sync';
+import { importPlaySessionToTable, journalRepo, playSessionRepo, requestKick, transferTableGm } from '@codex/sync';
 import { Button, cn } from '@codex/ui';
 import { CharacterPicker, useCharacter } from '@/components/solo/character-picker';
 import { useFogSecretsDoc } from '@/hooks/use-fog-secrets-doc';
 import { useOwnerId } from '@/hooks/use-owner-id';
 import { usePlayRoom } from '@/hooks/use-play-room';
+import { usePlayRoomBootstrap, usePlayRoomInvite } from '@/hooks/use-play-room-bootstrap';
 import { useTableAwareness } from '@/hooks/use-table-awareness';
 import { useTableMeta } from '@/hooks/use-table-meta';
 import { useTableCharacterPatch } from '@/hooks/use-table-character-patch';
@@ -17,13 +18,11 @@ import { useSession } from '@/lib/auth-client';
 import { MAP_FLOATING_BOTTOM_PLAY_STYLE } from '@/lib/map-overlay-layout';
 import { createPlayRoomUrl, getSyncRelayHost } from '@/lib/play-room';
 import { recordRecentPlayRoom } from '@/lib/recent-play-rooms';
-import { queuePlayRoomSync } from '@/lib/play-room-sync';
 import { resolvePlayRoomInvite } from '@/lib/resolve-table-invite';
-import { writeStoredTableInvite } from '@/lib/table-invite-storage';
 import { parseGameSystemId, type MapViewRole } from '@/lib/table-systems';
 import { isTableGm, resolveFogViewRole } from '@/lib/table-gm';
 import { userDisplayName } from '@/lib/user-display-name';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChapterListPanel } from './chapter-list-panel';
 import { CharacterPeekDrawer } from './character-peek-drawer';
 import { FloatingDiceWidget } from './floating-dice-widget';
@@ -68,7 +67,10 @@ export function PlayRoomSurface({
   inviteToken,
 }: PlayRoomSurfaceProps) {
   const systemSeed = parseGameSystemId(initialSystem);
-  const [partyInvite, setPartyInvite] = useState(() => resolvePlayRoomInvite(roomId, inviteToken));
+  const { partyInvite, setPartyInvite } = usePlayRoomInvite({
+    roomId,
+    inviteToken,
+  });
   const { doc, awareness, logEntries, connectionStatus, appendLog, patchLog, ready, resolvedInvite } =
     usePlayRoom(roomId, partyInvite);
   const { meta, updateMeta } = useTableMeta(doc, {
@@ -76,14 +78,11 @@ export function PlayRoomSurface({
     initialInviteToken: partyInvite ?? inviteToken,
   });
 
-  useLayoutEffect(() => {
-    if (inviteToken) writeStoredTableInvite(roomId, inviteToken);
-  }, [inviteToken, roomId]);
-
   useEffect(() => {
     const next = resolvePlayRoomInvite(roomId, inviteToken, meta?.inviteToken);
     if (next && next !== partyInvite) setPartyInvite(next);
-  }, [inviteToken, meta?.inviteToken, partyInvite, roomId]);
+  }, [inviteToken, meta?.inviteToken, partyInvite, roomId, setPartyInvite]);
+
   const { ownerId, ready: ownerReady } = useOwnerId();
   const { data: authSession } = useSession();
   const accountDisplayName = authSession?.user ? userDisplayName(authSession.user) : undefined;
@@ -125,6 +124,21 @@ export function PlayRoomSurface({
   const mapRole = resolveFogViewRole(meta, ownerId, gmPreviewAsPlayer);
   const logAuthor = awarenessState.localName.trim() || 'You';
 
+  usePlayRoomBootstrap({
+    roomId,
+    doc,
+    ready,
+    connectionStatus,
+    ownerId: ownerReady ? ownerId : undefined,
+    ownerReady,
+    tableGm,
+    authUserId: authSession?.user?.id,
+    meta,
+    inviteToken,
+    partyInvite,
+    resolvedInvite,
+  });
+
   const { hiddenCells: fogHiddenCells } = useYjsFog(doc);
   const secretsDoc = useFogSecretsDoc({
     roomId,
@@ -134,37 +148,6 @@ export function PlayRoomSurface({
     publicDoc: doc,
     hiddenCells: fogHiddenCells,
   });
-
-  useEffect(() => {
-    if (!ready || !doc) return;
-    const token = inviteToken ?? resolvedInvite ?? partyInvite ?? meta?.inviteToken;
-    if (token) {
-      ensureTableInviteToken(doc, token);
-      writeStoredTableInvite(roomId, token);
-    }
-  }, [doc, inviteToken, meta?.inviteToken, partyInvite, ready, resolvedInvite, roomId]);
-
-  useEffect(() => {
-    if (!ready || typeof window === 'undefined') return;
-    const token = inviteToken ?? resolvedInvite ?? partyInvite ?? meta?.inviteToken;
-    if (!token) return;
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has('invite')) return;
-    url.searchParams.delete('invite');
-    window.history.replaceState(null, '', url.toString());
-  }, [inviteToken, meta?.inviteToken, partyInvite, ready, resolvedInvite]);
-
-  useEffect(() => {
-    if (!ready || !ownerReady || !doc || !ownerId) return;
-    // Wait for the relay to actually confirm current state before deciding
-    // GM is vacant — claiming off a freshly-created local doc (IndexedDB
-    // "ready" fires near-instantly for a client with no prior cache, well
-    // before the websocket has synced the real gmUserId from the server)
-    // races an established GM's claim and can steal/corrupt it. Solo/offline
-    // play has no relay to race against, so local-only claims immediately.
-    if (connectionStatus !== 'connected' && connectionStatus !== 'local-only') return;
-    claimTableGmIfVacant(doc, ownerId);
-  }, [connectionStatus, doc, ownerId, ownerReady, ready]);
 
   useEffect(() => {
     if (!tableGm && gmPreviewAsPlayer) setGmPreviewAsPlayer(false);
@@ -218,44 +201,6 @@ export function PlayRoomSurface({
         : undefined,
     [activeCharacter],
   );
-
-  useEffect(() => {
-    if (ready && meta) {
-      recordRecentPlayRoom(
-        roomId,
-        meta.name,
-        meta.gameSystemId,
-        meta.inviteToken ?? resolvedInvite ?? partyInvite ?? inviteToken,
-      );
-    }
-  }, [inviteToken, ready, roomId, meta?.name, meta?.gameSystemId, meta?.inviteToken, partyInvite, resolvedInvite]);
-
-  useEffect(() => {
-    if (!ready || !meta || !tableGm || !authSession?.user?.id) return;
-    const invite =
-      meta.inviteToken ?? resolvedInvite ?? partyInvite ?? inviteToken ?? undefined;
-    if (!invite) return;
-    void queuePlayRoomSync({
-      roomId,
-      ownerId: authSession.user.id,
-      name: meta.name,
-      gameSystemId: meta.gameSystemId,
-      inviteToken: invite,
-      updatedAt: new Date().toISOString(),
-    });
-  }, [
-    authSession?.user?.id,
-    inviteToken,
-    meta?.gameSystemId,
-    meta?.inviteToken,
-    meta?.name,
-    meta,
-    partyInvite,
-    ready,
-    resolvedInvite,
-    roomId,
-    tableGm,
-  ]);
 
   useEffect(() => {
     setTableNameDraft(meta?.name ?? '');

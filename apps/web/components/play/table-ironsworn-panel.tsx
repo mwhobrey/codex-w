@@ -51,7 +51,7 @@ export function TableIronswornPanel({
   onPatchCharacter,
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
-  const engine = plugin.soloEngine;
+  const engine = plugin.soloEngine?.kind === 'ironsworn' ? plugin.soloEngine : null;
   const config = engine?.ironsworn;
 
   const [stat, setStat] = useState<IronswornStatKey>('iron');

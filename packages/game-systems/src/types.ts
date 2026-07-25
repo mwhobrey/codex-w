@@ -99,89 +99,140 @@ export interface FactionDefinition {
   concept: string;
 }
 
-export interface SoloEngineConfig {
-  kind: SoloEngineKind;
+export interface LasersFeelingsConfig {
+  counselorLabel: string;
+  monsterLabel: string;
+  problemTable: OracleTableEntry[];
+  activityTable?: OracleTableEntry[];
+  mischiefTable?: OracleTableEntry[];
+  monstrousTable?: OracleTableEntry[];
+  locationTable?: OracleTableEntry[];
+  monsterTable?: OracleTableEntry[];
+  campLeaderTable?: OracleTableEntry[];
+  monsterMotiveTable?: OracleTableEntry[];
+  decisionOracleTable?: OracleTableEntry[];
+}
+
+export interface MuscadinesConfig {
+  styles?: OracleTableEntry[];
+  quirks?: OracleTableEntry[];
+  startingItems?: OracleTableEntry[];
+  backgrounds?: OracleTableEntry[];
+  defaultChallengeDR?: number;
+  defaultChallengeRS?: number;
+}
+
+export interface IronswornConfig {
+  moves: Array<{
+    id: string;
+    name: string;
+    category: string;
+    stats: string[];
+    trigger: string;
+    strong: string;
+    weak: string;
+    miss: string;
+  }>;
+  oracles: Array<{
+    id: string;
+    title: string;
+    kind: 'd100' | 'range';
+    rows: Array<{
+      roll?: number;
+      min?: number;
+      max?: number;
+      text: string;
+    }>;
+  }>;
+  assets: Array<{
+    id: string;
+    name: string;
+    type: string;
+    summary: string;
+    abilities: Array<{ id: string; text: string; starting?: boolean }>;
+  }>;
+}
+
+export interface ParanormalFilesConfig {
+  unknownThresholdMax: number;
+  thresholdDeltas: UnknownThresholdDelta[];
+  realityFractureTable: OracleTableEntry[];
+  factions: FactionDefinition[];
+}
+
+interface SoloEngineBase {
   scenePrompts: string[];
-  /** Generic Mythic-style likelihood oracle */
-  oracleLikelihoods?: OracleLikelihood[];
-  twistTable?: OracleTableEntry[];
-  /** Loner SRD — separate subject / action columns for 2d6 twists */
-  twistSubjects?: OracleTableEntry[];
-  twistActions?: OracleTableEntry[];
-  sceneMoodTable?: OracleTableEntry[];
+}
+
+/** Generic Mythic-style yes/no + twist */
+export interface OracleSoloEngine extends SoloEngineBase {
+  kind: 'oracle';
+  oracleLikelihoods: OracleLikelihood[];
+  twistTable: OracleTableEntry[];
   oracleDice?: string;
   riskDice?: string;
-  /** Thousand Year Old Vampire — d10 minus d6 prompt navigation */
-  promptAdvance?: { minPrompt: number; maxPrompt: number };
-  prompts?: PromptEntry[];
-  /** Camp Snallygaster — Lasers & Feelings */
-  lasersFeelings?: {
-    counselorLabel: string;
-    monsterLabel: string;
-    problemTable: OracleTableEntry[];
-    activityTable?: OracleTableEntry[];
-    mischiefTable?: OracleTableEntry[];
-    monstrousTable?: OracleTableEntry[];
-    locationTable?: OracleTableEntry[];
-    monsterTable?: OracleTableEntry[];
-    campLeaderTable?: OracleTableEntry[];
-    monsterMotiveTable?: OracleTableEntry[];
-    decisionOracleTable?: OracleTableEntry[];
-  };
-  /** Midnight Muscadines — directed solo guidance */
+}
+
+/** Loner / Paranormal Files Chance–Risk oracle */
+export interface LonerOracleSoloEngine extends SoloEngineBase {
+  kind: 'loner-oracle';
+  twistSubjects: OracleTableEntry[];
+  twistActions: OracleTableEntry[];
+  sceneMoodTable?: OracleTableEntry[];
+  twistTable?: OracleTableEntry[];
+  oracleDice?: string;
+  riskDice?: string;
+  paranormalFiles?: ParanormalFilesConfig;
+}
+
+/** Thousand Year Old Vampire prompt journal */
+export interface PromptJournalSoloEngine extends SoloEngineBase {
+  kind: 'prompt-journal';
+  prompts: PromptEntry[];
+  promptAdvance: { minPrompt: number; maxPrompt: number };
+  oracleLikelihoods?: OracleLikelihood[];
+  twistTable?: OracleTableEntry[];
+  oracleDice?: string;
+}
+
+/** Camp Snallygaster Lasers & Feelings */
+export interface LasersFeelingsSoloEngine extends SoloEngineBase {
+  kind: 'lasers-feelings';
+  lasersFeelings: LasersFeelingsConfig;
   mentorPrompts?: MentorPrompt[];
+  twistTable?: OracleTableEntry[];
+}
+
+/** Midnight Muscadines mentor + folklore */
+export interface MentorSoloEngine extends SoloEngineBase {
+  kind: 'mentor';
+  mentorPrompts: MentorPrompt[];
   folkloreTables?: {
     groveOmens?: OracleTableEntry[];
     jarResults?: OracleTableEntry[];
   };
-  /** Midnight Muscadines — chargen tables + challenge defaults (CC BY-SA) */
-  muscadines?: {
-    styles?: OracleTableEntry[];
-    quirks?: OracleTableEntry[];
-    startingItems?: OracleTableEntry[];
-    backgrounds?: OracleTableEntry[];
-    defaultChallengeDR?: number;
-    defaultChallengeRS?: number;
-  };
-  /** Ironsworn — action rolls, vows, oracles, assets (CC BY) */
-  ironsworn?: {
-    moves: Array<{
-      id: string;
-      name: string;
-      category: string;
-      stats: string[];
-      trigger: string;
-      strong: string;
-      weak: string;
-      miss: string;
-    }>;
-    oracles: Array<{
-      id: string;
-      title: string;
-      kind: 'd100' | 'range';
-      rows: Array<{
-        roll?: number;
-        min?: number;
-        max?: number;
-        text: string;
-      }>;
-    }>;
-    assets: Array<{
-      id: string;
-      name: string;
-      type: string;
-      summary: string;
-      abilities: Array<{ id: string; text: string; starting?: boolean }>;
-    }>;
-  };
-  /** Loner: Paranormal Files — Operating in the Shadows */
-  paranormalFiles?: {
-    unknownThresholdMax: number;
-    thresholdDeltas: UnknownThresholdDelta[];
-    realityFractureTable: OracleTableEntry[];
-    factions: FactionDefinition[];
-  };
+  muscadines?: MuscadinesConfig;
+  oracleLikelihoods?: OracleLikelihood[];
+  oracleDice?: string;
+  riskDice?: string;
 }
+
+/** Ironsworn moves / vows / oracles */
+export interface IronswornSoloEngine extends SoloEngineBase {
+  kind: 'ironsworn';
+  ironsworn: IronswornConfig;
+  oracleLikelihoods?: OracleLikelihood[];
+  twistTable?: OracleTableEntry[];
+  oracleDice?: string;
+}
+
+export type SoloEngineConfig =
+  | OracleSoloEngine
+  | LonerOracleSoloEngine
+  | PromptJournalSoloEngine
+  | LasersFeelingsSoloEngine
+  | MentorSoloEngine
+  | IronswornSoloEngine;
 
 export function fieldsFromDefinition(definition: SheetDefinition): CharacterSheetField[] {
   return definition.sections.flatMap((section) =>

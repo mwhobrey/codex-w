@@ -1,26 +1,20 @@
 import type { SavedTag } from '@codex/schemas';
+import { pushOrEnqueue } from '@/lib/push-or-enqueue';
 
-/** Push saved tag to cloud when signed in and cloud is configured. */
-export async function queueSavedTagSync(tag: SavedTag): Promise<{ synced: boolean }> {
-  try {
-    const res = await fetch(`/api/saved-tags/${tag.id}`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(tag),
-    });
-
-    if (res.status === 401 || res.status === 503) {
-      return { synced: false };
-    }
-
-    if (!res.ok) {
-      return { synced: false };
-    }
-
-    const data = (await res.json()) as { synced?: boolean };
-    return { synced: data.synced === true };
-  } catch {
-    return { synced: false };
-  }
+/** Push saved tag; enqueue on failure/offline. */
+export async function pushSavedTagSync(tag: SavedTag): Promise<{ synced: boolean }> {
+  return pushOrEnqueue({
+    request: () =>
+      fetch(`/api/saved-tags/${tag.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tag),
+      }),
+    dedupeKey: `saved-tag:${tag.id}`,
+    entity: 'saved-tag',
+    method: 'PUT',
+    url: `/api/saved-tags/${tag.id}`,
+    body: tag,
+  });
 }

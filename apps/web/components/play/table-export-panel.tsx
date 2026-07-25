@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { TableMeta } from '@codex/schemas';
 import type { PlaySessionLogEntry } from '@codex/schemas';
 import type * as Y from 'yjs';
-import { queueJournalSync, queueSessionSync } from '@/lib/session-sync';
+import { pushJournalSync, pushSessionSync } from '@/lib/session-sync';
 
 interface TableExportPanelProps {
   doc: Y.Doc;
@@ -41,9 +41,9 @@ export function TableExportPanel({
       for (const entry of journalEntries) {
         await journalRepo.append(entry);
       }
-      void queueSessionSync(session);
+      void pushSessionSync(session);
       for (const entry of journalEntries) {
-        void queueJournalSync(entry, ownerId);
+        void pushJournalSync(entry, ownerId);
       }
       setStatus(`Chapter ${session.chapterNumber ?? ''} archived (${journalEntries.length} log entries)`.trim());
     } finally {

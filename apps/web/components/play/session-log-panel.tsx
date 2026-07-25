@@ -13,8 +13,9 @@ import {
   type LogFilterKey,
   matchesLogFilters,
 } from '@/lib/log-entry-labels';
-import { queuePlayerNoteSync } from '@/lib/player-note-sync';
-import { queueSavedTagSync } from '@/lib/saved-tag-sync';
+import { pushPlayerNoteSync } from '@/lib/player-note-sync';
+import { pushSavedTagSync } from '@/lib/saved-tag-sync';
+import { LockIcon } from '@/components/lock-icon';
 import { useMemo, useState } from 'react';
 import { DiceRollBar } from './dice-roll-bar';
 
@@ -146,7 +147,7 @@ export function SessionLogPanel({
       createdAt: new Date().toISOString(),
     };
     void playerNoteRepo.append(note);
-    void queuePlayerNoteSync(note);
+    void pushPlayerNoteSync(note);
     setPrivateDraft('');
   };
 
@@ -175,7 +176,7 @@ export function SessionLogPanel({
           lastUsedAt: now,
         };
         void savedTagRepo.save(saved);
-        void queueSavedTagSync(saved);
+        void pushSavedTagSync(saved);
       }
     }
 
@@ -278,8 +279,8 @@ export function SessionLogPanel({
                     data-testid="session-log-private"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-primary">
-                        🔒 Only you
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-primary">
+                        <LockIcon className="text-primary" /> Only you
                       </span>
                       <time className="text-xs text-muted-foreground" dateTime={item.createdAt}>
                         {formatTime(item.createdAt)}
@@ -335,7 +336,7 @@ export function SessionLogPanel({
                         {item.entry.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full bg-background/60 px-2 py-0.5 text-[11px] text-muted-foreground"
+                            className="rounded-full bg-background/60 px-2 py-0.5 text-xs text-muted-foreground"
                           >
                             #{tag}
                           </span>
@@ -380,7 +381,7 @@ export function SessionLogPanel({
               ))}
             </datalist>
             {ownerId ? (
-              <label className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+              <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
                 <input
                   type="checkbox"
                   checked={saveTagsForReuse}
@@ -392,7 +393,7 @@ export function SessionLogPanel({
           </div>
 
           {lastMention ? (
-            <p className="mt-1 text-[11px] text-muted-foreground/80">
+            <p className="mt-1 text-xs text-muted-foreground/80">
               Last mentioned{lastMention.chapterNumber ? ` in Chapter ${lastMention.chapterNumber}` : ''} ·{' '}
               {formatRelativeTime(lastMention.entry.createdAt)}
             </p>
@@ -414,8 +415,10 @@ export function SessionLogPanel({
 
         {ownerId && roomId ? (
           <div className="shrink-0 rounded-lg border border-dashed border-primary/30 bg-primary/5 p-3">
-            <p className="text-xs font-medium text-primary">🔒 Private notes</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
+            <p className="flex items-center gap-1 text-xs font-medium text-primary">
+              <LockIcon className="text-primary" /> Private notes
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Only visible to you — never shared with the table.
             </p>
             <Textarea

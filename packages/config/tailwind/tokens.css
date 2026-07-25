@@ -20,6 +20,7 @@
   /* Semantic */
   --codex-success: #5cb87a;
   --codex-danger: #c45c5c;
+  --codex-warning: #c9893a;
 
   /* Glow */
   --codex-glow: rgba(212, 160, 84, 0.15);
@@ -39,4 +40,5 @@
   --color-codex-ember-dim: var(--codex-ember-dim);
   --color-codex-success: var(--codex-success);
   --color-codex-danger: var(--codex-danger);
+  --color-codex-warning: var(--codex-warning);
 }

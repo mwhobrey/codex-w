@@ -3,7 +3,8 @@ import { and, eq } from 'drizzle-orm';
 import type { CodexDb } from './client';
 import { characterSheets } from './schema';
 
-function rowToSheet(row: typeof characterSheets.$inferSelect): CharacterSheet {
+/** Map a Drizzle character_sheets row to the shared CharacterSheet type. */
+export function mapCharacterSheetRow(row: typeof characterSheets.$inferSelect): CharacterSheet {
   return {
     id: row.id,
     name: row.name,
@@ -27,7 +28,7 @@ export async function listCharacterSheetsByOwner(
     .select()
     .from(characterSheets)
     .where(eq(characterSheets.ownerId, ownerId));
-  return rows.map(rowToSheet);
+  return rows.map(mapCharacterSheetRow);
 }
 
 export async function getCharacterSheetById(
@@ -36,7 +37,7 @@ export async function getCharacterSheetById(
 ): Promise<CharacterSheet | null> {
   const rows = await db.select().from(characterSheets).where(eq(characterSheets.id, id)).limit(1);
   const row = rows[0];
-  return row ? rowToSheet(row) : null;
+  return row ? mapCharacterSheetRow(row) : null;
 }
 
 export async function upsertCharacterSheet(db: CodexDb, sheet: CharacterSheet): Promise<void> {

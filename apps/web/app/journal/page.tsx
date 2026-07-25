@@ -1,4 +1,5 @@
 import { JournalPage } from '@/components/journal/journal-page';
+import { AppShell } from '@/components/app-shell';
 import { SiteHeader } from '@/components/site-header';
 
 export const metadata = {
@@ -10,9 +11,9 @@ export default function JournalRoute() {
   return (
     <>
       <SiteHeader />
-      <main id="main-content" className="px-6 pt-28 pb-16">
+      <AppShell width="narrow" testId="journal-shell">
         <JournalPage />
-      </main>
+      </AppShell>
     </>
   );
 }

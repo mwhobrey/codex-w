@@ -1,9 +1,10 @@
 import { characterSheetRepo, isCharacterSheetDeleted } from '@codex/sync';
 import type { CharacterSheet } from '@codex/schemas';
 import { ensureSheetPortraitSynced } from '@/lib/portrait-cloud-sync';
+import { pushOrEnqueue } from '@/lib/push-or-enqueue';
 
-/** Push sheet to cloud when signed in and cloud is configured. */
-export async function queueSheetSync(sheet: CharacterSheet): Promise<{ synced: boolean }> {
+/** Push sheet to cloud; enqueue for retry when offline/failed. */
+export async function pushSheetSync(sheet: CharacterSheet): Promise<{ synced: boolean }> {
   if (isCharacterSheetDeleted(sheet.id)) {
     return { synced: false };
   }
@@ -17,48 +18,33 @@ export async function queueSheetSync(sheet: CharacterSheet): Promise<{ synced: b
     toSync = sheet;
   }
 
-  try {
-    const res = await fetch(`/api/sheets/${toSync.id}`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(toSync),
-    });
-
-    if (res.status === 401 || res.status === 503) {
-      return { synced: false };
-    }
-
-    if (!res.ok) {
-      return { synced: false };
-    }
-
-    const data = (await res.json()) as { synced?: boolean };
-    return { synced: data.synced === true };
-  } catch {
-    return { synced: false };
-  }
+  return pushOrEnqueue({
+    request: () =>
+      fetch(`/api/sheets/${toSync.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toSync),
+      }),
+    dedupeKey: `sheet:${toSync.id}`,
+    entity: 'sheet',
+    method: 'PUT',
+    url: `/api/sheets/${toSync.id}`,
+    body: toSync,
+  });
 }
 
-/** Remove sheet from cloud when signed in. Local tombstone is written by characterSheetRepo.delete. */
-export async function queueSheetDelete(sheetId: string): Promise<{ synced: boolean }> {
-  try {
-    const res = await fetch(`/api/sheets/${sheetId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-
-    if (res.status === 401 || res.status === 503) {
-      return { synced: false };
-    }
-
-    if (!res.ok) {
-      return { synced: false };
-    }
-
-    const data = (await res.json()) as { synced?: boolean };
-    return { synced: data.synced === true };
-  } catch {
-    return { synced: false };
-  }
+/** Remove sheet from cloud; enqueue delete if push fails. */
+export async function pushSheetDelete(sheetId: string): Promise<{ synced: boolean }> {
+  return pushOrEnqueue({
+    request: () =>
+      fetch(`/api/sheets/${sheetId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    dedupeKey: `sheet-delete:${sheetId}`,
+    entity: 'sheet-delete',
+    method: 'DELETE',
+    url: `/api/sheets/${sheetId}`,
+  });
 }

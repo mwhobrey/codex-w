@@ -13,7 +13,7 @@ import { Badge, Button, ConfirmDialog, Input, Label } from '@codex/ui';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { queueSheetDelete, queueSheetSync } from '@/lib/sheet-sync';
+import { pushSheetDelete, pushSheetSync } from '@/lib/sheet-sync';
 import { downloadTextFile, exportCharacterSheetMarkdown } from '@/lib/export-character-sheet';
 import {
   cloneCharacterSheet,
@@ -75,7 +75,7 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
     setSheet(next);
     setSaveState('saving');
     await characterSheetRepo.save(next);
-    void queueSheetSync(next);
+    void pushSheetSync(next);
     setSaveState('saved');
     window.setTimeout(() => setSaveState('idle'), 1500);
   }, []);
@@ -99,7 +99,7 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
     try {
       await characterPortraitRepo.delete(sheet.id);
       await characterSheetRepo.delete(sheet.id);
-      await queueSheetDelete(sheet.id);
+      await pushSheetDelete(sheet.id);
       router.push('/characters');
       router.refresh();
     } catch {
@@ -114,7 +114,7 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
     if (!sheet) return;
     const cloned = cloneCharacterSheet(sheet);
     await characterSheetRepo.save(cloned);
-    void queueSheetSync(cloned);
+    void pushSheetSync(cloned);
     window.location.href = `/characters/${cloned.id}`;
   }, [sheet]);
 
@@ -131,7 +131,7 @@ export function CharacterEditor({ sheetId }: CharacterEditorProps) {
       try {
         for (const next of result.sheets) {
           await characterSheetRepo.save(next);
-          void queueSheetSync(next);
+          void pushSheetSync(next);
         }
         const primary = result.sheets[result.sheets.length - 1]!;
         window.location.href = `/characters/${primary.id}`;

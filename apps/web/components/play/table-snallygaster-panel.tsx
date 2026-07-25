@@ -35,7 +35,7 @@ export function TableSnallygasterPanel({
   onPatchCharacter,
 }: TablePanelProps) {
   const plugin = getGameSystem(gameSystemId);
-  const engine = plugin.soloEngine;
+  const engine = plugin.soloEngine?.kind === 'lasers-feelings' ? plugin.soloEngine : null;
   const lf = engine?.lasersFeelings;
 
   const [mode, setMode] = useState<LasersFeelingsMode>('counselor');

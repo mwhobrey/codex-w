@@ -18,7 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback, useState } from 'react';
 import { useOwnerId } from '@/hooks/use-owner-id';
-import { queueSheetSync } from '@/lib/sheet-sync';
+import { pushSheetSync } from '@/lib/sheet-sync';
 
 const systemPlugins: GameSystemPlugin[] = [
   lonerPlugin,
@@ -67,7 +67,7 @@ export function CharactersPage() {
         const name = 'Unnamed character';
         const sheet = plugin.createEmptySheet(name, ownerId);
         await characterSheetRepo.save(sheet);
-        void queueSheetSync(sheet);
+        void pushSheetSync(sheet);
         router.push(`/characters/${sheet.id}`);
       } finally {
         setCreating(false);
@@ -77,7 +77,7 @@ export function CharactersPage() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl" data-testid="characters-page">
+    <div data-testid="characters-page">
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl">

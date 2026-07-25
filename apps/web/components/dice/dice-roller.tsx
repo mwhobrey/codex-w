@@ -6,7 +6,7 @@ import type { DiceFormula, DiceSet } from '@codex/schemas';
 import { diceRollHistoryRepo, diceSetRepo } from '@codex/sync';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback } from 'react';
-import { queueDiceSetSync } from '@/lib/dice-set-sync';
+import { pushDiceSetSync } from '@/lib/dice-set-sync';
 import { useDiceRoll, type DicePreset } from '@/hooks/use-dice-roll';
 import { DieFace } from './die-face';
 import { RollLog } from './roll-log';

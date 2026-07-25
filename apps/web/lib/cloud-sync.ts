@@ -20,12 +20,12 @@ import type {
 } from '@codex/schemas';
 import { getLocalOwnerId } from '@/lib/local-owner';
 import { syncPendingPortraitUploads } from '@/lib/portrait-cloud-sync';
-import { queueDiceSetSync } from '@/lib/dice-set-sync';
-import { queueLibraryTableSync } from '@/lib/library-table-sync';
-import { queuePlayerNoteSync } from '@/lib/player-note-sync';
-import { queueJournalSync, queueSessionSync } from '@/lib/session-sync';
-import { queueSavedTagSync } from '@/lib/saved-tag-sync';
-import { queueSheetSync } from '@/lib/sheet-sync';
+import { pushDiceSetSync } from '@/lib/dice-set-sync';
+import { pushLibraryTableSync } from '@/lib/library-table-sync';
+import { pushPlayerNoteSync } from '@/lib/player-note-sync';
+import { pushJournalSync, pushSessionSync } from '@/lib/session-sync';
+import { pushSavedTagSync } from '@/lib/saved-tag-sync';
+import { pushSheetSync } from '@/lib/sheet-sync';
 import { mergeCloudPlayRooms } from '@/lib/recent-play-rooms';
 
 interface CloudSyncPayload {
@@ -110,18 +110,18 @@ async function migrateLocalOwnerToUser(localOwnerId: string, userId: string): Pr
   for (const sheet of sheets) {
     const migrated = { ...sheet, ownerId: userId };
     await characterSheetRepo.save(migrated);
-    void queueSheetSync(migrated);
+    void pushSheetSync(migrated);
   }
 
   const sessions = await playSessionRepo.listByOwner(localOwnerId);
   for (const session of sessions) {
     const migrated = { ...session, ownerId: userId };
     await playSessionRepo.save(migrated);
-    void queueSessionSync(migrated);
+    void pushSessionSync(migrated);
 
     const entries = await journalRepo.listBySession(session.id);
     for (const entry of entries) {
-      void queueJournalSync(entry, userId);
+      void pushJournalSync(entry, userId);
     }
   }
 
@@ -129,28 +129,28 @@ async function migrateLocalOwnerToUser(localOwnerId: string, userId: string): Pr
   for (const set of diceSets) {
     const migrated = { ...set, ownerId: userId };
     await diceSetRepo.save(migrated);
-    void queueDiceSetSync(migrated);
+    void pushDiceSetSync(migrated);
   }
 
   const libraryTables = await userLibraryTableRepo.listByOwner(localOwnerId);
   for (const table of libraryTables) {
     const migrated = { ...table, ownerId: userId };
     await userLibraryTableRepo.save(migrated);
-    void queueLibraryTableSync(migrated);
+    void pushLibraryTableSync(migrated);
   }
 
   const savedTags = await savedTagRepo.listByOwner(localOwnerId);
   for (const tag of savedTags) {
     const migrated = { ...tag, ownerId: userId };
     await savedTagRepo.save(migrated);
-    void queueSavedTagSync(migrated);
+    void pushSavedTagSync(migrated);
   }
 
   const playerNotes = await playerNoteRepo.listByOwner(localOwnerId);
   for (const note of playerNotes) {
     const migrated = { ...note, ownerId: userId };
     await playerNoteRepo.append(migrated);
-    void queuePlayerNoteSync(migrated);
+    void pushPlayerNoteSync(migrated);
   }
 }
 

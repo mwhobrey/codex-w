@@ -104,7 +104,7 @@ export function PlayLobby() {
   };
 
   return (
-    <div className="mx-auto max-w-lg space-y-6" data-testid="play-lobby">
+    <div className="space-y-6" data-testid="play-lobby">
       <header className="sr-only">
         <h1>Tables</h1>
       </header>
