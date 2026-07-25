@@ -13,7 +13,7 @@
 | Canvas / VTT | **Excalidraw** (`@excalidraw/excalidraw`) | MIT license; embed + custom stamps via `customData`; Yjs scene sync |
 | Local DB | **Dexie.js** (IndexedDB) | Structured offline storage for sheets, sessions, assets metadata |
 | CRDT sync | **Yjs** + **y-indexeddb** | Conflict-free merge for maps, shared notes, live cursors |
-| Client state | **Zustand** (UI) + **TanStack Query** (server) | Minimal boilerplate; cache + background sync |
+| Client state | **Dexie live queries** + **React state** + **Yjs** | Instant local reads; ephemeral UI in components; collaborative docs via CRDT |
 | Validation | **Zod** | Runtime + compile-time contracts |
 | PWA | **Serwist** (Workbox successor) | Offline shell, asset caching, installable |
 
@@ -21,7 +21,7 @@
 
 | Layer | Choice | Rationale |
 |-------|--------|-----------|
-| Primary DB | **PostgreSQL** (Neon prod / Docker local) | Relational truth for users, sheets, sessions, asset refs |
+| Primary DB | **PostgreSQL** (Neon prod / Docker local) via **`@codex/db`** (Drizzle) | Relational truth for users, sheets, sessions, asset refs, Yjs docs |
 | Auth | **Better Auth** + Drizzle adapter | Self-hosted; httpOnly cookies; no per-MAU tax |
 | Object storage | **S3-compatible** (MinIO local, R2/S3 prod) | Map exports, character portraits, custom assets |
 | Realtime | **Hocuspocus** (`apps/sync-server`) | Self-hosted Yjs WebSocket relay on VPS |
@@ -35,6 +35,7 @@
 | Desktop shell | **Tauri 2** | Native install, deeper filesystem, optional |
 | Mobile | **Expo** (shared `packages/*`) | Post-MVP if demand exists |
 | Full SQL sync | **Electric SQL** or **PowerSync** | If Dexie→Postgres replication becomes painful |
+| — | — | Durable cloud mutation queue is live (`cloudMutationQueue`) |
 
 ## System Design Patterns
 
@@ -53,19 +54,20 @@
 └─────────────┘                      │
                                      ▼
                               ┌──────────────┐
-                              │ PartyKit     │
+                              │ Hocuspocus   │
+                              │ sync-server  │
                               └──────┬───────┘
                                      │
                                      ▼
                               ┌──────────────┐
                               │ PostgreSQL   │
-                              │ (snapshots)  │
+                              │ yjs_documents│
                               └──────────────┘
 ```
 
 - **Reads** always hit local first → instant UI
 - **Writes** go to local immediately → optimistic UX
-- **Sync queue** pushes deltas when connectivity returns
+- **Cloud entity push** (sheets, dice sets, …): best-effort `fetch` when signed in; on failure/offline → Dexie `cloudMutationQueue`; `CloudSyncProvider` flushes after `GET /api/sync` pull and on reconnect
 - **CRDT** handles concurrent map/note edits without merge hell
 
 ### Plugin Architecture (Game Systems)
@@ -74,51 +76,53 @@ Each RPG is a `packages/game-systems/<system>/` plugin implementing:
 
 ```typescript
 interface GameSystemPlugin {
-  id: string;                    // e.g. "loner", "totv"
+  id: GameSystemId;              // e.g. "loner", "totv"
   name: string;
-  characterSheet: SheetDefinition;  // JSON Schema / Zod
-  soloEngine?: SoloEngineConfig;    // oracle tables, twist prompts
+  tagline: string;
+  sheetDefinition: SheetDefinition;
+  soloEngine?: SoloEngineConfig; // discriminated by `kind`
   dicePresets?: DicePreset[];
-  metadata: { tags, publisher, version };
+  rulesPrimer?: string[];
+  createEmptySheet: (name: string, ownerId: string) => CharacterSheet;
 }
 ```
 
-Core app loads plugins dynamically; solo systems ship first-class.
+Plugins are registered statically in `registry.ts`. Play UI panels live in `apps/web` and route via `resolveTablePanelId(soloEngine.kind)`.
 
 ### Session Model
 
 | Mode | Behavior |
 |------|----------|
 | **Solo** | Single user, local-only or optional cloud backup |
-| **Hosted** | GM owns room; players join via invite link |
+| **Hosted** | GM owns room (`gmUserId`); players join via invite link |
 | **Peer** | All clients equal; Yjs room, no dedicated GM server |
 
-Permissions enforced server-side (Postgres RLS) + client-side (Yjs awareness).
+Permissions: app-layer ownership checks in API routes (`@codex/db`) + invite admission / fog–log–kick guards on the relay + client awareness.
 
 ## Data Flow
 
 ### Character Sheet
 
 1. User edits field → Zod validate → Dexie write (instant)
-2. Debounced sync job → POST `/api/sheets/:id` → Postgres upsert
-3. Other clients → TanStack Query invalidation or Yjs map update
+2. Best-effort cloud push → `PUT /api/sheets/:id` → Postgres upsert (when signed in)
+3. On sign-in → `GET /api/sync` merges cloud → Dexie
 
 ### VTT Map
 
 1. Excalidraw `onChange` → debounced Yjs `excalidraw-elements` array → y-indexeddb persist
-2. Online → PartyKit Yjs relay broadcasts to room
-3. Periodic snapshot → Postgres `map_snapshots` (JSON blob + version)
+2. Online → Hocuspocus broadcasts to room peers
+3. Relay persists doc bytes to Postgres `yjs_documents`
 
 ### Dice / Oracle Roll
 
 1. Client-side RNG (crypto.getRandomValues) — trust-but-verify optional log
-2. Roll event appended to session log (Dexie + optional sync)
+2. Roll event appended to session / play-room log (Yjs or Dexie)
 3. Solo oracle → `game-engine` resolves table lookup locally
 
 ### Asset Upload
 
 1. Client compresses image → S3-compatible storage (when online)
-2. Metadata + URL stored in Dexie; queued if offline
+2. Metadata + URL stored in Dexie; portrait cloud sync on sign-in when configured
 3. Display from local blob URL until remote URL resolves
 
 ## External Dependencies
@@ -127,18 +131,20 @@ Permissions enforced server-side (Postgres RLS) + client-side (Yjs awareness).
 |---------|---------|----------|
 | Neon Postgres + Better Auth | DB, auth | Yes (prod) |
 | Docker Postgres | Local dev DB | Yes (local) |
-| PartyKit | Yjs WebSocket relay (MVP) | Yes (multiplayer) |
+| Hocuspocus sync-server | Yjs WebSocket relay | Yes (multiplayer) |
 | Vercel (or similar) | Next.js hosting | Yes (prod) |
 | Sentry | Error tracking | Recommended |
 | PostHog / Plausible | Analytics (privacy-respecting) | Optional |
 
+> `apps/partykit` is legacy (superseded). Root `npm run dev:partykit` aliases to `dev:sync`.
+
 ## Security Notes
 
 - Drizzle migrations; app-layer ownership checks (RLS optional later)
-- JWT in httpOnly cookies; no tokens in localStorage
-- Yjs rooms require server-issued room tokens (not implemented yet)
-- User-uploaded assets scanned + size-capped
-- CSP headers strict; Excalidraw loaded client-only (`dynamic` + `ssr: false`)
+- Session cookies via Better Auth; no tokens in localStorage for auth
+- Yjs rooms require invite tokens (HTTP seed + websocket admission on sync-server)
+- User-uploaded assets size-capped
+- Excalidraw loaded client-only (`dynamic` + `ssr: false`)
 
 ## Performance Targets
 
@@ -158,4 +164,5 @@ Permissions enforced server-side (Postgres RLS) + client-side (Yjs awareness).
 | Unity/Godot VTT | Wrong tool; web canvas is sufficient |
 | Firebase-only | Vendor lock-in; weaker offline story |
 | Pure SPA (no Next) | Lose SSR for marketing/docs; API colocation |
-| Redux | Overkill for this shape of state |
+| Redux / Zustand / TanStack Query | Overkill for current Dexie + Yjs shape |
+| PartyKit cloud | Durable Object limits on free tier; use self-hosted Hocuspocus |

@@ -5,18 +5,21 @@
 ```
 codex-w/
 ├── apps/
-│   ├── web/                 # Next.js 15 — primary user-facing app
-│   └── sync-server/         # Hocuspocus Yjs WebSocket server
+│   ├── web/                 # Next.js 16 — primary user-facing app
+│   ├── sync-server/         # Hocuspocus Yjs WebSocket server
+│   └── partykit/            # Legacy relay (superseded; keep for reference)
 ├── packages/
-│   ├── ui/                  # shadcn-based design system + Codex tokens
-│   ├── game-engine/         # Dice, RNG, oracles, parsers, roll logs
+│   ├── ui/                  # shadcn primitives + Codex token mapping
+│   ├── game-engine/         # Dice, RNG, oracles, parsers
 │   ├── game-systems/        # Per-RPG plugins (loner, totv, snallygaster, …)
-│   ├── sync/                # Dexie schemas, Yjs providers, sync queue
+│   ├── sync/                # Dexie repos + Yjs play-room primitives
+│   ├── db/                  # Drizzle / Postgres access (web API + sync-server)
 │   ├── schemas/             # Shared Zod types, API contracts
-│   └── config/              # Shared ESLint, TSConfig, Tailwind presets
+│   └── config/              # Shared TSConfig + Tailwind tokens
 ├── .cursor/
 │   └── runbook/             # This documentation set
 ├── .cursorrules             # Root agent instructions (runbook protocol)
+├── package.json             # npm workspaces + root scripts
 └── turbo.json               # Turborepo pipeline
 ```
 
@@ -24,30 +27,27 @@ codex-w/
 
 | Path | Responsibility |
 |------|----------------|
-| `app/` | Next.js App Router — layouts, pages, route handlers |
-| `app/(marketing)/` | Landing, pricing, docs (SSR) |
-| `app/(app)/` | Authenticated app shell |
-| `app/(app)/session/[id]/` | Active play session (VTT + tools) |
-| `app/(app)/solo/[system]/` | Solo RPG flows |
-| `app/api/` | REST/route handlers — sync, auth callbacks |
-| `components/` | App-specific composites (not shared UI primitives) |
-| `hooks/` | App-level React hooks |
-| `lib/` | App utilities, Supabase client, env validation |
+| `app/` | Next.js App Router — flat routes, layouts, pages, route handlers |
+| `app/api/` | REST/route handlers — sheets, dice, sync, auth, assets, rooms |
+| `components/` | App-specific composites (dice hub, play panels, marketing) |
+| `hooks/` | App-level React hooks (play room, Yjs fog/tokens, etc.) |
+| `lib/` | Env, auth client, best-effort cloud push helpers, play-room utils |
 | `public/` | Static assets, PWA manifest icons |
-| `styles/` | Global CSS, Tailwind entry |
 
-### Key Routes (Planned)
+### Key Routes
 
 | Route | Feature |
 |-------|---------|
 | `/` | Marketing landing |
-| `/play` | Session lobby |
-| `/play/[sessionId]` | Multiplayer / GM session |
-| `/solo` | Solo system picker |
-| `/solo/[systemId]` | Solo play surface |
+| `/play` | Table lobby |
+| `/play/[roomId]` | Unified solo/multiplayer table (VTT + tools) |
+| `/solo`, `/solo/[system]` | Legacy redirects → `/play?system=…` |
 | `/characters` | Character sheet manager |
 | `/characters/[id]` | Sheet editor |
-| `/library` | Reference tables + user-owned clones (`My tables` tab) |
+| `/dice` | Dice hub (`/roll` redirects here) |
+| `/journal` | Cross-table journal search |
+| `/library` | Reference tables + user-owned clones |
+| `/login` | Better Auth sign-in |
 
 ## App: `apps/sync-server`
 
@@ -61,10 +61,10 @@ codex-w/
 
 ## Package: `packages/ui`
 
-- shadcn/ui components (Button, **Dialog**, **Sheet**, etc.)
-- Codex design tokens: colors, typography, spacing
-- Compound components: `DiceRoller`, `OracleDrawer`, `SessionHeader`
+- shadcn/ui primitives (Button, Dialog, Sheet, Card, Input, …)
+- Semantic tokens mapped to Codex palette (`styles.css`)
 - **Rule:** No business logic; presentation only
+- Compound product UI (DiceRoller, play panels, etc.) lives in `apps/web/components`
 
 ## Package: `packages/game-engine`
 
@@ -72,7 +72,6 @@ codex-w/
 |--------|----------------|
 | `dice/` | Parser (e.g. `2d6+3`), roller, advantage/disadvantage |
 | `oracles/` | Table resolution, weighted picks, solo prompts |
-| `journal/` | Session log entries, timestamps, export |
 | `rng/` | Seeded + crypto RNG utilities |
 
 ## Package: `packages/game-systems`
@@ -81,57 +80,58 @@ One subdirectory per RPG:
 
 ```
 game-systems/
-├── loner/              # Loner (Chance/Risk Oracle; CC BY-SA SRD)
-├── paranormal-files/   # Loner: Paranormal Files (GTL)
-├── totv/               # TYOV structural homage (original prompts)
-├── snallygaster/       # Camp Snallygaster (L&F; CC BY 4.0)
-├── muscadines/         # Midnight Muscadines (CC BY-SA; challenge lite + mentor)
-├── ironsworn/          # Ironsworn (CC BY SRD)
-└── generic/            # System-agnostic fallback sheet
+├── loner/
+├── paranormal-files/
+├── totv/
+├── snallygaster/
+├── muscadines/
+├── ironsworn/
+└── generic/
 ```
 
-Each exports a `GameSystemPlugin` (see `01_ARCHITECTURE.md`).
+Each exports a `GameSystemPlugin` (see `01_ARCHITECTURE.md`). Static registry in `registry.ts`.
 
 ## Package: `packages/sync`
 
 | Module | Responsibility |
 |--------|----------------|
-| `db/` | Dexie database definitions, migrations |
-| `yjs/` | Provider factory (local / websocket), doc types |
-| `queue/` | Offline mutation queue, retry with backoff |
-| `hooks/` | React hooks: `useSyncedDoc`, `useOfflineStatus` |
+| `db.ts` + repos | Dexie database definitions, migrations, entity repos |
+| `yjs/` | Play-room doc, providers (IndexedDB + Hocuspocus), fog/tokens/meta/guards |
+
+Cloud entity push helpers live in `apps/web/lib/*-sync.ts` and enqueue to Dexie `cloudMutationQueue` (`@codex/sync`) when offline or the request fails. `CloudSyncProvider` flushes after sign-in pull and on `online`.
+
+## Package: `packages/db`
+
+- Drizzle schema + client (Neon serverless / local `postgres`)
+- CRUD helpers for sheets, dice sets, sessions, rooms, library tables, Yjs docs, invites
+- Used by Next.js API routes and `apps/sync-server` only (not client-bundled for data)
 
 ## Package: `packages/schemas`
 
-- Zod schemas for API request/response
-- Shared TypeScript types inferred from Zod
-- Character sheet JSON Schema definitions
+- Zod schemas for API request/response and shared domain types
 - **Single source of truth** — import everywhere, never duplicate types
 
 ## Package: `packages/config`
 
-- `eslint/` — shared ESLint flat config
 - `typescript/` — base `tsconfig.json` variants
-- `tailwind/` — shared Tailwind preset with Codex tokens
+- `tailwind/` — Codex design tokens CSS
 
 ## Configuration Locations
 
 | Config | File |
 |--------|------|
-| Monorepo workspaces | `pnpm-workspace.yaml` |
+| Monorepo workspaces | root `package.json` (`workspaces`) |
 | Build pipeline | `turbo.json` |
 | Root scripts | `package.json` |
 | Web env vars | `apps/web/.env.local` (never committed) |
 | Web env schema | `apps/web/lib/env.ts` (Zod-validated) |
-| Supabase | `supabase/` (migrations, config) — when initialized |
 | PWA | `apps/web/next.config.ts` + Serwist config |
 
 ## State Management Map
 
 | State type | Tool | Location |
 |------------|------|----------|
-| Server/async data | TanStack Query | `apps/web/lib/queries/` |
-| UI ephemeral | Zustand | `apps/web/stores/` |
-| Persistent local | Dexie | `packages/sync/db/` |
-| Collaborative | Yjs docs | `packages/sync/yjs/` |
-| Form state | React Hook Form + Zod | Colocated in components |
+| Persistent local | Dexie + `useLiveQuery` | `packages/sync` repos; hooks in `apps/web` |
+| Collaborative | Yjs docs | `packages/sync/yjs/`; play hooks |
+| UI ephemeral | `useState` / context | Colocated in components |
+| Cloud backup | Best-effort push + durable `cloudMutationQueue` + `GET /api/sync` | `apps/web/lib/*-sync.ts`, `cloud-sync.ts`, `@codex/sync` queue |

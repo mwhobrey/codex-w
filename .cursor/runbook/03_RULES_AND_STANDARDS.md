@@ -15,11 +15,11 @@
 | Entity | Convention | Example |
 |--------|------------|---------|
 | React components | PascalCase | `DiceRoller.tsx` |
-| Hooks | camelCase, `use` prefix | `useSyncedDoc.ts` |
+| Hooks | camelCase, `use` prefix | `usePlayRoom.ts` |
 | Utilities | camelCase | `parseDiceNotation.ts` |
 | Constants | SCREAMING_SNAKE | `MAX_UPLOAD_BYTES` |
-| DB tables | snake_case | `map_snapshots` |
-| API routes | kebab-case paths | `/api/game-systems` |
+| DB tables | snake_case | `yjs_documents` |
+| API routes | kebab-case paths | `/api/dice-sets` |
 
 ### File Organization
 
@@ -32,14 +32,15 @@
 - Functional components only
 - Server Components by default in `apps/web/app/`; `"use client"` only when needed
 - Extract hooks when logic exceeds ~15 lines or is reused
-- No prop drilling past 2 levels — use context or Zustand
+- No prop drilling past 2 levels — use context or lift state
 
 ### Styling
 
 - Tailwind utility classes first
 - `cn()` helper (clsx + tailwind-merge) for conditional classes
-- Design tokens via CSS variables in `packages/ui/styles/tokens.css`
-- **No arbitrary hex colors in components** — use token names
+- Design tokens via CSS variables in `packages/config/tailwind/tokens.css` + `@codex/ui` semantic map
+- **No arbitrary hex colors in components** — use token names (canvas/Excalidraw layers may use hex)
+- Typography floor: prefer `text-xs` or larger; avoid `text-[11px]`
 
 ## Error Handling
 
@@ -55,7 +56,7 @@ type Result<T, E = AppError> =
 // User-facing: toast via sonner, never raw stack traces
 ```
 
-- Network failures during offline: queue mutation, show subtle "pending sync" indicator
+- Network failures during offline: local Dexie write still succeeds; failed cloud pushes enqueue to `cloudMutationQueue` and retry on reconnect
 - Validation failures: inline field errors from Zod
 - Sync conflicts (CRDT): silent merge; log anomaly if manual resolution needed
 
@@ -67,10 +68,12 @@ type Result<T, E = AppError> =
 
 ## State Management Rules
 
-1. **If it syncs** → Dexie + Yjs (never raw localStorage for structured data)
-2. **If it's server data** → TanStack Query (no manual fetch in useEffect)
-3. **If it's UI-only** → Zustand or local useState
-4. **If it's a form** → React Hook Form until submit, then Dexie/Query
+1. **If it syncs collaboratively** → Dexie + Yjs (never raw localStorage for structured data)
+2. **If it's cloud-backed entity data** → Dexie first, then push to `/api/*` when signed in (enqueue to `cloudMutationQueue` on failure); pull via `GET /api/sync` on sign-in, then flush queue
+3. **If it's UI-only** → local `useState` or React context
+4. **If it's a form** → controlled inputs or React Hook Form until submit, then Dexie
+
+Do **not** introduce Zustand or TanStack Query unless a concrete gap requires them and the runbook is updated first.
 
 ## Testing Requirements
 
@@ -81,7 +84,7 @@ type Result<T, E = AppError> =
 | E2E | Playwright | UI contracts: per-system create + short play (`e2e/playthrough.spec.ts`); smoke + multiplayer invite |
 | Sync | Integration tests | Offline write → reconnect → merge |
 
-Run before PR: `pnpm turbo run test lint typecheck`
+Run before PR: `npm run test` and `npm run build --workspace=@codex/web` (or `npm run ci`)
 
 ## Git & Commits
 
@@ -115,8 +118,9 @@ main (tagged) → Vercel production + sync-server deploy
 - **Excalidraw + Yjs**: Scene sync via `excalidraw-elements` Y.Array in play-room doc; dynamic import (`ssr: false`) required in Next.js
 - **IndexedDB quotas**: Compress images client-side before store; prune old session logs
 - **SSR + Dexie**: Dexie/Yjs only in Client Components or dynamic `ssr: false` imports
-- **Solo engines**: Each system has different oracle shapes — resist one-size-fits-all UI; use plugin render props
+- **Solo engines**: Prefer discriminated `SoloEngineConfig` by `kind`; resist one-size-fits-all UI
 - **PWA updates**: Serwist skipWaiting strategy must be tested to avoid mid-session reloads
+- **Product display name**: Still TBD — defer hero brand lift until locked
 
 ## Accessibility
 
@@ -127,7 +131,7 @@ main (tagged) → Vercel production + sync-server deploy
 
 ## Performance Rules
 
-- Lazy-load game system plugins (`dynamic import`)
-- Virtualize long lists (character library, journal)
+- Lazy-load heavy client surfaces (`dynamic` + `ssr: false` for Excalidraw)
+- Virtualize long lists (character library, journal) when they grow
 - Map assets: WebP/AVIF, max dimensions enforced client-side
 - No blocking sync on UI thread — Web Workers for heavy oracle table prep if needed

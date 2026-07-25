@@ -1,22 +1,16 @@
 # Current State
 
-> Last updated: 2026-07-22 — dice hub invite-aware room log push
+> Last updated: 2026-07-25 — audit fix Phases A–D (docs, AppShell, push rename, SoloEngineConfig union, durable cloud queue)
 
 ## What Is Working
 
-- [x] Architecture decisions documented (`01_ARCHITECTURE.md`)
-- [x] Monorepo structure defined (`02_COMPONENTS_AND_FILES.md`)
+- [x] Architecture decisions documented (`01_ARCHITECTURE.md`) — **2026-07-25:** docs match live stack (Hocuspocus, `@codex/db`, Dexie live queries; durable `cloudMutationQueue`)
+- [x] Monorepo structure defined (`02_COMPONENTS_AND_FILES.md`) — flat routes, `packages/db`, npm workspaces
 - [x] Coding standards established (`03_RULES_AND_STANDARDS.md`)
-- [x] Master runbook federated in `.cursor/runbook/`
-- [x] Agent runbook protocol in `.cursorrules` + `.cursor/rules/runbook.mdc`
-- [x] Root monorepo scaffold (`package.json`, workspaces, `turbo.json`)
-- [x] **Git repo** on `main`
-- [x] **`packages/config`** — shared TSConfig bases + Codex Tailwind design tokens
-- [x] **`packages/schemas`** — Zod types (`CharacterSheet`, `TableMeta`, `GameSystemId`, etc.)
-- [x] **`apps/web`** — Next.js 16, dark-first landing, PWA shell (Serwist)
-- [x] Locked decisions: self-hosted Hocuspocus sync, Loner (first solo), Better Auth + Neon, Vercel hosting
-
-- [x] **`packages/game-engine`** — dice parser, roller, oracles (unit tests)
+- [x] **AppShell** + Button `pill` sizes; warning token distinct from ember; typography floor
+- [x] Cloud helpers named `push*`; library types from `@codex/schemas`; shared `createId`
+- [x] `SoloEngineConfig` discriminated union by `kind`; play bootstrap hooks extracted
+- [x] Durable Dexie cloud mutation queue with flush after sign-in pull + online
 - [x] **Dice hub** at `/dice` — formula builder, saved sets, roll log (`/roll` redirects)
 - [x] **`packages/game-systems`** — generic + loner (Chance/Risk SRD), paranormal-files (GTL), totv (structural homage; Experiences/Marks; original 60 prompts), snallygaster (Camp Snallygaster CC BY tables + PATH solo), muscadines (CC BY-SA; Marmateer sheet, backgrounds, challenge lite, mentor), ironsworn (CC BY SRD; unit tests)
 - [x] **`packages/sync`** — Dexie repos + Yjs play-room primitives (meta, log, fog, tokens, import)
@@ -38,7 +32,8 @@
 - [x] **CI/CD** — GitHub Actions: unit tests, web build, Playwright smoke on PR/push to `main`
 - [x] **Invite tokens** — relay auth gate; HTTP seed before websocket; multi-source resume (URL, meta, storage, recent)
 - [x] **Story integration** — per-system table panels, TYOV tag engine, Ironsworn vows/meters, `/library`, table export
-- [x] **E2E tests** — smoke (all systems + library) + multiplayer invite + per-system playthrough (`playthrough.spec.ts`: create sheet → open table → bind → one core action; sync-server in CI)
+- [x] **E2E tests** — smoke (AppShell `#main-content` + page landmarks; all systems + library) + multiplayer invite + per-system playthrough + offline sheet→`cloudMutationQueue` enqueue (`cloud-queue.spec.ts`; sync-server in CI)
+- [x] **Unit coverage for audit fixes** — `getCharacterPeekSummary`, SoloEngineConfig `kind` registry, `pushOrEnqueue` / `pushSheetSync` (mocked)
 - [x] **`apps/sync-server`** — Hocuspocus on Node; invite seed + fog guard; deploy docs for DO droplet
 - [x] **`packages/sync` unit tests** — GM, tokens, fog, invite, export (44 tests)
 - [x] **Design system polish** — shadcn `Dialog`/`Sheet` in `@codex/ui`; semantic Tailwind tokens (`primary`, `muted-foreground`, etc.); skip link, reduced-motion, mobile play header
