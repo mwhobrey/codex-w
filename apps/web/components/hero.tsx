@@ -41,7 +41,12 @@ export function Hero() {
             >
               <Link href="/dice">Roll your first die</Link>
             </Button>
-            <Button asChild size="pill" variant="outline">
+            <Button
+              asChild
+              size="pill"
+              variant="outline"
+              className="text-foreground hover:border-primary/50 hover:text-primary"
+            >
               <Link href="/play">Open a table</Link>
             </Button>
           </div>
