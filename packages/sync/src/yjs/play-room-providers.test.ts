@@ -138,7 +138,12 @@ describe('play-room-providers', () => {
   it('handles onAuthenticationFailed as auth-failed', () => {
     let authFailedHandler: (() => void) | undefined;
     vi.mocked(HocuspocusProvider).mockImplementationOnce((config) => {
-      authFailedHandler = config.onAuthenticationFailed;
+      const onAuthFailed = config.onAuthenticationFailed;
+      authFailedHandler = onAuthFailed
+        ? () => {
+            onAuthFailed({} as never);
+          }
+        : undefined;
       return {
         destroy: vi.fn(),
         disconnect: vi.fn(),

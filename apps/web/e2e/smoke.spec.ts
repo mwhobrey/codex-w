@@ -122,6 +122,32 @@ test.describe('core play loop smoke', () => {
     await expect(page.getByText('No entries match your search.')).toBeVisible();
   });
 
+  test('AppShell pages expose main landmark and page contracts', async ({ page }) => {
+    await page.goto('/dice');
+    await expect(page.locator('#main-content')).toBeVisible();
+    await expect(page.getByTestId('dice-page')).toBeVisible();
+    await expect(page.getByTestId('dice-hub')).toBeVisible();
+
+    await page.goto('/characters');
+    await expect(page.locator('#main-content')).toBeVisible();
+    await expect(page.getByTestId('characters-shell')).toBeVisible();
+    await expect(page.getByTestId('characters-page')).toBeVisible();
+
+    await page.goto('/journal');
+    await expect(page.locator('#main-content')).toBeVisible();
+    await expect(page.getByTestId('journal-shell')).toBeVisible();
+    await expect(page.getByTestId('journal-page')).toBeVisible();
+
+    await page.goto('/library');
+    await expect(page.locator('#main-content')).toBeVisible();
+    await expect(page.getByTestId('library-page')).toBeVisible();
+
+    await page.goto('/play');
+    await expect(page.locator('#main-content')).toBeVisible();
+    await expect(page.getByTestId('play-shell')).toBeVisible();
+    await expect(page.getByTestId('play-lobby')).toBeVisible();
+  });
+
   test('character portrait saves locally without cloud storage', async ({ page }) => {
     await page.goto('/characters');
     await expect(page.getByTestId('characters-page')).toBeVisible();

@@ -40,13 +40,14 @@
   },
   "dependencies": {
     "@codex/schemas": "*",
+    "@hocuspocus/provider": "^4.3.0",
     "dexie": "^4.0.11",
     "y-indexeddb": "^9.0.12",
-    "@hocuspocus/provider": "^4.3.0",
     "yjs": "^13.6.31"
   },
   "devDependencies": {
     "@codex/config": "*",
+    "fake-indexeddb": "^6.2.5",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
