@@ -49,8 +49,7 @@ describe('play-room-providers', () => {
     doc = new Y.Doc();
     vi.clearAllMocks();
     // Node/vitest has no WebSocket; stub so relay-path tests exercise HocuspocusProvider.
-    // @ts-expect-error - minimal stub for typeof checks
-    globalThis.WebSocket = originalWebSocket ?? class WebSocket {};
+    globalThis.WebSocket = originalWebSocket ?? (class WebSocket {} as unknown as typeof globalThis.WebSocket);
   });
 
   afterEach(() => {
